@@ -8,7 +8,7 @@ async def run(params: Dict[str, Any]) -> Dict[str, Any]:
 
     # Fetch minimal details from users table (source of truth in existing schema)
     user = await db.fetch_one(
-        "SELECT id, first_name, last_name, email, role, createdAt FROM users WHERE id = :id",
+        "SELECT id, first_name, last_name, email, role, created_at AS \"createdAt\" FROM users WHERE id = :id",
         {"id": athlete_id},
     )
     if not user:
@@ -35,4 +35,3 @@ async def run(params: Dict[str, Any]) -> Dict[str, Any]:
             "posts_count_sample": posts_count
         }
     }
-
