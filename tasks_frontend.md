@@ -1,0 +1,1 @@
+make error box for all pages
