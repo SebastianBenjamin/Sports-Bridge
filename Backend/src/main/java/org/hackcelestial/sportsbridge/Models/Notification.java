@@ -2,6 +2,8 @@ package org.hackcelestial.sportsbridge.Models;
 
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,6 +22,7 @@ public class Notification {
 
     private Boolean isRead = false;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
     public Notification() {

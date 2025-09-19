@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.hackcelestial.sportsbridge.Enums.Gender;
 import org.hackcelestial.sportsbridge.Enums.UserRole;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
@@ -30,6 +31,7 @@ public class User {
     @Column(name ="active")
     private Boolean isActive;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Column(name="createdAt")
     private LocalDateTime createdAt;
 
@@ -37,6 +39,7 @@ public class User {
 
     @LastModifiedDate
     @Column(name = "updatedAt")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
     public Long getId() {

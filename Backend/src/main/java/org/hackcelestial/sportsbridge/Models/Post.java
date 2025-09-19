@@ -2,7 +2,9 @@ package org.hackcelestial.sportsbridge.Models;
 
 import jakarta.persistence.*;
 import org.hackcelestial.sportsbridge.Enums.PostType;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -19,6 +21,9 @@ public class Post {
     private User user;
     @ManyToMany
     private List<User> userLikes;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime posted_at;
 
     public Long getId() {
         return id;

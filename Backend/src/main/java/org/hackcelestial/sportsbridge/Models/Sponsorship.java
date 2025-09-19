@@ -3,6 +3,7 @@ package org.hackcelestial.sportsbridge.Models;
 import jakarta.persistence.*;
 import org.hackcelestial.sportsbridge.Enums.CurrencyType;
 import org.hackcelestial.sportsbridge.Enums.InvitationStatus;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 public class Sponsorship {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate contractStartDate, contractEndDate;
     private long amount;
     private CurrencyType currency;
@@ -34,7 +35,7 @@ public class Sponsorship {
     public void setId(Long id) {
         this.id = id;
     }
-
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     public LocalDate getContractStartDate() {
         return contractStartDate;
     }
