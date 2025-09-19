@@ -89,4 +89,19 @@ public class Achievement {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    public Achievement(Long id, Athlete athlete, String title, String description, String competitionName, String certificateUrl, LocalDate achievementDate, Integer rankPosition, LocalDateTime createdAt) {
+        this.id = id;
+        this.athlete = athlete;
+        this.title = title;
+        this.description = description;
+        this.competitionName = competitionName;
+        this.certificateUrl = certificateUrl;
+        this.achievementDate = achievementDate;
+        this.rankPosition = rankPosition;
+        this.createdAt = createdAt;
+    }
+
+    public Achievement() {
+    }
 }

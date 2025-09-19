@@ -1,7 +1,11 @@
 package org.hackcelestial.sportsbridge.Controllers;
 
 import jakarta.servlet.http.HttpSession;
+import org.hackcelestial.sportsbridge.Models.Athlete;
+import org.hackcelestial.sportsbridge.Models.Coach;
+import org.hackcelestial.sportsbridge.Models.Sponsor;
 import org.hackcelestial.sportsbridge.Models.User;
+import org.hackcelestial.sportsbridge.Services.AthleteService;
 import org.hackcelestial.sportsbridge.Services.UserService;
 import org.hackcelestial.sportsbridge.Services.UtilityService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +30,8 @@ public class PageControllers {
     UserService userService;
     @Autowired
     UtilityService utilityService;
+    @Autowired
+    AthleteService athleteService;
 
     @GetMapping("/")
     public String home() {
@@ -69,18 +75,46 @@ public class PageControllers {
             redirectAttributes.addFlashAttribute("Success", "User registered successfully");
             switch (role) {
                 case "admin":
-                    return "redirect:/adminRegister";
+                        return "redirect:/dashboard";
                 case "athlete":
-                        return "redirect:/athleteRegister";
+                    Athlete athlete = new Athlete();
+                    model.addAttribute("athlete", athlete);
+                    return "redirect:/athleteRegister";
                 case "sponsor":
-                            return "redirect:/sponsorRegister";
+                    Sponsor sponsor = new Sponsor();
+                    model.addAttribute("sponsor", sponsor);
+                    return "redirect:/sponsorRegister";
                 case "coach":
+                    Coach coach = new Coach();
+                    model.addAttribute("coach", coach);
                     return "redirect:/coachRegister";
             }
-            return "redirect:/userRole";
         }
         model.addAttribute("user", user);
         redirectAttributes.addFlashAttribute("Error", "User could not be registered");
         return "redirect:/register";
+    }
+    @PostMapping("athleteRegister")
+    public String adminRegister(
+        Athlete athlete,
+        Model model,
+        RedirectAttributes redirectAttributes
+    ){
+    if(session.getAttribute("user") == null) {
+        return "index";
+    }
+    if(athlete!=null){
+
+        if(athleteService.save(athlete)) {
+            redirectAttributes.addFlashAttribute("Success", "Athlete registered successfully");
+            session.setAttribute("role","athlete");
+            return "redirect:/dashboard";
+        }
+        else{
+            redirectAttributes.addFlashAttribute("Error", "Athlete could not be registered");
+        }
+    }
+    model.addAttribute("athlete", athlete);
+    return "redirect:/register";
     }
 }

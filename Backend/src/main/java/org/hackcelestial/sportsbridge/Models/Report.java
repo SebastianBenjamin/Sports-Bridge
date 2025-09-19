@@ -118,4 +118,7 @@ public class Report {
     public void setReviewedBy(User reviewedBy) {
         this.reviewedBy = reviewedBy;
     }
+
+    public Report() {
+    }
 }

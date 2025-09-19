@@ -72,4 +72,7 @@ public class Coach {
     public void setDistrict(String district) {
         this.district = district;
     }
+
+    public Coach() {
+    }
 }

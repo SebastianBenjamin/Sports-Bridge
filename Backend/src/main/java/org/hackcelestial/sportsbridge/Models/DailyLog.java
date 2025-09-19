@@ -79,4 +79,7 @@ public class DailyLog {
     public void setSport(Sport sport) {
         this.sport = sport;
     }
+
+    public DailyLog() {
+    }
 }

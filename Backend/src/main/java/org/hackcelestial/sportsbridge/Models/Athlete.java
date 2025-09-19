@@ -19,7 +19,7 @@ public class Athlete {
     private String emergencyContactPhone;
     private String state,district;
 
-    // Relations
+
     @OneToOne @JoinColumn(name = "user_id")
     private User user;
 
@@ -123,5 +123,8 @@ public class Athlete {
 
     public void setPreviousCoaches(List<Coach> previousCoaches) {
         this.previousCoaches = previousCoaches;
+    }
+
+    public Athlete() {
     }
 }

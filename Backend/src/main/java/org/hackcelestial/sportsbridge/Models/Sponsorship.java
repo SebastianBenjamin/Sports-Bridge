@@ -107,4 +107,7 @@ public class Sponsorship {
     public void setAthlete(Athlete athlete) {
         this.athlete = athlete;
     }
+
+    public Sponsorship() {
+    }
 }

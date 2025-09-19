@@ -47,4 +47,7 @@ public class Sport {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    public Sport() {
+    }
 }
