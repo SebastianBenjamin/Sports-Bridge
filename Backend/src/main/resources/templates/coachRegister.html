@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Registration - Sports Bridge</title>
+    <link rel="stylesheet" th:href="@{/coachRegister.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="register-form">
+            <h2>Complete Your Coach Profile</h2>
+
+            <div th:if="${Success}" class="success-message">
+                <p th:text="${Success}"></p>
+            </div>
+
+            <div th:if="${Error}" class="error-message">
+                <p th:text="${Error}"></p>
+            </div>
+
+            <form th:action="@{/registerCoach}" method="post" th:object="${coach}">
+                <div class="form-group">
+                    <label for="authority">Authority/Certification:</label>
+                    <input type="text" id="authority" th:field="*{authority}" required
+                           placeholder="e.g., SAI Certified, NIS Diploma">
+                </div>
+
+                <div class="form-group">
+                    <label for="specialization">Specialization:</label>
+                    <input type="text" id="specialization" th:field="*{specialization}" required
+                           placeholder="e.g., Cricket, Football, Swimming">
+                </div>
+
+                <div class="form-group">
+                    <label for="experienceYears">Years of Experience:</label>
+                    <input type="number" id="experienceYears" th:field="*{experienceYears}" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="state">State:</label>
+                    <input type="text" id="state" th:field="*{state}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="district">District:</label>
+                    <input type="text" id="district" th:field="*{district}" required>
+                </div>
+
+                <button type="submit" class="submit-btn">Complete Registration</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+

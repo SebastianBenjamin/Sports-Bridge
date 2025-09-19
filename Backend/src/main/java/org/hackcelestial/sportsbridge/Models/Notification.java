@@ -69,4 +69,5 @@ public class Notification {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
 }

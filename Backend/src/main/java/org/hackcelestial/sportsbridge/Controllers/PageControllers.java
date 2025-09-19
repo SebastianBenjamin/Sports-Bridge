@@ -1,9 +1,12 @@
 package org.hackcelestial.sportsbridge.Controllers;
 
 import jakarta.servlet.http.HttpSession;
+import org.hackcelestial.sportsbridge.Enums.UserRole;
+import org.hackcelestial.sportsbridge.Models.Athlete;
+import org.hackcelestial.sportsbridge.Models.Coach;
+import org.hackcelestial.sportsbridge.Models.Sponsor;
 import org.hackcelestial.sportsbridge.Models.User;
-import org.hackcelestial.sportsbridge.Services.UserService;
-import org.hackcelestial.sportsbridge.Services.UtilityService;
+import org.hackcelestial.sportsbridge.Services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Controller;
@@ -26,6 +29,12 @@ public class PageControllers {
     UserService userService;
     @Autowired
     UtilityService utilityService;
+    @Autowired
+    AthleteService athleteService;
+    @Autowired
+    SponserService sponserService;
+    @Autowired
+    CoachService coachService;
 
     @GetMapping("/")
     public String home() {
@@ -63,24 +72,92 @@ public class PageControllers {
         user.setActive(true);
         user.setReportedTimes(0);
         user.setUpdatedAt(LocalDateTime.now());
+//        user.setRole(UserRole.valueOf(role.toUpperCase()));
         if(userService.save(user)) {
             session.setAttribute("user", user);
             model.addAttribute("user", user);
             redirectAttributes.addFlashAttribute("Success", "User registered successfully");
             switch (role) {
                 case "admin":
-                    return "redirect:/adminRegister";
+                        return "redirect:/dashboard";
                 case "athlete":
-                        return "redirect:/athleteRegister";
+                    Athlete athlete = new Athlete();
+                    model.addAttribute("athlete", athlete);
+                    return "redirect:/athleteRegister";
                 case "sponsor":
-                            return "redirect:/sponsorRegister";
+                    Sponsor sponsor = new Sponsor();
+                    model.addAttribute("sponsor", sponsor);
+                    return "redirect:/sponsorRegister";
                 case "coach":
+                    Coach coach = new Coach();
+                    model.addAttribute("coach", coach);
                     return "redirect:/coachRegister";
             }
-            return "redirect:/userRole";
         }
         model.addAttribute("user", user);
         redirectAttributes.addFlashAttribute("Error", "User could not be registered");
-        return "redirect:/register";
+        return "redirect:/registerUser";
+    }
+    @PostMapping("/athleteRegister")
+    public String adminRegister(
+        Athlete athlete,
+        Model model,
+        RedirectAttributes redirectAttributes
+    ){
+    if(session.getAttribute("user") == null) {
+        return "index";
+    }
+    if(athlete!=null){
+
+        if(athleteService.save(athlete)) {
+            redirectAttributes.addFlashAttribute("Success", "Athlete registered successfully");
+            session.setAttribute("role","athlete");
+            return "redirect:/dashboard";
+        }
+        else{
+            redirectAttributes.addFlashAttribute("Error", "Athlete could not be registered");
+        }
+    }
+    model.addAttribute("athlete", athlete);
+    return "redirect:/registerUser";
+    }
+
+    @PostMapping("/sponsorRegister")
+    public String sponsorRegister(
+            Sponsor sponsor,
+            Model model,
+            RedirectAttributes redirectAttributes
+    ){
+        if(session.getAttribute("user") == null) {
+            return "index";
+        }
+        if(sponsor!=null){
+            if(sponserService.save(sponsor)) {
+                redirectAttributes.addFlashAttribute("Success", "Sponsor registered successfully");
+                session.setAttribute("role","sponsor");
+                return "redirect:/dashboard";
+            }
+        }
+        model.addAttribute("sponsor", sponsor);
+        return "redirect:/registerUser";
+
+    }
+    @PostMapping("/coachRegister")
+    public String coachRegister(
+            Coach coach,
+            Model model,
+            RedirectAttributes redirectAttributes
+    ){
+        if(session.getAttribute("user") == null) {
+            return "index";
+        }
+        if(coach!=null){
+            if(coachService.save(coach)) {
+                redirectAttributes.addFlashAttribute("Success", "Coach registered successfully");
+                session.setAttribute("role","coach");
+                return "redirect:/dashboard";
+            }
+        }
+        return "redirect:/registerUser";
     }
 }

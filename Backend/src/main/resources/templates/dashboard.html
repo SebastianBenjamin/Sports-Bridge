@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sports Bridge</title>
+    <link rel="stylesheet" th:href="@{/dashboard.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <h1>Welcome to Sports Bridge Dashboard</h1>
+
+            <div th:if="${Success}" class="success-message">
+                <p th:text="${Success}"></p>
+            </div>
+
+            <div th:if="${Error}" class="error-message">
+                <p th:text="${Error}"></p>
+            </div>
+
+            <div class="user-info">
+                <h2>User Profile</h2>
+                <div th:if="${session.user}">
+                    <p><strong>Name:</strong> <span th:text="${session.user.firstName + ' ' + session.user.lastName}"></span></p>
+                    <p><strong>Email:</strong> <span th:text="${session.user.email}"></span></p>
+                    <p><strong>Role:</strong> <span th:text="${session.user.role}"></span></p>
+                    <p><strong>Country:</strong> <span th:text="${session.user.country}"></span></p>
+                </div>
+            </div>
+
+            <div class="dashboard-content">
+                <h3>Registration Complete!</h3>
+                <p>Your profile has been successfully created. You can now access all features of Sports Bridge.</p>
+
+                <div class="action-buttons">
+                    <a href="#" class="btn btn-primary">Explore Platform</a>
+                    <a href="#" class="btn btn-secondary">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

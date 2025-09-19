@@ -10,10 +10,10 @@ public class UserService {
     @Autowired
     UserRepository userRepository;
     public boolean userExists(String email) {
-        return userRepository.existsByEmail(email)!=null;
+        return userRepository.existsByEmail(email).get()!=null;
     }
     public boolean userExists(String email, String password) {
-        return userRepository.existsByEmailAndPassword(email,password)!=null;
+        return userRepository.existsByEmailAndPassword(email,password).get()!=null;
     }
     public boolean save(User user) {
         return userRepository.save(user)!=null;

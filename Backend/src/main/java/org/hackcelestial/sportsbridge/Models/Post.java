@@ -72,4 +72,7 @@ public class Post {
     public void setUserLikes(List<User> userLikes) {
         this.userLikes = userLikes;
     }
+
+    public Post() {
+    }
 }
