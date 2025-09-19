@@ -50,9 +50,9 @@
                     <label for="gender">Gender:</label>
                     <select id="gender" th:field="*{gender}" required>
                         <option value="">Select Gender</option>
-                        <option th:value="${T(org.hackcelestial.sportsbridge.Enums.Gender).MALE}">Male</option>
-                        <option th:value="${T(org.hackcelestial.sportsbridge.Enums.Gender).FEMALE}">Female</option>
-                        <option th:value="${T(org.hackcelestial.sportsbridge.Enums.Gender).TRANS}">Trans</option>
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                        <option value="TRANS">Trans</option>
                     </select>
                 </div>
 
@@ -79,7 +79,6 @@
                         <option value="COACH">Coach</option>
                         <option value="SPONSOR">Sponsor</option>
                     </select>
-
                 </div>
 
                 <button type="submit" class="submit-btn">Register</button>
@@ -88,4 +87,3 @@
     </div>
 </body>
 </html>
-

@@ -19,7 +19,7 @@
                 <p th:text="${Error}"></p>
             </div>
 
-            <form th:action="@{/registerCoach}" method="post" th:object="${coach}">
+            <form th:action="@{/coachRegister}" method="post" th:object="${coach}">
                 <div class="form-group">
                     <label for="authority">Authority/Certification:</label>
                     <input type="text" id="authority" th:field="*{authority}" required
@@ -53,4 +53,3 @@
     </div>
 </body>
 </html>
-
