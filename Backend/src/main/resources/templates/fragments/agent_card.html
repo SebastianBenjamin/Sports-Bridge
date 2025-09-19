@@ -26,8 +26,8 @@ async function runWorkflow(btn){
     const data = await r.json();
     if(!r.ok){ pre.textContent = 'Error: '+(data.error||r.status); return; }
     pre.textContent = 'Submitted, id='+data.id+' (status '+data.status+'). Polling...';
-    // Poll AI service directly (dev)
-    const pollUrl = 'http://localhost:8001/ai-results/'+data.id;
+    // Poll via backend proxy to AI
+    const pollUrl = '/api/ai/results/'+data.id;
     let tries = 0;
     const poll = async ()=>{
       tries++;
@@ -49,4 +49,3 @@ async function runWorkflow(btn){
 </script>
 </body>
 </html>
-
