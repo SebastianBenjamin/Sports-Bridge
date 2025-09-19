@@ -1,4 +1,3 @@
--- Seed legacy users with ON CONFLICT to avoid duplicates
 INSERT INTO users (id, first_name, last_name, email, password, role, phone, date_of_birth, gender, aadhar_number, address, city, state, pincode, country, created_at, updated_at)
 VALUES
 (120, 'Priya', 'Pro', 'priya.pro@sports.com', '$2a$10$N.zmdr9k7uOLTACIxHKHhOKrnyGSpP5/CKWq7/FxvhgLQvPZaHYlu', 'ATHELETE', '+919900000120', '1999-12-12', 'FEMALE', '111122229999', '9 Fit St', 'Mumbai', 'Maharashtra', '400003', 'India', NOW() - INTERVAL '1400 days', NOW()),
