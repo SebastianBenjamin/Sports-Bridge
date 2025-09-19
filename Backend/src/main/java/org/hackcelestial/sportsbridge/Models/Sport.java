@@ -1,6 +1,7 @@
 package org.hackcelestial.sportsbridge.Models;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,7 +13,7 @@ public class Sport {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name, description;
-
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
     public Long getId() {

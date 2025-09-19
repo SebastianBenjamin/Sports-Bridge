@@ -1,6 +1,7 @@
 package org.hackcelestial.sportsbridge.Models;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.*;
 
@@ -12,6 +13,7 @@ public class Achievement {
     @ManyToOne
     private Athlete athlete;
     private String title, description, competitionName, certificateUrl;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate achievementDate;
     private Integer rankPosition;
     private LocalDateTime createdAt;

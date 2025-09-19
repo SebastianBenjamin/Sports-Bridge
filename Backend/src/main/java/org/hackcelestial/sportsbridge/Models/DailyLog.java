@@ -1,6 +1,7 @@
 package org.hackcelestial.sportsbridge.Models;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ public class DailyLog {
 
     private Integer trainingDurationMinutes;
     private String trainingType, notes;
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
     @ManyToOne
