@@ -98,8 +98,16 @@ async def get_ai_result(result_id: int):
     }
 
 
+@app.get("/sponsor-recommendations")
+async def sponsor_recommendations():
+    # Immediate computation (no persistence)
+    try:
+        result = await sponsor_recommendation.run({})
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/")
 async def root():
     return {"service": "ai", "ok": True}
-
-

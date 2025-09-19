@@ -30,10 +30,16 @@ curl http://localhost:8001/ai-results/1
 ```
 
 ## Smoke: Sponsor recommendation
+Two options:
+1) Background-run via run-workflow
 ```bash
 curl -X POST http://localhost:8001/run-workflow ^
   -H "Content-Type: application/json" ^
   -d "{\"name\":\"sponsor_recommendation\",\"params\":{}}"
+```
+2) Direct synchronous endpoint
+```bash
+curl http://localhost:8001/sponsor-recommendations
 ```
 
 ## Smoke: Invitations + Chat (Backend)
@@ -54,4 +60,3 @@ curl -X POST http://localhost:8080/api/invitations/1/respond ^
 # chat messages
 curl http://localhost:8080/api/chat/rooms/1/messages
 ```
-
