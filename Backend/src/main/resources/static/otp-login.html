@@ -135,8 +135,8 @@
       const j = await call('/api/auth/verify', 'POST', { phone: pendingPhone, otp });
       if (!j.token) throw new Error('No token received');
       localStorage.setItem('sb_token', j.token);
-      showAlert('Logged in successfully! Redirecting...', 'success');
-      setTimeout(()=> window.location.href = '/feed.html', 700);
+      showAlert('Verified! Redirecting to set password...', 'success');
+      setTimeout(()=> window.location.href = '/set-password.html', 700);
     } catch(e){ showAlert(e.message, 'danger'); }
   };
 })();
@@ -144,4 +144,3 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-

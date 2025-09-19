@@ -119,6 +119,18 @@ public class PostsApiController {
                 dto.put("liked_by_current_user", likedByCurrent);
                 items.add(dto);
             }
+            // If JPA returned nothing but JDBC is available, try a JDBC fallback to cover mapping issues
+            if (items.isEmpty() && jdbcTemplate != null) {
+                try {
+                    return ResponseEntity.ok(jdbcFeedFallback(currentUser, page, size, false)); // prefer author_id
+                } catch (Exception tryUserId) {
+                    try {
+                        return ResponseEntity.ok(jdbcFeedFallback(currentUser, page, size, true)); // fall back to user_id
+                    } catch (Exception finalFail) {
+                        // ignore and return empty list below
+                    }
+                }
+            }
             return ResponseEntity.ok(items);
         } catch (Exception ex) {
             // JDBC fallback for schema variance (user_id vs author_id) or lazy mapping issues
@@ -221,5 +233,28 @@ public class PostsApiController {
     @Transactional
     public ResponseEntity<?> likeAlias(@CurrentUser SbUser user, @PathVariable("id") Long id) {
         return toggleLike(user, id);
+    }
+
+    @GetMapping("/debug")
+    public ResponseEntity<?> debug() {
+        if (jdbcTemplate == null) return ResponseEntity.status(501).body(Map.of("error", "JDBC not available"));
+        try {
+            Map<String, Object> out = new LinkedHashMap<>();
+            Long postsCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM sb_posts", Long.class);
+            out.put("postsCount", postsCount);
+            Integer nullAuthorCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM sb_posts WHERE author_id IS NULL", Integer.class);
+            out.put("nullAuthorCount", nullAuthorCount);
+            List<Map<String, Object>> posts = jdbcTemplate.queryForList(
+                    "SELECT id, caption, created_at, author_id, user_id FROM sb_posts ORDER BY created_at DESC LIMIT 5"
+            );
+            out.put("posts", posts);
+            List<Map<String, Object>> imagesPerPost = jdbcTemplate.queryForList(
+                    "SELECT post_id, COUNT(*) AS c FROM sb_post_images GROUP BY post_id ORDER BY post_id DESC LIMIT 10"
+            );
+            out.put("imagesPerPost", imagesPerPost);
+            return ResponseEntity.ok(out);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
     }
 }

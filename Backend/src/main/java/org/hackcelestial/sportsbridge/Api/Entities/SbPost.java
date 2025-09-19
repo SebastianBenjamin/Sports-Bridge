@@ -13,7 +13,7 @@ public class SbPost {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "author_id", nullable = false)
     private SbUser author;
 
     @Column(name = "caption", length = 500)

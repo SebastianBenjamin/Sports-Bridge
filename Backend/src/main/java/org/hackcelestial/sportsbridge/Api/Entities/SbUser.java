@@ -48,6 +48,9 @@ public class SbUser {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "password_hash", length = 100)
+    private String passwordHash; // BCrypt
+
     // getters and setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -78,5 +81,7 @@ public class SbUser {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-}
 
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+}

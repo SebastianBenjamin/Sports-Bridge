@@ -25,15 +25,30 @@ public class DemoSchemaCompatConfig {
 
     @PostConstruct
     public void init() {
+        ensureSbUsersPasswordHashColumn();
         ensureSbPostsUserIdColumn();
+        ensureSbPostsAuthorIdColumn();
         createOrReplaceLegacyViews();
         reconcileLikeCounts();
+    }
+
+    private void ensureSbUsersPasswordHashColumn() {
+        if (jdbcTemplate == null) return;
+        try {
+            Integer cnt = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM information_schema.columns WHERE table_name='sb_users' AND column_name='password_hash'",
+                    Integer.class
+            );
+            if (cnt == null || cnt == 0) {
+                jdbcTemplate.execute("ALTER TABLE sb_users ADD COLUMN password_hash varchar(100)");
+            }
+        } catch (Exception ignore) { }
     }
 
     private void ensureSbPostsUserIdColumn() {
         if (jdbcTemplate == null) return;
         try {
-            // 1) Add column if missing (nullable first)
+            // Add legacy user_id column if missing (nullable)
             Integer cnt = jdbcTemplate.queryForObject(
                     "SELECT COUNT(*) FROM information_schema.columns WHERE table_name='sb_posts' AND column_name='user_id'",
                     Integer.class
@@ -41,43 +56,48 @@ public class DemoSchemaCompatConfig {
             if (cnt == null || cnt == 0) {
                 jdbcTemplate.execute("ALTER TABLE sb_posts ADD COLUMN user_id bigint");
             }
-            // 2) Populate user_id if nulls exist
-            Integer nulls = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM sb_posts WHERE user_id IS NULL", Integer.class);
-            if (nulls != null && nulls > 0) {
-                // Prefer old author_id if available
-                Integer hasAuthor = jdbcTemplate.queryForObject(
-                        "SELECT COUNT(*) FROM information_schema.columns WHERE table_name='sb_posts' AND column_name='author_id'",
-                        Integer.class
-                );
-                if (hasAuthor != null && hasAuthor > 0) {
-                    jdbcTemplate.execute("UPDATE sb_posts SET user_id = author_id WHERE user_id IS NULL");
-                } else {
-                    // Fallback: set to the first available sb_user id if present
-                    Long anyUserId = null;
-                    try {
-                        anyUserId = jdbcTemplate.queryForObject("SELECT id FROM sb_users ORDER BY id LIMIT 1", Long.class);
-                    } catch (Exception ignore) {}
-                    if (anyUserId != null) {
-                        jdbcTemplate.update("UPDATE sb_posts SET user_id = ? WHERE user_id IS NULL", anyUserId);
-                    }
-                }
-            }
-            // 3) Set NOT NULL if possible
-            Integer stillNulls = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM sb_posts WHERE user_id IS NULL", Integer.class);
-            if (stillNulls != null && stillNulls == 0) {
-                try { jdbcTemplate.execute("ALTER TABLE sb_posts ALTER COLUMN user_id SET NOT NULL"); } catch (Exception ignore) {}
-            }
-            // 4) Add FK if not exists
-            Integer fkExists = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM information_schema.table_constraints WHERE table_name='sb_posts' AND constraint_type='FOREIGN KEY' AND constraint_name='fk_sb_posts_user'",
+            // Best-effort populate user_id from author_id for existing rows (kept nullable for new rows)
+            Integer hasAuthor = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM information_schema.columns WHERE table_name='sb_posts' AND column_name='author_id'",
                     Integer.class
             );
-            if (fkExists == null || fkExists == 0) {
-                try { jdbcTemplate.execute("ALTER TABLE sb_posts ADD CONSTRAINT fk_sb_posts_user FOREIGN KEY (user_id) REFERENCES sb_users(id)"); } catch (Exception ignore) {}
+            if (hasAuthor != null && hasAuthor > 0) {
+                try { jdbcTemplate.execute("UPDATE sb_posts SET user_id = author_id WHERE user_id IS NULL"); } catch (Exception ignore) {}
             }
+            // Ensure legacy user_id is nullable (drop NOT NULL if previously set)
+            try {
+                String isNullable = jdbcTemplate.queryForObject(
+                        "SELECT is_nullable FROM information_schema.columns WHERE table_name='sb_posts' AND column_name='user_id'",
+                        String.class
+                );
+                if ("NO".equalsIgnoreCase(isNullable)) {
+                    try { jdbcTemplate.execute("ALTER TABLE sb_posts ALTER COLUMN user_id DROP NOT NULL"); } catch (Exception ignore) {}
+                }
+            } catch (Exception ignore) {}
+            // Attempt to drop FK on user_id if one exists with the known name
+            try { jdbcTemplate.execute("ALTER TABLE sb_posts DROP CONSTRAINT IF EXISTS fk_sb_posts_user"); } catch (Exception ignore) {}
         } catch (Exception ignore) {
             // Best-effort; do not fail app startup
         }
+    }
+
+    private void ensureSbPostsAuthorIdColumn() {
+        if (jdbcTemplate == null) return;
+        try {
+            Integer cnt = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM information_schema.columns WHERE table_name='sb_posts' AND column_name='author_id'",
+                    Integer.class
+            );
+            if (cnt == null || cnt == 0) {
+                // Add author_id and try to backfill from user_id
+                jdbcTemplate.execute("ALTER TABLE sb_posts ADD COLUMN author_id bigint");
+                try { jdbcTemplate.execute("UPDATE sb_posts SET author_id = user_id WHERE author_id IS NULL AND user_id IS NOT NULL"); } catch (Exception ignore) {}
+                // Do not enforce NOT NULL here to avoid startup failures on legacy data
+            } else {
+                // Column exists: best-effort backfill any NULLs from user_id
+                try { jdbcTemplate.execute("UPDATE sb_posts SET author_id = user_id WHERE author_id IS NULL AND user_id IS NOT NULL"); } catch (Exception ignore) {}
+            }
+        } catch (Exception ignore) { }
     }
 
     private void createOrReplaceLegacyViews() {

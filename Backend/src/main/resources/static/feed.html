@@ -182,5 +182,76 @@ function App(){
 
 ReactDOM.createRoot(document.getElementById('app')).render(<App/>);
 </script>
+
+<script>
+// Plain-JS fallback if React/Babel CDNs fail (e.g., offline). No styling guarantees.
+(function(){
+  if (window.React && window.ReactDOM) return; // React loaded, fallback not needed
+  var app = document.getElementById('app');
+  if (!app) return;
+  var note = document.createElement('div');
+  note.className = 'alert alert-warning';
+  note.textContent = 'Offline or CDN blocked: showing basic feed.';
+  app.appendChild(note);
+
+  function api(url, opts){
+    opts = opts || {};
+    opts.headers = opts.headers || {};
+    var token = localStorage.getItem('sb_token');
+    if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+    return fetch(url, opts).then(function(res){
+      return res.json().catch(function(){ return {}; }).then(function(body){
+        if (!res.ok) {
+          var msg = (body && body.error) || res.statusText || 'Request failed';
+          throw new Error(msg);
+        }
+        return body;
+      });
+    });
+  }
+
+  function render(items){
+    if (!Array.isArray(items)) items = items.items || [];
+    if (items.length === 0) {
+      var empty = document.createElement('div');
+      empty.className = 'text-center text-muted py-5';
+      empty.textContent = 'No posts yet. Be the first to share!';
+      app.appendChild(empty);
+      return;
+    }
+    items.forEach(function(p){
+      var card = document.createElement('div');
+      card.className = 'card mb-3';
+      var body = document.createElement('div');
+      body.className = 'card-body';
+      var header = document.createElement('div');
+      header.className = 'd-flex align-items-center mb-2';
+      var img = document.createElement('img');
+      img.className = 'rounded-circle me-2'; img.style.width='40px'; img.style.height='40px';
+      img.src = (p.user && p.user.profilePicUrl) || 'https://via.placeholder.com/40';
+      header.appendChild(img);
+      var meta = document.createElement('div');
+      var name = document.createElement('div');
+      name.innerHTML = '<strong>' + ((p.user && (p.user.name||'')) || 'Unknown') + '</strong>';
+      var small = document.createElement('small'); small.className = 'text-muted';
+      small.textContent = p.created_at ? new Date(p.created_at).toLocaleString() : '';
+      meta.appendChild(name); meta.appendChild(small); header.appendChild(meta);
+      body.appendChild(header);
+      if (p.caption) { var cap = document.createElement('p'); cap.className='mb-2'; cap.textContent=p.caption; body.appendChild(cap); }
+      var imgs = p.images || []; if (imgs.length){ var grid=document.createElement('div'); grid.className='d-flex flex-wrap gap-2'; imgs.forEach(function(u){ var im=document.createElement('img'); im.src=u; im.style.maxWidth='200px'; im.style.borderRadius='6px'; grid.appendChild(im);}); body.appendChild(grid);}
+      var actions = document.createElement('div'); actions.className='mt-2 d-flex align-items-center gap-3';
+      var like = document.createElement('span'); like.textContent = (p.like_count||0) + ' likes'; actions.appendChild(like);
+      body.appendChild(actions);
+      card.appendChild(body); app.appendChild(card);
+    });
+  }
+
+  api('/api/posts/feed?page=0&size=10').then(render).catch(function(err){
+    var errBox = document.createElement('div'); errBox.className='alert alert-danger';
+    errBox.textContent = err && err.message ? err.message : String(err);
+    app.appendChild(errBox);
+  });
+})();
+</script>
 </body>
 </html>

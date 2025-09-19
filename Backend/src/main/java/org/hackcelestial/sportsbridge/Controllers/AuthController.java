@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -28,12 +29,11 @@ public class AuthController {
     @Autowired
     private HttpSession session;
 
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
     @GetMapping("/login")
     public String loginPage() {
-        // If already logged in, go to dashboard
-        if (session.getAttribute("user") != null) {
-            return "redirect:/dashboard";
-        }
+        // Render the legacy login page; it now includes links to OTP and phone+password flows
         return "auth/login";
     }
 
@@ -41,8 +41,22 @@ public class AuthController {
     public String login(@RequestParam String email,
                         @RequestParam String password,
                         Model model) {
-        User user = userService.findByEmailAndPassword(email, password);
+        // Updated: verify against hashed password if present
+        User user = userService.findByEmail(email);
         if (user == null) {
+            model.addAttribute("error", "Invalid email or password");
+            return "auth/login";
+        }
+        String stored = user.getPassword();
+        boolean ok = false;
+        if (stored != null) {
+            if (stored.startsWith("$2a$") || stored.startsWith("$2b$") || stored.startsWith("$2y$")) {
+                ok = encoder.matches(password, stored);
+            } else {
+                ok = stored.equals(password);
+            }
+        }
+        if (!ok) {
             model.addAttribute("error", "Invalid email or password");
             return "auth/login";
         }
@@ -52,17 +66,15 @@ public class AuthController {
 
     @GetMapping("/register")
     public String registerPage(Model model) {
-        if (!model.containsAttribute("userForm")) {
-            model.addAttribute("userForm", new User());
-        }
-        model.addAttribute("roles", UserRole.values());
-        return "auth/register";
+        // Redirect to the new OTP-based signup
+        return "redirect:/otp-login.html";
     }
 
     @PostMapping("/register")
     public String register(@ModelAttribute("userForm") User userForm,
                            @RequestParam("profileImage") MultipartFile profileImage,
                            Model model) {
+        // Legacy handler retained for backward-compat, but not used by the new UI
         // Basic validations
         if (userForm.getEmail() == null || userForm.getPassword() == null || userForm.getRole() == null) {
             model.addAttribute("error", "Email, password and role are required");
@@ -89,6 +101,12 @@ public class AuthController {
             return "auth/register";
         }
 
+        // Hash the password before saving (legacy fallback preserves existing plaintext comparisons)
+        String raw = userForm.getPassword();
+        if (raw != null && !raw.isBlank()) {
+            userForm.setPassword(encoder.encode(raw));
+        }
+
         userForm.setCreatedAt(LocalDateTime.now());
         userForm.setActive(true);
         boolean saved = userService.save(userForm);
@@ -112,6 +130,12 @@ public class AuthController {
         }
         // Fallback: serve whole absolute path as file URL (best-effort)
         return "/uploads/" + Paths.get(absolutePath).getFileName().toString();
+    }
+
+    @GetMapping("/forgot-password")
+    public String forgotPassword() {
+        // Route users to OTP page; after OTP they can set password
+        return "redirect:/otp-login.html";
     }
 
     @GetMapping("/logout")

@@ -1,20 +1,26 @@
 package org.hackcelestial.sportsbridge.Api.Controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.hackcelestial.sportsbridge.Api.Entities.SbUser;
 import org.hackcelestial.sportsbridge.Api.Repositories.SbUserRepository;
 import org.hackcelestial.sportsbridge.Api.Services.CryptoService;
 import org.hackcelestial.sportsbridge.Api.Services.JwtService;
 import org.hackcelestial.sportsbridge.Api.Services.OtpPhoneService;
+import org.hackcelestial.sportsbridge.Api.Security.CurrentUser;
 import org.hackcelestial.sportsbridge.Enums.ApiUserRole;
+import org.hackcelestial.sportsbridge.Models.User;
+import org.hackcelestial.sportsbridge.Enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -30,6 +36,9 @@ public class AuthApiController {
     private JwtService jwtService;
     @Autowired
     private Environment environment;
+
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private static final Pattern E164 = Pattern.compile("^\\+?\\d{10,15}$");
 
     private boolean validAadhaar(String a) {
         return a != null && a.matches("^\\d{12}$");
@@ -149,6 +158,95 @@ public class AuthApiController {
 
         String token = jwtService.issueToken(user.getId(), user.getPhone());
         return ResponseEntity.ok(Map.of("token", token));
+    }
+
+    // NEW: Set password for the current user (requires JWT from verify/login)
+    public static class SetPasswordRequest { public String password; }
+
+    @PostMapping("/set-password")
+    @Transactional
+    public ResponseEntity<?> setPassword(@CurrentUser SbUser currentUser, @RequestBody SetPasswordRequest body) {
+        if (currentUser == null) return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        if (body == null || body.password == null || body.password.length() < 6) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Password must be at least 6 characters"));
+        }
+        currentUser.setPasswordHash(encoder.encode(body.password));
+        userRepository.save(currentUser);
+        return ResponseEntity.ok(Map.of("status", "PASSWORD_SET"));
+    }
+
+    // NEW: Password login (phone + password)
+    public static class PasswordLoginRequest { public String phone; public String password; }
+
+    @PostMapping("/password-login")
+    public ResponseEntity<?> passwordLogin(@RequestBody PasswordLoginRequest body) {
+        try {
+            if (body == null || body.phone == null || body.password == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Missing phone or password"));
+            }
+            String raw = body.phone.trim();
+            if (!E164.matcher(raw).matches()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid phone format"));
+            }
+            Optional<SbUser> ou = userRepository.findByPhone(raw);
+            // Heuristic: if 10 digits without +country code, also try +91 prefix
+            if (ou.isEmpty() && raw.matches("^\\d{10}$")) {
+                ou = userRepository.findByPhone("+91" + raw);
+            }
+            // Heuristic: if +91 + 10 digits and not found, try bare 10 digits
+            if (ou.isEmpty() && raw.startsWith("+91") && raw.substring(3).matches("^\\d{10}$")) {
+                ou = userRepository.findByPhone(raw.substring(3));
+            }
+            if (ou.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of("error", "Account not found or not verified"));
+            }
+            SbUser u = ou.get();
+            if (!u.isVerified()) {
+                return ResponseEntity.status(403).body(Map.of("error", "Account not verified"));
+            }
+            if (u.getPasswordHash() == null || !encoder.matches(body.password, u.getPasswordHash())) {
+                return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
+            }
+            String token = jwtService.issueToken(u.getId(), u.getPhone());
+            return ResponseEntity.ok(Map.of("token", token));
+        } catch (Exception ex) {
+            return ResponseEntity.status(500).body(Map.of("error", "Internal error"));
+        }
+    }
+
+    @PostMapping("/session-attach")
+    public ResponseEntity<?> sessionAttach(@CurrentUser SbUser currentUser, HttpSession session) {
+        if (currentUser == null) return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        User legacy = new User();
+        // Split full name into first/last best-effort
+        String full = Optional.ofNullable(currentUser.getFullName()).orElse("").trim();
+        String first = full, last = "";
+        int sp = full.indexOf(' ');
+        if (sp > 0) { first = full.substring(0, sp); last = full.substring(sp+1); }
+        legacy.setFirstName(first);
+        legacy.setLastName(last);
+        legacy.setEmail(Optional.ofNullable(currentUser.getEmail()).orElse(currentUser.getPhone()+"@local"));
+        legacy.setPhone(currentUser.getPhone());
+        legacy.setProfileImageUrl(currentUser.getProfilePicUrl());
+        legacy.setActive(true);
+        // Map API role to legacy role (ATHLETE -> ATHELETE typo handling)
+        UserRole lr;
+        try {
+            ApiUserRole apiRole = currentUser.getRole();
+            if (apiRole == ApiUserRole.ATHLETE) {
+                lr = UserRole.ATHELETE;
+            } else if (apiRole == ApiUserRole.COACH) {
+                lr = UserRole.COACH;
+            } else if (apiRole == ApiUserRole.SPONSOR) {
+                lr = UserRole.SPONSOR;
+            } else {
+                // USER or any future role maps to athlete by default
+                lr = UserRole.ATHELETE;
+            }
+        } catch (Exception e) { lr = UserRole.ATHELETE; }
+        legacy.setRole(lr);
+        session.setAttribute("user", legacy);
+        return ResponseEntity.ok(Map.of("status", "SESSION_ATTACHED"));
     }
 
     @GetMapping("/dev/peek-otp")
