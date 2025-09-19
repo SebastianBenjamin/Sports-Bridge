@@ -1,11 +1,13 @@
 package org.hackcelestial.sportsbridge.Controllers;
 
 import jakarta.servlet.http.HttpSession;
+import org.hackcelestial.sportsbridge.Enums.UserRole;
 import org.hackcelestial.sportsbridge.Models.Athlete;
 import org.hackcelestial.sportsbridge.Models.Coach;
 import org.hackcelestial.sportsbridge.Models.Sponsor;
 import org.hackcelestial.sportsbridge.Models.User;
 import org.hackcelestial.sportsbridge.Services.AthleteService;
+import org.hackcelestial.sportsbridge.Services.SponserService;
 import org.hackcelestial.sportsbridge.Services.UserService;
 import org.hackcelestial.sportsbridge.Services.UtilityService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,8 @@ public class PageControllers {
     UtilityService utilityService;
     @Autowired
     AthleteService athleteService;
+    @Autowired
+    SponserService sponserService;
 
     @GetMapping("/")
     public String home() {
@@ -69,6 +73,7 @@ public class PageControllers {
         user.setActive(true);
         user.setReportedTimes(0);
         user.setUpdatedAt(LocalDateTime.now());
+        user.setRole(UserRole.valueOf(role.toUpperCase()));
         if(userService.save(user)) {
             session.setAttribute("user", user);
             model.addAttribute("user", user);
@@ -92,9 +97,9 @@ public class PageControllers {
         }
         model.addAttribute("user", user);
         redirectAttributes.addFlashAttribute("Error", "User could not be registered");
-        return "redirect:/register";
+        return "redirect:/registerUser";
     }
-    @PostMapping("athleteRegister")
+    @PostMapping("/athleteRegister")
     public String adminRegister(
         Athlete athlete,
         Model model,
@@ -115,6 +120,27 @@ public class PageControllers {
         }
     }
     model.addAttribute("athlete", athlete);
-    return "redirect:/register";
+    return "redirect:/registerUser";
+    }
+
+    @PostMapping("/sponsorRegister")
+    public String sponsorRegister(
+            Sponsor sponsor,
+            Model model,
+            RedirectAttributes redirectAttributes
+    ){
+        if(session.getAttribute("user") == null) {
+            return "index";
+        }
+        if(sponsor!=null){
+            if(sponserService.save(sponsor)) {
+                redirectAttributes.addFlashAttribute("Success", "Sponsor registered successfully");
+                session.setAttribute("role","sponsor");
+                return "redirect:/dashboard";
+            }
+        }
+        model.addAttribute("sponsor", sponsor);
+        return "redirect:/registerUser";
+
     }
 }
