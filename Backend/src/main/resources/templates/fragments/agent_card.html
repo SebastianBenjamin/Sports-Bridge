@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div class="card mb-3" th:fragment="agent_card(title, workflowName, paramsJson)">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <strong th:text="${title}">AI Agent</strong>
+    <button type="button" class="btn btn-sm btn-primary" onclick="runWorkflow(this)" th:attr="data-workflow=${workflowName},data-params=${paramsJson}">
+      Run
+    </button>
+  </div>
+  <div class="card-body">
+    <pre class="mb-0 small" style="white-space:pre-wrap" aria-live="polite">Ready</pre>
+  </div>
+</div>
+<script>
+async function runWorkflow(btn){
+  const card = btn.closest('.card');
+  const pre = card.querySelector('pre');
+  pre.textContent = 'Submitting...';
+  try {
+    const wf = btn.getAttribute('data-workflow');
+    const paramsRaw = btn.getAttribute('data-params')||'{}';
+    let params = {};
+    try { params = JSON.parse(paramsRaw); } catch(e) {}
+    const r = await fetch('/api/ai/run', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:wf, params})});
+    const data = await r.json();
+    if(!r.ok){ pre.textContent = 'Error: '+(data.error||r.status); return; }
+    pre.textContent = 'Submitted, id='+data.id+' (status '+data.status+'). Polling...';
+    // Poll AI service directly (dev)
+    const pollUrl = 'http://localhost:8001/ai-results/'+data.id;
+    let tries = 0;
+    const poll = async ()=>{
+      tries++;
+      try{
+        const pr = await fetch(pollUrl);
+        if(pr.ok){
+          const pd = await pr.json();
+          if(pd.status==='COMPLETED' || pd.status==='FAILED'){
+            pre.textContent = JSON.stringify(pd, null, 2);
+            return;
+          }
+        }
+      }catch(e){}
+      if(tries<20){ setTimeout(poll, 1500); }
+    };
+    poll();
+  } catch (e){ pre.textContent = 'Exception: '+(e.message||e); }
+}
+</script>
+</body>
+</html>
+
