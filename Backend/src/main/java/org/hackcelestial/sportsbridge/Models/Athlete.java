@@ -18,8 +18,6 @@ public class Athlete {
     private String emergencyContactName;
     private String emergencyContactPhone;
     private String state,district;
-//    private Coach currentCoach;
-//    private List<Coach> previousCoaches;
 
     // Relations
     @OneToOne @JoinColumn(name = "user_id")
@@ -30,4 +28,100 @@ public class Athlete {
 
     @ManyToMany
     private List<Coach> previousCoaches;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Double getHeight() {
+        return height;
+    }
+
+    public void setHeight(Double height) {
+        this.height = height;
+    }
+
+    public Double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(Double weight) {
+        this.weight = weight;
+    }
+
+    public Boolean getDisabled() {
+        return isDisabled;
+    }
+
+    public void setDisabled(Boolean disabled) {
+        isDisabled = disabled;
+    }
+
+    public String getDisabilityType() {
+        return disabilityType;
+    }
+
+    public void setDisabilityType(String disabilityType) {
+        this.disabilityType = disabilityType;
+    }
+
+    public String getEmergencyContactName() {
+        return emergencyContactName;
+    }
+
+    public void setEmergencyContactName(String emergencyContactName) {
+        this.emergencyContactName = emergencyContactName;
+    }
+
+    public String getEmergencyContactPhone() {
+        return emergencyContactPhone;
+    }
+
+    public void setEmergencyContactPhone(String emergencyContactPhone) {
+        this.emergencyContactPhone = emergencyContactPhone;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getDistrict() {
+        return district;
+    }
+
+    public void setDistrict(String district) {
+        this.district = district;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Coach getCurrentCoach() {
+        return currentCoach;
+    }
+
+    public void setCurrentCoach(Coach currentCoach) {
+        this.currentCoach = currentCoach;
+    }
+
+    public List<Coach> getPreviousCoaches() {
+        return previousCoaches;
+    }
+
+    public void setPreviousCoaches(List<Coach> previousCoaches) {
+        this.previousCoaches = previousCoaches;
+    }
 }
