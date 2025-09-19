@@ -8,27 +8,27 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- Set profile images for some users to help AI marketability and performance proxies
-UPDATE users SET profileImageUrl = '/uploads/sample1.jpg' WHERE id IN (100, 102, 108, 120) AND (profileImageUrl IS NULL OR profileImageUrl = '');
-UPDATE users SET profileImageUrl = NULL WHERE id IN (101, 110, 121);
+UPDATE users SET profile_image_url = '/uploads/sample1.jpg' WHERE id IN (100, 102, 108, 120) AND (profile_image_url IS NULL OR profile_image_url = '');
+UPDATE users SET profile_image_url = NULL WHERE id IN (101, 110, 121);
 
 -- Coaches
-INSERT INTO coaches (id, user_id, authority, specialization, experienceYears, state, district) VALUES
+INSERT INTO coaches (id, user_id, authority, specialization, experience_years, state, district) VALUES
 (220, 122, 'National Board', 'Sprint', 18, 'Maharashtra', 'Pune')
 ON CONFLICT (id) DO NOTHING;
 
 -- Athletes
-INSERT INTO athletes (id, user_id, height, weight, isDisabled, disabilityType, emergencyContactName, emergencyContactPhone, state, district) VALUES
+INSERT INTO athletes (id, user_id, height, weight, is_disabled, disability_type, emergency_contact_name, emergency_contact_phone, state, district) VALUES
 (320, 120, 1.72, 58.0, false, NULL, 'Mom Priya', '+919999999120', 'Maharashtra', 'Mumbai'),
 (321, 121, NULL, NULL, false, NULL, 'Dad Rahul', '+919999999121', 'Delhi', 'New Delhi')
 ON CONFLICT (id) DO NOTHING;
 
 -- Sponsors
-INSERT INTO sponsors (id, user_id, companyName, industry, website, budgetRange) VALUES
+INSERT INTO sponsors (id, user_id, company_name, industry, website, budget_range) VALUES
 (420, 123, 'MegaCorp', 'Tech', 'https://mega.example.com', '5000000-20000000')
 ON CONFLICT (id) DO NOTHING;
 
 -- Achievements
-INSERT INTO achievements (id, athlete_id, title, description, competitionName, certificateUrl, achievementDate, rankPosition, createdAt) VALUES
+INSERT INTO achievements (id, athlete_id, title, description, competition_name, certificate_url, achievement_date, rank_position, created_at) VALUES
 (520, 320, 'District Gold', 'Top of the podium', 'Mumbai District', NULL, '2024-07-10', 1, NOW() - INTERVAL '60 days'),
 (521, 320, 'Intercity Silver', 'Strong finish', 'Intercity Cup', NULL, '2025-01-15', 2, NOW() - INTERVAL '30 days')
 ON CONFLICT (id) DO NOTHING;
@@ -44,7 +44,6 @@ INSERT INTO chat_rooms (id, coach_id, player_id, created_at) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO chat_messages (id, room_id, sender_id, content, created_at) VALUES
-(820, 720, 122, 'Hi Rahul, let\'s begin with basics.', NOW() - INTERVAL '1 days'),
+(820, 720, 122, 'Hi Rahul, let''s begin with basics.', NOW() - INTERVAL '1 days'),
 (821, 720, 121, 'Yes coach!', NOW() - INTERVAL '1 days' + INTERVAL '5 minutes')
 ON CONFLICT (id) DO NOTHING;
-

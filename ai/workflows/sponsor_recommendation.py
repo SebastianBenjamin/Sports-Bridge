@@ -7,7 +7,7 @@ from ai.utils import db
 
 async def _get_players() -> List[dict]:
     rows = await db.fetch_all("""
-        SELECT id, first_name, last_name, email, profileImageUrl, createdAt
+        SELECT id, first_name, last_name, email, profile_image_url AS "profileImageUrl", created_at AS "createdAt"
         FROM users WHERE role = 'ATHELETE'
     """)
     for r in rows:
