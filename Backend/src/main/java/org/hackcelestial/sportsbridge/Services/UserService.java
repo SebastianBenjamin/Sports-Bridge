@@ -16,6 +16,6 @@ public class UserService {
         return userRepository.existsByEmailAndPassword(email,password).get()!=null;
     }
     public boolean save(User user) {
-        return userRepository.save(user).get()!=null;
+        return userRepository.save(user)!=null;
     }
 }

@@ -8,6 +8,6 @@ import java.util.Optional;
 public interface CoachRepository extends JpaRepository<Coach, Integer> {
     @Override
     Optional<Coach> findById(Integer integer);
-    Optional<Coach> findByName(String name);
-    Optional<Coach> save(Coach coach);
+
+
 }

@@ -13,7 +13,7 @@ public class AthleteService {
     return     athleteRepository.findById(id).get();
     }
     public boolean save(Athlete athlete) {
-        return athleteRepository.save(athlete).get()!=null;
+        return athleteRepository.save(athlete)!=null;
     }
 
 }

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Sports Bridge</title>
+    <link rel="stylesheet" th:href="@{/register.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="register-form">
+            <h2>Register for Sports Bridge</h2>
+
+            <div th:if="${Error}" class="error-message">
+                <p th:text="${Error}"></p>
+            </div>
+
+            <form th:action="@{/registerUser}" method="post" th:object="${user}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="firstName">First Name:</label>
+                    <input type="text" id="firstName" th:field="*{firstName}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">Last Name:</label>
+                    <input type="text" id="lastName" th:field="*{lastName}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" th:field="*{email}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" th:field="*{password}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone:</label>
+                    <input type="tel" id="phone" th:field="*{phone}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="country">Country:</label>
+                    <input type="text" id="country" th:field="*{country}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="gender">Gender:</label>
+                    <select id="gender" th:field="*{gender}" required>
+                        <option value="">Select Gender</option>
+                        <option th:value="${T(org.hackcelestial.sportsbridge.Enums.Gender).MALE}">Male</option>
+                        <option th:value="${T(org.hackcelestial.sportsbridge.Enums.Gender).FEMALE}">Female</option>
+                        <option th:value="${T(org.hackcelestial.sportsbridge.Enums.Gender).TRANS}">Trans</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="bio">Bio:</label>
+                    <textarea id="bio" th:field="*{bio}" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="aadhaarNumber">Aadhaar Number:</label>
+                    <input type="text" id="aadhaarNumber" th:field="*{aadhaarNumber}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="photo">Profile Photo:</label>
+                    <input type="file" id="photo" name="photo" accept="image/*">
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Register as:</label>
+                    <select id="role" name="role" required>
+                        <option value="">Select Role</option>
+                        <option th:value="${T(org.hackcelestial.sportsbridge.Enums.UserRole).ATHLETE}">Athlete</option>
+                        <option th:value="${T(org.hackcelestial.sportsbridge.Enums.UserRole).COACH}">Coach</option>
+                        <option th:value="${T(org.hackcelestial.sportsbridge.Enums.UserRole).SPONSOR}">Sponsor</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="submit-btn">Register</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+

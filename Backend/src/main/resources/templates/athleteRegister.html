@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athlete Registration - Sports Bridge</title>
+    <link rel="stylesheet" th:href="@{/athleteRegister.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="register-form">
+            <h2>Complete Your Athlete Profile</h2>
+
+            <div th:if="${Success}" class="success-message">
+                <p th:text="${Success}"></p>
+            </div>
+
+            <div th:if="${Error}" class="error-message">
+                <p th:text="${Error}"></p>
+            </div>
+
+            <form th:action="@{/registerAthlete}" method="post" th:object="${athlete}">
+                <div class="form-group">
+                    <label for="height">Height (cm):</label>
+                    <input type="number" id="height" th:field="*{height}" step="0.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="weight">Weight (kg):</label>
+                    <input type="number" id="weight" th:field="*{weight}" step="0.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="state">State:</label>
+                    <input type="text" id="state" th:field="*{state}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="district">District:</label>
+                    <input type="text" id="district" th:field="*{district}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="isDisabled">Do you have any disability?</label>
+                    <select id="isDisabled" th:field="*{disabled}">
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="disabilityType">Disability Type (if applicable):</label>
+                    <input type="text" id="disabilityType" th:field="*{disabilityType}">
+                </div>
+
+                <div class="form-group">
+                    <label for="emergencyContactName">Emergency Contact Name:</label>
+                    <input type="text" id="emergencyContactName" th:field="*{emergencyContactName}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="emergencyContactPhone">Emergency Contact Phone:</label>
+                    <input type="tel" id="emergencyContactPhone" th:field="*{emergencyContactPhone}" required>
+                </div>
+
+                <button type="submit" class="submit-btn">Complete Registration</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+

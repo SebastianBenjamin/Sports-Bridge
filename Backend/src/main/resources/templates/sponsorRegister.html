@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sponsor Registration - Sports Bridge</title>
+    <link rel="stylesheet" th:href="@{/sponsorRegister.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="register-form">
+            <h2>Complete Your Sponsor Profile</h2>
+
+            <div th:if="${Success}" class="success-message">
+                <p th:text="${Success}"></p>
+            </div>
+
+            <div th:if="${Error}" class="error-message">
+                <p th:text="${Error}"></p>
+            </div>
+
+            <form th:action="@{/registerSponsor}" method="post" th:object="${sponsor}">
+                <div class="form-group">
+                    <label for="companyName">Company Name:</label>
+                    <input type="text" id="companyName" th:field="*{companyName}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="industry">Industry:</label>
+                    <input type="text" id="industry" th:field="*{industry}" required
+                           placeholder="e.g., Technology, Healthcare, Manufacturing">
+                </div>
+
+                <div class="form-group">
+                    <label for="website">Company Website:</label>
+                    <input type="url" id="website" th:field="*{website}"
+                           placeholder="https://www.example.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="budgetRange">Budget Range:</label>
+                    <select id="budgetRange" th:field="*{budgetRange}" required>
+                        <option value="">Select Budget Range</option>
+                        <option value="₹1L - ₹5L">₹1L - ₹5L</option>
+                        <option value="₹5L - ₹10L">₹5L - ₹10L</option>
+                        <option value="₹10L - ₹25L">₹10L - ₹25L</option>
+                        <option value="₹25L - ₹50L">₹25L - ₹50L</option>
+                        <option value="₹50L - ₹1Cr">₹50L - ₹1Cr</option>
+                        <option value="₹1Cr+">₹1Cr+</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="submit-btn">Complete Registration</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+

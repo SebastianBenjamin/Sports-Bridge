@@ -9,8 +9,8 @@ import java.util.Optional;
 public interface AthleteRepository extends JpaRepository<Athlete, Integer> {
     @Override
     Optional<Athlete> findById(Integer integer);
-    Optional<Athlete> findByName(String name);
-    Optional<Athlete> save(Athlete athlete);
+
+
 
 
 

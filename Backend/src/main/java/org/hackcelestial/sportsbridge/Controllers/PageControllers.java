@@ -72,7 +72,7 @@ public class PageControllers {
         user.setActive(true);
         user.setReportedTimes(0);
         user.setUpdatedAt(LocalDateTime.now());
-        user.setRole(UserRole.valueOf(role.toUpperCase()));
+//        user.setRole(UserRole.valueOf(role.toUpperCase()));
         if(userService.save(user)) {
             session.setAttribute("user", user);
             model.addAttribute("user", user);
@@ -158,5 +158,6 @@ public class PageControllers {
                 return "redirect:/dashboard";
             }
         }
+        return "redirect:/registerUser";
     }
 }
