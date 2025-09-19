@@ -6,10 +6,7 @@ import org.hackcelestial.sportsbridge.Models.Athlete;
 import org.hackcelestial.sportsbridge.Models.Coach;
 import org.hackcelestial.sportsbridge.Models.Sponsor;
 import org.hackcelestial.sportsbridge.Models.User;
-import org.hackcelestial.sportsbridge.Services.AthleteService;
-import org.hackcelestial.sportsbridge.Services.SponserService;
-import org.hackcelestial.sportsbridge.Services.UserService;
-import org.hackcelestial.sportsbridge.Services.UtilityService;
+import org.hackcelestial.sportsbridge.Services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Controller;
@@ -36,6 +33,8 @@ public class PageControllers {
     AthleteService athleteService;
     @Autowired
     SponserService sponserService;
+    @Autowired
+    CoachService coachService;
 
     @GetMapping("/")
     public String home() {
@@ -142,5 +141,22 @@ public class PageControllers {
         model.addAttribute("sponsor", sponsor);
         return "redirect:/registerUser";
 
+    }
+    @PostMapping("/coachRegister")
+    public String coachRegister(
+            Coach coach,
+            Model model,
+            RedirectAttributes redirectAttributes
+    ){
+        if(session.getAttribute("user") == null) {
+            return "index";
+        }
+        if(coach!=null){
+            if(coachService.save(coach)) {
+                redirectAttributes.addFlashAttribute("Success", "Coach registered successfully");
+                session.setAttribute("role","coach");
+                return "redirect:/dashboard";
+            }
+        }
     }
 }
