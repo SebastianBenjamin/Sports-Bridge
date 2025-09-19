@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SportsBridge • Login / Signup</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .card-narrow { max-width: 520px; margin: 40px auto; }
+  </style>
+</head>
+<body class="bg-light">
+<div class="container">
+  <div class="card card-narrow shadow-sm">
+    <div class="card-body">
+      <h4 class="mb-3">Login or Sign up</h4>
+      <div id="alert" class="alert d-none" role="alert"></div>
+
+      <ul class="nav nav-tabs mb-3" id="tab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">Login</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup" type="button" role="tab">Sign up</button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <div class="tab-pane fade show active" id="login" role="tabpanel">
+          <div class="mb-3">
+            <label class="form-label">Phone (E.164, e.g. +919876543210)</label>
+            <input id="loginPhone" type="text" class="form-control" placeholder="+91XXXXXXXXXX" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Aadhaar (12 digits)</label>
+            <input id="loginAadhaar" type="text" class="form-control" placeholder="xxxxxxxxxxxx" maxlength="12" />
+          </div>
+          <button id="loginSendOtp" class="btn btn-primary w-100">Send OTP</button>
+        </div>
+
+        <div class="tab-pane fade" id="signup" role="tabpanel">
+          <div class="mb-3">
+            <label class="form-label">Full name</label>
+            <input id="suName" type="text" class="form-control" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Role</label>
+            <select id="suRole" class="form-select">
+              <option value="ATHLETE">Athlete</option>
+              <option value="COACH">Coach</option>
+              <option value="SPONSOR">Sponsor</option>
+              <option value="USER">User</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Phone (E.164)</label>
+            <input id="suPhone" type="text" class="form-control" placeholder="+91XXXXXXXXXX" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Aadhaar (12 digits)</label>
+            <input id="suAadhaar" type="text" class="form-control" placeholder="xxxxxxxxxxxx" maxlength="12" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email (optional)</label>
+            <input id="suEmail" type="email" class="form-control" />
+          </div>
+          <button id="signupSendOtp" class="btn btn-success w-100">Sign up & Send OTP</button>
+        </div>
+      </div>
+
+      <hr/>
+      <div id="otpSection" class="d-none">
+        <div class="mb-2">Enter the OTP sent to <span id="otpPhoneLabel"></span></div>
+        <div class="input-group mb-3">
+          <input id="otpInput" type="text" class="form-control" placeholder="6-digit OTP" maxlength="6" />
+          <button id="verifyOtpBtn" class="btn btn-primary" type="button">Verify</button>
+        </div>
+      </div>
+
+      <div class="text-center mt-3">
+        <a href="/feed.html">Back to Feed</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  const alertBox = document.getElementById('alert');
+  const otpSection = document.getElementById('otpSection');
+  const otpPhoneLabel = document.getElementById('otpPhoneLabel');
+  let pendingPhone = '';
+
+  function showAlert(msg, type){
+    alertBox.className = 'alert alert-' + (type||'info');
+    alertBox.textContent = msg;
+    alertBox.classList.remove('d-none');
+  }
+
+  async function call(url, method, body){
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body||{}) });
+    const j = await res.json().catch(()=>({}));
+    if (!res.ok) throw new Error(j.error || res.statusText);
+    return j;
+  }
+
+  document.getElementById('loginSendOtp').onclick = async()=>{
+    const phone = document.getElementById('loginPhone').value.trim();
+    const aadhaar = document.getElementById('loginAadhaar').value.trim();
+    try {
+      showAlert('Sending OTP...', 'info');
+      await call('/api/auth/login', 'POST', { phone, aadhaar });
+      pendingPhone = phone; otpPhoneLabel.textContent = phone; otpSection.classList.remove('d-none');
+      showAlert('OTP sent! Check your phone.', 'success');
+    } catch(e){ showAlert(e.message, 'danger'); }
+  };
+
+  document.getElementById('signupSendOtp').onclick = async()=>{
+    const fullName = document.getElementById('suName').value.trim();
+    const role = document.getElementById('suRole').value;
+    const phone = document.getElementById('suPhone').value.trim();
+    const aadhaar = document.getElementById('suAadhaar').value.trim();
+    const email = document.getElementById('suEmail').value.trim() || null;
+    try {
+      showAlert('Sending OTP...', 'info');
+      await call('/api/auth/signup', 'POST', { fullName, role, phone, aadhaar, email });
+      pendingPhone = phone; otpPhoneLabel.textContent = phone; otpSection.classList.remove('d-none');
+      showAlert('OTP sent! Check your phone.', 'success');
+    } catch(e){ showAlert(e.message, 'danger'); }
+  };
+
+  document.getElementById('verifyOtpBtn').onclick = async()=>{
+    const otp = document.getElementById('otpInput').value.trim();
+    try {
+      showAlert('Verifying...', 'info');
+      const j = await call('/api/auth/verify', 'POST', { phone: pendingPhone, otp });
+      if (!j.token) throw new Error('No token received');
+      localStorage.setItem('sb_token', j.token);
+      showAlert('Logged in successfully! Redirecting...', 'success');
+      setTimeout(()=> window.location.href = '/feed.html', 700);
+    } catch(e){ showAlert(e.message, 'danger'); }
+  };
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

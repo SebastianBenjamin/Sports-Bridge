@@ -41,6 +41,33 @@ public class DashboardController {
         return "dashboard";
     }
 
+    // NEW: Explore feed inside dashboard
+    @GetMapping("/explore")
+    public String explore(Model model) {
+        String redirect = guard();
+        if (redirect != null) return redirect;
+        model.addAttribute("activeView", "explore");
+        return "dashboard";
+    }
+
+    // NEW: Create post inside dashboard
+    @GetMapping("/create")
+    public String createPost(Model model) {
+        String redirect = guard();
+        if (redirect != null) return redirect;
+        model.addAttribute("activeView", "create-post");
+        return "dashboard";
+    }
+
+    // NEW: Invitations inside dashboard
+    @GetMapping("/invitations")
+    public String invitations(Model model) {
+        String redirect = guard();
+        if (redirect != null) return redirect;
+        model.addAttribute("activeView", "invitations");
+        return "dashboard";
+    }
+
     // Athlete views
     @GetMapping("/logs")
     public String logs(Model model) {

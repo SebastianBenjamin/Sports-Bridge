@@ -1,0 +1,143 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SportsBridge • Create Post</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .thumb { width: 120px; height: 90px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e5e5; }
+    .thumb-wrap { position: relative; display: inline-block; margin-right: 8px; margin-bottom: 8px; }
+    .thumb-wrap button { position: absolute; top: -8px; right: -8px; }
+  </style>
+</head>
+<body class="bg-light">
+<div class="container py-4" style="max-width: 720px;">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h3 class="m-0">Create Post</h3>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary" href="/feed.html">Back to Feed</a>
+      <a id="loginBtn" class="btn btn-primary d-none" href="/otp-login.html">Login</a>
+      <button id="logoutBtn" class="btn btn-outline-secondary d-none">Logout</button>
+    </div>
+  </div>
+  <div id="authWarn" class="alert alert-warning d-none" role="alert">
+    You are not logged in. <a href="/otp-login.html" class="alert-link">Login</a> to create a post.
+  </div>
+  <div id="toast" class="alert d-none" role="alert"></div>
+  <div class="card">
+    <div class="card-body">
+      <div class="mb-3">
+        <label class="form-label">Caption</label>
+        <textarea id="caption" class="form-control" rows="3" maxlength="250" placeholder="What's on your mind? (max 250 chars)"></textarea>
+        <div class="form-text"><span id="capCount">0</span>/250</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Images</label>
+        <input id="images" type="file" class="form-control" multiple accept="image/*" />
+        <div id="previews" class="mt-2"></div>
+      </div>
+      <button id="submitBtn" class="btn btn-primary">Post</button>
+    </div>
+  </div>
+</div>
+<script>
+(function initAuthUi(){
+  const token = localStorage.getItem('sb_token');
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const warn = document.getElementById('authWarn');
+  if (token) {
+    logoutBtn.classList.remove('d-none');
+    loginBtn.classList.add('d-none');
+    warn.classList.add('d-none');
+    logoutBtn.onclick = function(){ localStorage.removeItem('sb_token'); location.reload(); };
+  } else {
+    loginBtn.classList.remove('d-none');
+    logoutBtn.classList.add('d-none');
+    warn.classList.remove('d-none');
+  }
+})();
+</script>
+<script>
+(function(){
+  const captionEl = document.getElementById('caption');
+  const countEl = document.getElementById('capCount');
+  const imagesEl = document.getElementById('images');
+  const previews = document.getElementById('previews');
+  const submitBtn = document.getElementById('submitBtn');
+  const toast = document.getElementById('toast');
+  let files = [];
+
+  function showToast(msg, type){
+    toast.className = 'alert alert-' + (type||'info');
+    toast.textContent = msg;
+    toast.classList.remove('d-none');
+    setTimeout(()=> toast.classList.add('d-none'), 3000);
+  }
+
+  captionEl.addEventListener('input', ()=>{
+    countEl.textContent = captionEl.value.length;
+  });
+
+  imagesEl.addEventListener('change', (e)=>{
+    const selected = Array.from(e.target.files || []);
+    files = files.concat(selected);
+    renderPreviews();
+    imagesEl.value = '';
+  });
+
+  function renderPreviews(){
+    previews.innerHTML = '';
+    files.forEach((f, idx)=>{
+      const url = URL.createObjectURL(f);
+      const wrap = document.createElement('div');
+      wrap.className = 'thumb-wrap';
+      wrap.innerHTML = `
+        <img class="thumb" src="${url}" alt="preview" />
+        <button type="button" class="btn btn-sm btn-danger" title="Remove">×</button>
+      `;
+      wrap.querySelector('button').addEventListener('click', ()=>{
+        files.splice(idx,1);
+        renderPreviews();
+      });
+      previews.appendChild(wrap);
+    });
+  }
+
+  async function createPost(){
+    const token = localStorage.getItem('sb_token');
+    if (!token){ showToast('Please login first to create a post', 'warning'); return; }
+    const caption = captionEl.value.trim();
+    if (caption.length > 250) { showToast('Caption too long (max 250)', 'danger'); return; }
+
+    const fd = new FormData();
+    if (caption) fd.append('caption', caption);
+    files.forEach(f => fd.append('images', f));
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Posting...';
+
+    try{
+      const res = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: fd
+      });
+      const j = await res.json().catch(()=>({}));
+      if (!res.ok) throw new Error(j.error || res.statusText);
+      showToast('Post created successfully!', 'success');
+      setTimeout(()=> { window.location.href = '/feed.html'; }, 800);
+    }catch(e){
+      showToast(e.message || 'Failed to create post', 'danger');
+    }finally{
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Post';
+    }
+  }
+
+  submitBtn.addEventListener('click', createPost);
+})();
+</script>
+</body>
+</html>
