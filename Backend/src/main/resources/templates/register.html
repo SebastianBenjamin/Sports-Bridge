@@ -75,10 +75,11 @@
                     <label for="role">Register as:</label>
                     <select id="role" name="role" required>
                         <option value="">Select Role</option>
-                        <option th:value="${T(org.hackcelestial.sportsbridge.Enums.UserRole).ATHLETE}">Athlete</option>
-                        <option th:value="${T(org.hackcelestial.sportsbridge.Enums.UserRole).COACH}">Coach</option>
-                        <option th:value="${T(org.hackcelestial.sportsbridge.Enums.UserRole).SPONSOR}">Sponsor</option>
+                        <option value="ATHLETE">Athlete</option>
+                        <option value="COACH">Coach</option>
+                        <option value="SPONSOR">Sponsor</option>
                     </select>
+
                 </div>
 
                 <button type="submit" class="submit-btn">Register</button>

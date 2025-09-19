@@ -64,15 +64,15 @@ public class PageControllers {
             RedirectAttributes redirectAttributes,
             @RequestParam("role") String role
                            ) throws IOException {
-        if(session.getAttribute("user") == null) {
-            return "index";
-        }
+
         String url=utilityService.storeFile(photo);
         user.setProfileImageUrl(url);
         user.setActive(true);
         user.setReportedTimes(0);
         user.setUpdatedAt(LocalDateTime.now());
-//        user.setRole(UserRole.valueOf(role.toUpperCase()));
+        user.setRole(UserRole.valueOf(role.toUpperCase()));
+
+
         if(userService.save(user)) {
             session.setAttribute("user", user);
             model.addAttribute("user", user);
@@ -83,7 +83,7 @@ public class PageControllers {
                 case "athlete":
                     Athlete athlete = new Athlete();
                     model.addAttribute("athlete", athlete);
-                    return "redirect:/athleteRegister";
+                    return "/athleteRegister";
                 case "sponsor":
                     Sponsor sponsor = new Sponsor();
                     model.addAttribute("sponsor", sponsor);
@@ -96,7 +96,8 @@ public class PageControllers {
         }
         model.addAttribute("user", user);
         redirectAttributes.addFlashAttribute("Error", "User could not be registered");
-        return "redirect:/registerUser";
+        return "redirect:/register";
+
     }
     @PostMapping("/athleteRegister")
     public String adminRegister(
