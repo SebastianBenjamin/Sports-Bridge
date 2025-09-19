@@ -19,13 +19,13 @@ public class User {
     @Column(name ="password",nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated
     @Column(name ="role",nullable = false)
     private UserRole role;
 
     private String firstName, lastName, bio, profileImageUrl,phone,country;
     private Integer reportedTimes;
-    @Enumerated(EnumType.STRING)
+    @Enumerated
     private Gender gender;
 
     @Column(name ="active")
