@@ -8,15 +8,17 @@ import java.time.LocalDateTime;
 public class Invitation {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
-    @JoinColumn(name = "sender_id")
-    private User sender;
-    @ManyToOne
-    @JoinColumn(name = "receiver_id")
-    private User receiver;
 
     private String message;
     @Enumerated(EnumType.STRING)
     private InvitationStatus status;
     private LocalDateTime sentAt, respondedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "sender_id")
+    private User sender;
+
+    @ManyToOne
+    @JoinColumn(name = "receiver_id")
+    private User receiver;
 }

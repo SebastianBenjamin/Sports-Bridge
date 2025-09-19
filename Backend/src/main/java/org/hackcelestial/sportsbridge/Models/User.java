@@ -23,7 +23,7 @@ public class User {
     private UserRole role;
 
     private String firstName, lastName, bio, profileImageUrl,phone,country;
-
+    private Integer reportedTimes;
     @Enumerated(EnumType.STRING)
     private Gender gender;
 

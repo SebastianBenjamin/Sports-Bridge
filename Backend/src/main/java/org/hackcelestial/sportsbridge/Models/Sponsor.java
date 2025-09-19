@@ -12,12 +12,10 @@ public class Sponsor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String companyName, industry, website, budgetRange;
+
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
-
-    private String companyName, industry, website, budgetRange;
-
-
 
 }
