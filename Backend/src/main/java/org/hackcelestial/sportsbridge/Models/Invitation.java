@@ -21,4 +21,6 @@ public class Invitation {
     @ManyToOne
     @JoinColumn(name = "receiver_id")
     private User receiver;
+
+
 }

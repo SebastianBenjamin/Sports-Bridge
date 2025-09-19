@@ -12,7 +12,7 @@ public class UtilityService {
     private static final String ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final SecureRandom random = new SecureRandom();
 
-    public static String storeFile(MultipartFile file) throws IOException {
+    public  String storeFile(MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File must not be empty");
         }
@@ -43,7 +43,7 @@ public class UtilityService {
         return targetFile.toAbsolutePath().toString();
     }
 
-    private static String generateRandomId(int length) {
+    private  String generateRandomId(int length) {
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
             int idx = random.nextInt(ALPHANUMERIC.length());
