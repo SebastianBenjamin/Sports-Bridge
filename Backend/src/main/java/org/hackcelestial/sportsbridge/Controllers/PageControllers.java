@@ -70,9 +70,9 @@ public class PageControllers {
             switch (role) {
                 case "admin":
                     return "redirect:/adminRegister";
-                    case "athlete":
+                case "athlete":
                         return "redirect:/athleteRegister";
-                        case "sponsor"
+                case "sponsor":
                             return "redirect:/sponsorRegister";
                 case "coach":
                     return "redirect:/coachRegister";
