@@ -23,8 +23,8 @@ public class AiProxyController {
         HttpHeaders h = new HttpHeaders();
         h.setContentType(MediaType.APPLICATION_JSON);
         // Optionally forward auth header if present (not required by AI service now)
-        if (headers.containsKey("Authorization")) {
-            h.put("Authorization", headers.get("Authorization"));
+        if (headers.containsKey("Authorization") && headers.getFirst("Authorization") != null) {
+            h.set("Authorization", headers.getFirst("Authorization"));
         }
         HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, h);
         try {
@@ -34,5 +34,26 @@ public class AiProxyController {
             return ResponseEntity.status(502).body(Map.of("error", "AI service unavailable", "detail", ex.getMessage()));
         }
     }
-}
 
+    @GetMapping("/results/{id}")
+    public ResponseEntity<?> getResult(@PathVariable("id") Long id) {
+        String url = aiBaseUrl + "/ai-results/" + id;
+        try {
+            ResponseEntity<Object> resp = rest.getForEntity(url, Object.class);
+            return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
+        } catch (Exception ex) {
+            return ResponseEntity.status(502).body(Map.of("error", "AI service unavailable", "detail", ex.getMessage()));
+        }
+    }
+
+    @GetMapping("/sponsor-recommendations")
+    public ResponseEntity<?> sponsorRecommendations() {
+        String url = aiBaseUrl + "/sponsor-recommendations";
+        try {
+            ResponseEntity<Object> resp = rest.getForEntity(url, Object.class);
+            return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());
+        } catch (Exception ex) {
+            return ResponseEntity.status(502).body(Map.of("error", "AI service unavailable", "detail", ex.getMessage()));
+        }
+    }
+}
