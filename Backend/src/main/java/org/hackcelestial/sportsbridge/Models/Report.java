@@ -9,9 +9,6 @@ import java.time.LocalDateTime;
 public class Report {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
-    @JoinColumn(name = "reporter_id")
-    private User reporter;
 
     private Long reportedEntityId;
 
@@ -22,8 +19,14 @@ public class Report {
     private String description;
 
     private LocalDateTime createdAt, reviewedAt;
+
+    private String reportConclusion;
+    private Boolean solved;
+    @ManyToOne
+    @JoinColumn(name = "reporter_id")
+    private User reporter;
+
     @ManyToOne
     @JoinColumn(name = "reviewed_by")
     private User reviewedBy;
-
 }

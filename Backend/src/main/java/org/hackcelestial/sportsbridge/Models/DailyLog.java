@@ -12,13 +12,13 @@ public class DailyLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Integer trainingDurationMinutes;
+    private String trainingType, notes;
+    private LocalDateTime createdAt;
+
     @ManyToOne
     private Athlete athlete;
 
     @ManyToOne
     private Sport sport;
-
-    private Integer trainingDurationMinutes;
-    private String trainingType, notes;
-    private LocalDateTime createdAt;
 }

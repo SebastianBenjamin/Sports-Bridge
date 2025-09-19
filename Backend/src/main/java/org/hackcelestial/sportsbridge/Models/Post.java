@@ -10,12 +10,14 @@ import java.util.List;
 public class Post {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
-    private User user;
+
     private String title, description;
     @Enumerated(EnumType.STRING)
     private PostType postType;
 
+    @ManyToOne
+    private User user;
+    @ManyToMany
     private List<User> userLikes;
 
 }

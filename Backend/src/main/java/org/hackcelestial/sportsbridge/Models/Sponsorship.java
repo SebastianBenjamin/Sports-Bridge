@@ -13,14 +13,19 @@ import java.time.LocalDateTime;
 public class Sponsorship {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
-    private Sponsor sponsor;
-    @ManyToOne
-    private Athlete athlete;
+
     private LocalDate contractStartDate, contractEndDate;
     private long amount;
     private CurrencyType currency;
     private String  terms;
     private InvitationStatus status;
     private LocalDateTime createdAt;
+
+    @ManyToOne
+    private Sponsor sponsor;
+
+    @ManyToOne
+    private Athlete athlete;
+
+
 }
