@@ -9,13 +9,24 @@ import org.springframework.stereotype.Service;
 public class UserService {
     @Autowired
     UserRepository userRepository;
+
     public boolean userExists(String email) {
-        return userRepository.existsByEmail(email)!=null;
+        return userRepository.existsByEmail(email);
     }
+
     public boolean userExists(String email, String password) {
-        return userRepository.existsByEmailAndPassword(email,password)!=null;
+        return userRepository.existsByEmailAndPassword(email, password);
     }
+
     public boolean save(User user) {
-        return userRepository.save(user)!=null;
+        return userRepository.save(user) != null;
+    }
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    public User findByEmailAndPassword(String email, String password) {
+        return userRepository.findByEmailAndPassword(email, password);
     }
 }

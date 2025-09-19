@@ -25,18 +25,19 @@ public class PageControllers {
 
     @GetMapping("/")
     public String home() {
-    if(session.getAttribute("user") == null) {
-        return "dashboard";
-    }
-    return "index";
+        // Redirect anonymous users to unified login, authenticated users to dashboard
+        if (session.getAttribute("user") == null) {
+            return "redirect:/auth/login";
+        }
+        return "redirect:/dashboard";
     }
 
     @PostMapping("/registerUser")
     public String register(User user, Model model, MultipartFile photo) throws IOException {
         if(session.getAttribute("user") == null) {
-            return "index";
+            return "redirect:/auth/login";
         }
-        String url=utilityService.storeFile(photo);
-        return "redirect:/"+url;
+        String url = utilityService.storeFile(photo);
+        return "redirect:/" + url;
     }
 }

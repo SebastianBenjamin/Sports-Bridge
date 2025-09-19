@@ -1,0 +1,24 @@
+{
+  "page": 0,
+  "size": 10,
+  "totalPages": 1,
+  "items": [
+    {
+      "id": 101,
+      "caption": "Welcome to SportsBridge demo feed!",
+      "images": ["/uploads/BM0YplEzXZ/images (1).jpg"],
+      "createdAt": "2025-09-19T10:00:00",
+      "author": {"id": 1, "fullName": "Demo Athlete", "role": "ATHLETE", "profilePicUrl": "/uploads/yJReUad7Zg/images (1).jpg"},
+      "likeCount": 12
+    },
+    {
+      "id": 102,
+      "caption": "Training day highlights",
+      "images": ["/uploads/fOzfF2dcMN/pngtree-clipart-of-a-indian-player-with-bat-and-ball-png-image_13417211.png"],
+      "createdAt": "2025-09-19T09:30:00",
+      "author": {"id": 2, "fullName": "Coach Jane", "role": "COACH", "profilePicUrl": "/uploads/EApbpppEtt/images (1).jpg"},
+      "likeCount": 7
+    }
+  ]
+}
+

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sports Bridge</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body class="dashboard-page">
+    <!-- Top Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-bridge"></i> Sports Bridge
+            </a>
+            <div class="navbar-nav ms-auto d-flex align-items-center gap-2">
+                <div th:if="${user?.profileImageUrl}" class="me-2">
+                    <img th:src="${user.profileImageUrl}" alt="Profile" class="rounded-circle" style="width:36px;height:36px;object-fit:cover;">
+                </div>
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle"></i>
+                        <span th:text="${user?.firstName ?: 'User'}">User</span>
+                        <small class="text-muted ms-2" th:text="${user?.role}"></small>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/profile"><i class="fas fa-user"></i> Profile</a></li>
+                        <li><a class="dropdown-item" href="/settings"><i class="fas fa-cog"></i> Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" th:classappend="${#strings.equalsIgnoreCase(activeView, null)} ? ' active'" href="/dashboard">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+
+                        <!-- Athlete specific navigation -->
+                        <div th:if="${user?.role == 'ATHLETE' or user?.role == 'ATHELETE'}">
+                            <li class="nav-item"><a class="nav-link" th:classappend="${activeView}=='logs' ? ' active'" href="/logs"><i class="fas fa-book"></i> Daily Logs</a></li>
+                            <li class="nav-item"><a class="nav-link" th:classappend="${activeView}=='sponsorships' ? ' active'" href="/sponsorships"><i class="fas fa-handshake"></i> Sponsorships</a></li>
+                            <li class="nav-item"><a class="nav-link" th:classappend="${activeView}=='my-coach' ? ' active'" href="/my-coach"><i class="fas fa-whistle"></i> My Coach</a></li>
+                            <li class="nav-item"><a class="nav-link" th:classappend="${activeView}=='posts' ? ' active'" href="/posts"><i class="fas fa-newspaper"></i> Posts</a></li>
+                        </div>
+
+                        <!-- Coach specific navigation -->
+                        <div th:if="${user?.role == 'COACH'}">
+                            <li class="nav-item"><a class="nav-link" th:classappend="${activeView}=='students' ? ' active'" href="/students"><i class="fas fa-users"></i> My Students</a></li>
+                            <li class="nav-item"><a class="nav-link" th:classappend="${activeView}=='achievements' ? ' active'" href="/achievements"><i class="fas fa-trophy"></i> Achievements</a></li>
+                            <li class="nav-item"><a class="nav-link" th:classappend="${activeView}=='posts' ? ' active'" href="/posts"><i class="fas fa-newspaper"></i> Posts</a></li>
+                        </div>
+
+                        <!-- Sponsor specific navigation -->
+                        <div th:if="${user?.role == 'SPONSOR'}">
+                            <li class="nav-item"><a class="nav-link" th:classappend="${activeView}=='athletes' ? ' active'" href="/athletes"><i class="fas fa-search"></i> Explore Athletes</a></li>
+                            <li class="nav-item"><a class="nav-link" th:classappend="${activeView}=='sponsorships' ? ' active'" href="/sponsorships"><i class="fas fa-file-contract"></i> Sponsorships</a></li>
+                            <li class="nav-item"><a class="nav-link" th:classappend="${activeView}=='posts' ? ' active'" href="/posts"><i class="fas fa-newspaper"></i> Posts</a></li>
+                        </div>
+
+                        <!-- Admin specific navigation -->
+                        <div th:if="${user?.role == 'ADMIN'}">
+                            <li class="nav-item"><a class="nav-link" th:classappend="${activeView}=='admin-users' ? ' active'" href="/admin/users"><i class="fas fa-users-cog"></i> User Management</a></li>
+                            <li class="nav-item"><a class="nav-link" th:classappend="${activeView}=='admin-sports' ? ' active'" href="/admin/sports"><i class="fas fa-football-ball"></i> Sports Management</a></li>
+                            <li class="nav-item"><a class="nav-link" th:classappend="${activeView}=='admin-reports' ? ' active'" href="/admin/reports"><i class="fas fa-file-alt"></i> Reports</a></li>
+                        </div>
+
+                        <!-- Common navigation -->
+                        <li class="nav-item">
+                            <a class="nav-link" th:classappend="${activeView}=='notifications' ? ' active'" href="/notifications">
+                                <i class="fas fa-bell"></i> Notifications
+                                <span class="badge bg-danger ms-2">3</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <span th:text="${user?.role == 'ATHLETE' or user?.role == 'ATHELETE' ? 'Athlete Dashboard' :
+                                        user?.role == 'COACH' ? 'Coach Dashboard' :
+                                        user?.role == 'SPONSOR' ? 'Sponsor Dashboard' :
+                                        user?.role == 'ADMIN' ? 'Admin Dashboard' : 'Dashboard'}">Dashboard</span>
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <a href="#" class="btn btn-sm btn-outline-secondary btn-custom">
+                                <i class="fas fa-download"></i> Export
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Total Activities</h6>
+                                        <h3 class="mb-0">125</h3>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-running fa-2x opacity-75"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">This Week</h6>
+                                        <h3 class="mb-0">8</h3>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-calendar-week fa-2x opacity-75"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Connections</h6>
+                                        <h3 class="mb-0">42</h3>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-users fa-2x opacity-75"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">
+                                            <span th:text="${user?.role == 'ATHLETE' or user?.role == 'ATHELETE' ? 'Achievements' :
+                                                            user?.role == 'COACH' ? 'Athletes Trained' :
+                                                            user?.role == 'SPONSOR' ? 'Active Sponsorships' :
+                                                            'System Health'}">Achievements</span>
+                                        </h6>
+                                        <h3 class="mb-0">15</h3>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-trophy fa-2x opacity-75"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Widgets by role (events removed) -->
+                <div class="row g-3 mb-4">
+                    <!-- Athlete widgets -->
+                    <div class="col-md-6 col-lg-4" th:if="${user?.role == 'ATHLETE' or user?.role == 'ATHELETE'}">
+                        <a class="text-decoration-none" href="/logs">
+                            <div class="card card-hover h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-book fa-2x text-primary me-3"></i>
+                                    <div>
+                                        <h5 class="mb-1">Daily Logs</h5>
+                                        <small class="text-muted">Track your training and progress</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-4" th:if="${user?.role == 'ATHLETE' or user?.role == 'ATHELETE'}">
+                        <a class="text-decoration-none" href="/sponsorships">
+                            <div class="card card-hover h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-handshake fa-2x text-success me-3"></i>
+                                    <div>
+                                        <h5 class="mb-1">Sponsorships</h5>
+                                        <small class="text-muted">View and manage sponsorships</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-4" th:if="${user?.role == 'ATHLETE' or user?.role == 'ATHELETE'}">
+                        <a class="text-decoration-none" href="/my-coach">
+                            <div class="card card-hover h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-whistle fa-2x text-warning me-3"></i>
+                                    <div>
+                                        <h5 class="mb-1">My Coach</h5>
+                                        <small class="text-muted">Your assigned coach and plans</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-4" th:if="${user?.role == 'ATHLETE' or user?.role == 'ATHELETE'}">
+                        <a class="text-decoration-none" href="/posts">
+                            <div class="card card-hover h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-newspaper fa-2x text-secondary me-3"></i>
+                                    <div>
+                                        <h5 class="mb-1">Posts</h5>
+                                        <small class="text-muted">Community posts and updates</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Coach widgets -->
+                    <div class="col-md-6 col-lg-4" th:if="${user?.role == 'COACH'}">
+                        <a class="text-decoration-none" href="/students">
+                            <div class="card card-hover h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-users fa-2x text-primary me-3"></i>
+                                    <div>
+                                        <h5 class="mb-1">My Students</h5>
+                                        <small class="text-muted">View and manage students</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-4" th:if="${user?.role == 'COACH'}">
+                        <a class="text-decoration-none" href="/achievements">
+                            <div class="card card-hover h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-trophy fa-2x text-warning me-3"></i>
+                                    <div>
+                                        <h5 class="mb-1">Achievements</h5>
+                                        <small class="text-muted">Track athlete achievements</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-4" th:if="${user?.role == 'COACH'}">
+                        <a class="text-decoration-none" href="/posts">
+                            <div class="card card-hover h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-newspaper fa-2x text-secondary me-3"></i>
+                                    <div>
+                                        <h5 class="mb-1">Posts</h5>
+                                        <small class="text-muted">Share updates and plans</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Sponsor widgets -->
+                    <div class="col-md-6 col-lg-4" th:if="${user?.role == 'SPONSOR'}">
+                        <a class="text-decoration-none" href="/athletes">
+                            <div class="card card-hover h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-search fa-2x text-primary me-3"></i>
+                                    <div>
+                                        <h5 class="mb-1">Explore Athletes</h5>
+                                        <small class="text-muted">Discover potential partners</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-4" th:if="${user?.role == 'SPONSOR'}">
+                        <a class="text-decoration-none" href="/sponsorships">
+                            <div class="card card-hover h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-file-contract fa-2x text-success me-3"></i>
+                                    <div>
+                                        <h5 class="mb-1">Sponsorships</h5>
+                                        <small class="text-muted">Manage contracts and deals</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-4" th:if="${user?.role == 'SPONSOR'}">
+                        <a class="text-decoration-none" href="/posts">
+                            <div class="card card-hover h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-newspaper fa-2x text-secondary me-3"></i>
+                                    <div>
+                                        <h5 class="mb-1">Posts</h5>
+                                        <small class="text-muted">Community and updates</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Admin widgets (events removed) -->
+                    <div class="col-md-6 col-lg-4" th:if="${user?.role == 'ADMIN'}">
+                        <a class="text-decoration-none" href="/admin/users">
+                            <div class="card card-hover h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-users-cog fa-2x text-primary me-3"></i>
+                                    <div>
+                                        <h5 class="mb-1">User Management</h5>
+                                        <small class="text-muted">Manage platform users</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-4" th:if="${user?.role == 'ADMIN'}">
+                        <a class="text-decoration-none" href="/admin/sports">
+                            <div class="card card-hover h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-football-ball fa-2x text-warning me-3"></i>
+                                    <div>
+                                        <h5 class="mb-1">Sports Management</h5>
+                                        <small class="text-muted">Manage sports and categories</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-4" th:if="${user?.role == 'ADMIN'}">
+                        <a class="text-decoration-none" href="/admin/reports">
+                            <div class="card card-hover h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-file-alt fa-2x text-secondary me-3"></i>
+                                    <div>
+                                        <h5 class="mb-1">Reports</h5>
+                                        <small class="text-muted">System and usage reports</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Active view content switch (events removed) -->
+                <div th:switch="${activeView}">
+                    <div th:case="'logs'" class="card mb-4">
+                        <div class="card-header"><strong>Daily Logs</strong></div>
+                        <div class="card-body">Logs view placeholder. Build your logs table/form here.</div>
+                    </div>
+
+                    <div th:case="'sponsorships'" class="card mb-4">
+                        <div class="card-header"><strong>Sponsorships</strong></div>
+                        <div class="card-body">Sponsorships management placeholder.</div>
+                    </div>
+
+                    <div th:case="'my-coach'" class="card mb-4">
+                        <div class="card-header"><strong>My Coach</strong></div>
+                        <div class="card-body">Coach profile and plans placeholder.</div>
+                    </div>
+
+                    <div th:case="'posts'" class="card mb-4">
+                        <div class="card-header"><strong>Posts</strong></div>
+                        <div class="card-body">Posts feed placeholder.</div>
+                    </div>
+
+                    <div th:case="'students'" class="card mb-4">
+                        <div class="card-header"><strong>My Students</strong></div>
+                        <div class="card-body">Students list placeholder.</div>
+                    </div>
+
+                    <div th:case="'achievements'" class="card mb-4">
+                        <div class="card-header"><strong>Achievements</strong></div>
+                        <div class="card-body">Achievements tracking placeholder.</div>
+                    </div>
+
+                    <div th:case="'athletes'" class="card mb-4">
+                        <div class="card-header"><strong>Explore Athletes</strong></div>
+                        <div class="card-body">Athlete discovery placeholder.</div>
+                    </div>
+
+                    <div th:case="'admin-users'" class="card mb-4">
+                        <div class="card-header"><strong>User Management</strong></div>
+                        <div class="card-body">Admin user management placeholder.</div>
+                    </div>
+
+                    <div th:case="'admin-sports'" class="card mb-4">
+                        <div class="card-header"><strong>Sports Management</strong></div>
+                        <div class="card-body">Admin sports management placeholder.</div>
+                    </div>
+
+                    <div th:case="'admin-reports'" class="card mb-4">
+                        <div class="card-header"><strong>Reports</strong></div>
+                        <div class="card-body">Admin reports placeholder.</div>
+                    </div>
+
+                    <div th:case="'notifications'" class="card mb-4">
+                        <div class="card-header"><strong>Notifications</strong></div>
+                        <div class="card-body">Notifications placeholder.</div>
+                    </div>
+
+                    <!-- Default: show nothing special, just the role-specific quick content already above -->
+                    <div th:case="*"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

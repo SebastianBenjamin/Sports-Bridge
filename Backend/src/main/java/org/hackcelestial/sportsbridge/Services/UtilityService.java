@@ -5,14 +5,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.SecureRandom;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+@Service
 public class UtilityService {
     private static final String ROOT_FOLDER = "AppImages";
     private static final String ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final SecureRandom random = new SecureRandom();
 
-    public  String storeFile(MultipartFile file) throws IOException {
+    public String storeFile(MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File must not be empty");
         }
@@ -43,7 +45,7 @@ public class UtilityService {
         return targetFile.toAbsolutePath().toString();
     }
 
-    private  String generateRandomId(int length) {
+    private String generateRandomId(int length) {
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
             int idx = random.nextInt(ALPHANUMERIC.length());

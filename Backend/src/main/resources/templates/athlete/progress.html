@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Progress - Sports Bridge</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body class="athlete-page">
+    <!-- Navigation (same as dashboard) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-bridge"></i> Sports Bridge
+            </a>
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle"></i> <span th:text="${user?.firstName ?: 'Athlete'}">Athlete</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/profile"><i class="fas fa-user"></i> Profile</a></li>
+                        <li><a class="dropdown-item" href="/settings"><i class="fas fa-cog"></i> Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/athlete/progress">
+                                <i class="fas fa-chart-line"></i> My Progress
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/athlete/coaches">
+                                <i class="fas fa-whistle"></i> My Coaches
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/athlete/sponsors">
+                                <i class="fas fa-handshake"></i> Sponsorships
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/athlete/training">
+                                <i class="fas fa-dumbbell"></i> Training Log
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/notifications">
+                                <i class="fas fa-bell"></i> Notifications
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/community">
+                                <i class="fas fa-users"></i> Community
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2"><i class="fas fa-chart-line text-primary"></i> My Progress</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary btn-custom">
+                                <i class="fas fa-download"></i> Export Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Overview -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-running fa-2x mb-2"></i>
+                                <h3>156</h3>
+                                <p class="mb-0">Total Workouts</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clock fa-2x mb-2"></i>
+                                <h3>87.5</h3>
+                                <p class="mb-0">Hours Trained</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-trophy fa-2x mb-2"></i>
+                                <h3>12</h3>
+                                <p class="mb-0">Achievements</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-target fa-2x mb-2"></i>
+                                <h3>8/10</h3>
+                                <p class="mb-0">Goals Met</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Charts -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="card card-hover">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Performance Trends</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-center p-5">
+                                    <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+                                    <h6 class="text-muted">Chart will be integrated with backend data</h6>
+                                    <p class="text-muted">Performance metrics over time</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card card-hover">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Current Goals</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small>Weekly Training</small>
+                                        <small>4/5 sessions</small>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" style="width: 80%"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small>5K Run Time</small>
+                                        <small>22:30 / 20:00</small>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" style="width: 60%"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small>Weight Target</small>
+                                        <small>72kg / 70kg</small>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" style="width: 90%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Achievements -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card card-hover">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Recent Achievements</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <div class="achievement-item text-center p-3 bg-light rounded">
+                                            <i class="fas fa-medal fa-3x text-warning mb-2"></i>
+                                            <h6>100 Workouts</h6>
+                                            <small class="text-muted">Completed on Sept 10, 2025</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <div class="achievement-item text-center p-3 bg-light rounded">
+                                            <i class="fas fa-fire fa-3x text-danger mb-2"></i>
+                                            <h6>30-Day Streak</h6>
+                                            <small class="text-muted">Completed on Sept 5, 2025</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <div class="achievement-item text-center p-3 bg-light rounded">
+                                            <i class="fas fa-running fa-3x text-success mb-2"></i>
+                                            <h6>First 10K</h6>
+                                            <small class="text-muted">Completed on Aug 28, 2025</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>
