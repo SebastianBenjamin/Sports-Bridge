@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from ..utils import db
+from ai.utils import db
 
 async def run(params: Dict[str, Any]) -> Dict[str, Any]:
     coach_id = params.get("coach_id")
@@ -33,4 +33,3 @@ async def run(params: Dict[str, Any]) -> Dict[str, Any]:
             "note": "Sample data for development"
         }
     }
-

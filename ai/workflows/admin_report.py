@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from ..utils import db
+from ai.utils import db
 
 async def run(params: Dict[str, Any]) -> Dict[str, Any]:
     # Basic counts and health checks
@@ -23,4 +23,3 @@ async def run(params: Dict[str, Any]) -> Dict[str, Any]:
         },
         "status": "ok"
     }
-

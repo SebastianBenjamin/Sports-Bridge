@@ -1,6 +1,6 @@
 from typing import Dict, Any, List
 from math import isfinite
-from ..utils import db
+from ai.utils import db
 
 # Scoring: 0.45*Performance + 0.20*Experience + 0.15*Achievements + 0.10*Marketability + 0.10*Health
 # All inputs normalized to 0..1
@@ -84,4 +84,3 @@ async def run(params: Dict[str, Any]) -> Dict[str, Any]:
 
     ranked.sort(key=lambda x: x["score"], reverse=True)
     return {"players": ranked}
-

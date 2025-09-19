@@ -479,8 +479,8 @@
     (function(){
       const badge = document.getElementById('inv-badge');
       if (!badge) return;
-      fetch('/api/invitations').then(async res => {
-        try { const items = await res.json(); if (Array.isArray(items) && items.length > 0) { badge.textContent = items.length; badge.classList.remove('d-none'); } } catch(_){}
+      fetch('/api/invitations/my').then(async res => {
+        try { const items = await res.json(); if (Array.isArray(items) && items.length > 0) { badge.textContent = items.length; badge.classList.remove('d-none'); } } catch(_){ }
       }).catch(()=>{});
     })();
 
@@ -499,8 +499,8 @@
         setTimeout(()=> alertBox.classList.add('d-none'), 2500);
       }
 
-      async function call(url, method){
-        const res = await fetch(url, { method });
+      async function call(url, options){
+        const res = await fetch(url, options||{});
         let j = {};
         try { j = await res.json(); } catch(_) {}
         if (!res.ok) throw new Error(j.error || res.statusText);
@@ -521,24 +521,24 @@
           el.className = 'list-group-item d-flex justify-content-between align-items-center';
           el.innerHTML = `
             <div>
-              <div><strong>${it.title || 'Invitation'}</strong></div>
-              <small class="text-muted">${it.from || ''}</small>
+              <div><strong>Invitation #${it.id}</strong></div>
+              <small class="text-muted">Coach ${it.coach_id} ↔ Player ${it.player_id}</small>
             </div>
             <div class="btn-group">
-              <button class="btn btn-sm btn-success">Accept</button>
-              <button class="btn btn-sm btn-outline-secondary">Decline</button>
+              <button class="btn btn-sm btn-success" ${it.status!=='PENDING'?'disabled':''}>Accept</button>
+              <button class="btn btn-sm btn-outline-secondary" ${it.status!=='PENDING'?'disabled':''}>Decline</button>
             </div>
           `;
           const [acceptBtn, declineBtn] = el.querySelectorAll('button');
-          acceptBtn.onclick = async()=>{ try { await call(`/api/invitations/${it.id}/accept`, 'POST'); el.remove(); showAlert('Invitation accepted','success'); } catch(e){ showAlert(e.message,'danger'); } };
-          declineBtn.onclick = async()=>{ try { await call(`/api/invitations/${it.id}/decline`, 'POST'); el.remove(); showAlert('Invitation declined','secondary'); } catch(e){ showAlert(e.message,'danger'); } };
+          acceptBtn.onclick = async()=>{ try { await call(`/api/invitations/${it.id}/respond`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'accept'})}); el.remove(); showAlert('Invitation accepted','success'); } catch(e){ showAlert(e.message,'danger'); } };
+          declineBtn.onclick = async()=>{ try { await call(`/api/invitations/${it.id}/respond`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'reject'})}); el.remove(); showAlert('Invitation declined','secondary'); } catch(e){ showAlert(e.message,'danger'); } };
           list.appendChild(el);
         });
       }
 
       async function load(){
         try {
-          const items = await call('/api/invitations', 'GET');
+          const items = await call('/api/invitations/my');
           render(items);
         } catch(e){ showAlert(e.message, 'danger'); }
       }

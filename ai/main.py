@@ -5,9 +5,9 @@ from fastapi import FastAPI, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-# Local utils and workflows
-from utils import db as db_utils
-from workflows import athlete_summary, coach_insights, sponsor_recommendation, admin_report
+# Local utils and workflows (package absolute imports)
+from ai.utils import db as db_utils
+from ai.workflows import athlete_summary, coach_insights, sponsor_recommendation, admin_report
 
 load_dotenv()
 
