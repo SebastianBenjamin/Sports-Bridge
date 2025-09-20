@@ -4,10 +4,20 @@
     <meta charset="UTF-8">
     <title th:text="'SportsBridge - ' + ${role} + ' Dashboard'">SportsBridge Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet"
+          th:href="@{https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css}"
+          integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .tab-btn.active { background-color: #3b82f6; color: white; }
+        .modal { display: none; }
+        .modal.active { display: flex; }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -16,12 +26,56 @@
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-bold">SportsBridge</h1>
             <div class="flex items-center space-x-4">
+                <button id="newPostBtn" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded text-white font-medium flex items-center">
+                    <i class="fas fa-plus w-5 h-5 mr-2"></i> New Post
+                </button>
                 <span th:text="'Welcome, ' + ${user.firstName} + ' ' + ${user.lastName}">Welcome User</span>
-                <img th:src="${user.profileImageUrl}" alt="Profile" class="w-10 h-10 rounded-full">
-                <a href="/logout" class="bg-red-500 px-3 py-1 rounded">Logout</a>
+                <img th:src="${user.profileImageUrl}" alt="Profile" class="w-10 h-10 rounded-full object-cover">
+                <a href="/logout" class="bg-red-500 px-3 py-1 rounded hover:bg-red-600">Logout</a>
             </div>
         </div>
     </header>
+
+    <!-- Search & Filter Secondary Navbar - Only shown in explore tab -->
+    <nav id="searchFilterNav" class="bg-white shadow-sm border-b border-gray-200" style="display: none;">
+        <div class="container mx-auto flex flex-col md:flex-row items-center justify-between px-4 py-2 gap-2">
+            <!-- Search Box -->
+            <div class="flex items-center w-full md:w-1/2 mb-2 md:mb-0">
+                <input type="text" id="searchInput" placeholder="Search posts..."
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-black" />
+                <button id="searchBtn" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-r-md text-white flex items-center">
+                    <i class="fas fa-search w-4 h-4 mr-1"></i> Search
+                </button>
+                <button id="clearSearchBtn" class="bg-gray-500 hover:bg-gray-600 px-3 py-2 rounded text-white ml-2 flex items-center" style="display:none;">
+                    <i class="fas fa-times w-4 h-4"></i>
+                </button>
+            </div>
+            <!-- Filter Section -->
+            <div class="flex flex-wrap items-center gap-1 w-full md:w-auto justify-center md:justify-end">
+                <span class="text-sm text-gray-600 mr-2">Filter:</span>
+                <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 flex items-center" data-type="all"><i class="fas fa-list w-4 h-4 mr-1"></i>All</a>
+                <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 flex items-center" data-type="DAILYLOG"><i class="fas fa-calendar-alt w-4 h-4 mr-1"></i>Daily Log</a>
+                <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 flex items-center" data-type="EVENT"><i class="fas fa-calendar-check w-4 h-4 mr-1"></i>Event</a>
+                <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 flex items-center" data-type="SPONSORSHIP"><i class="fas fa-hand-holding-usd w-4 h-4 mr-1"></i>Sponsorship</a>
+                <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 flex items-center" data-type="COACHING"><i class="fas fa-chalkboard-teacher w-4 h-4 mr-1"></i>Coaching</a>
+                <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 flex items-center" data-type="FRESHER"><i class="fas fa-user-plus w-4 h-4 mr-1"></i>Fresher</a>
+                <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 flex items-center" data-type="BEGINNER"><i class="fas fa-seedling w-4 h-4 mr-1"></i>Beginner</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Success/Error Messages -->
+    <div th:if="${message}" class="container mx-auto mt-4">
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            <span th:text="${message}"></span>
+        </div>
+    </div>
+
+    <div th:if="${errorMessage}" class="container mx-auto mt-4">
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <span th:text="${errorMessage}"></span>
+        </div>
+    </div>
 
     <!-- Main Content -->
     <div class="container mx-auto p-6">
@@ -30,27 +84,27 @@
             <div class="flex space-x-2 border-b">
                 <!-- Athlete Tabs -->
                 <div th:if="${role == 'athlete'}">
-                    <button class="tab-btn active px-4 py-2 rounded-t" onclick="showTab('explore')">Explore</button>
-                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('dailylogs')">Daily Logs</button>
-                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('invitations')">Invitations</button>
-                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('profile')">Profile</button>
-                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('mycoach')">My Coach</button>
+                    <a href="/athlete/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Explore</a>
+                    <a href="/athlete/dailylogs" th:class="${activeTab == 'dailylogs' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Daily Logs</a>
+                    <a href="/athlete/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Invitations</a>
+                    <a href="/athlete/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Profile</a>
+                    <a href="/athlete/mycoach" th:class="${activeTab == 'mycoach' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">My Coach</a>
                 </div>
 
                 <!-- Coach Tabs -->
                 <div th:if="${role == 'coach'}">
-                    <button class="tab-btn active px-4 py-2 rounded-t" onclick="showTab('explore')">Explore</button>
-                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('invitations')">Invitations</button>
-                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('profile')">Profile</button>
-                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('myathletes')">My Athletes</button>
+                    <a href="/coach/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Explore</a>
+                    <a href="/coach/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Invitations</a>
+                    <a href="/coach/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Profile</a>
+                    <a href="/coach/myathletes" th:class="${activeTab == 'myathletes' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">My Athletes</a>
                 </div>
 
                 <!-- Sponsor Tabs -->
                 <div th:if="${role == 'sponsor'}">
-                    <button class="tab-btn active px-4 py-2 rounded-t" onclick="showTab('explore')">Explore</button>
-                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('invitations')">Invitations</button>
-                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('profile')">Profile</button>
-                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('sponsorships')">Sponsorships</button>
+                    <a href="/sponsor/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Explore</a>
+                    <a href="/sponsor/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Invitations</a>
+                    <a href="/sponsor/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Profile</a>
+                    <a href="/sponsor/sponsorships" th:class="${activeTab == 'sponsorships' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Sponsorships</a>
                 </div>
             </div>
         </div>
@@ -60,57 +114,51 @@
         <!-- Explore Tab (Common for all roles) -->
         <div id="explore" class="tab-content active">
             <h2 class="text-2xl font-bold mb-4">Explore Posts</h2>
-            <div class="space-y-4">
-                <!-- Dummy Post 1 -->
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <div class="flex items-center mb-4">
-                        <img src="https://via.placeholder.com/50" alt="User" class="w-12 h-12 rounded-full mr-4">
-                        <div>
-                            <h3 class="font-semibold">John Smith</h3>
-                            <p class="text-gray-500 text-sm">Professional Runner</p>
+            <div id="postsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Posts will be loaded here dynamically -->
+                <div th:each="post : ${posts}" class="bg-white p-4 rounded-lg shadow-md" th:attr="data-post-id=${post.id}">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center">
+                            <img th:src="${post.user?.profileImageUrl ?: 'https://via.placeholder.com/40'}"
+                                 alt="User" class="w-10 h-10 rounded-full mr-3 object-cover">
+                            <div>
+                                <h3 class="font-semibold text-sm" th:text="${post.user?.firstName + ' ' + post.user?.lastName}">User Name</h3>
+                                <p class="text-gray-500 text-xs" th:text="${post.user?.role}">Role</p>
+                            </div>
+                        </div>
+                        <!-- Delete button - only show for post owner -->
+                        <div th:if="${post.user?.id == user.id}">
+                            <button class="delete-post-btn text-red-500 hover:text-red-700 text-sm"
+                                    th:attr="data-post-id=${post.id}"
+                                    title="Delete post">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
-                    <p class="mb-4">Just completed my morning 10K run! The weather was perfect and I set a new personal record. Looking for training partners in the area. 🏃‍♂️</p>
-                    <img src="https://via.placeholder.com/400x200" alt="Post Image" class="w-full rounded mb-4">
-                    <div class="flex space-x-4">
-                        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">👤 Invite</button>
-                        <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">👍 Like</button>
-                        <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">🚩 Report</button>
-                    </div>
-                </div>
 
-                <!-- Dummy Post 2 -->
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <div class="flex items-center mb-4">
-                        <img src="https://via.placeholder.com/50" alt="User" class="w-12 h-12 rounded-full mr-4">
-                        <div>
-                            <h3 class="font-semibold">Sarah Johnson</h3>
-                            <p class="text-gray-500 text-sm">Fitness Coach</p>
-                        </div>
-                    </div>
-                    <p class="mb-4">New HIIT workout routine available! Perfect for building endurance and strength. Who wants to join my group training sessions this weekend? 💪</p>
-                    <div class="flex space-x-4">
-                        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">👤 Invite</button>
-                        <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">👍 Like</button>
-                        <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">🚩 Report</button>
-                    </div>
-                </div>
+                    <h4 class="text-md font-semibold mb-2" th:text="${post.title}">Post Title</h4>
+                    <p class="mb-3 text-sm text-gray-700" th:text="${post.description}">Post Description</p>
 
-                <!-- Dummy Post 3 -->
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <div class="flex items-center mb-4">
-                        <img src="https://via.placeholder.com/50" alt="User" class="w-12 h-12 rounded-full mr-4">
-                        <div>
-                            <h3 class="font-semibold">FitGear Corporation</h3>
-                            <p class="text-gray-500 text-sm">Sports Equipment Sponsor</p>
-                        </div>
+                    <div th:if="${post.imageUrl}" class="mb-3">
+                        <img th:src="${post.imageUrl}" alt="Post Image" class="w-full h-32 object-cover rounded">
                     </div>
-                    <p class="mb-4">Looking for talented athletes to sponsor! We provide top-quality sports equipment and gear. Apply now for our 2024 sponsorship program. 🏆</p>
-                    <img src="https://via.placeholder.com/400x150" alt="Sponsorship Banner" class="w-full rounded mb-4">
-                    <div class="flex space-x-4">
-                        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">👤 Invite</button>
-                        <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">👍 Like</button>
-                        <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">🚩 Report</button>
+
+                    <div class="text-xs text-gray-400 mb-3" th:text="${#temporals.format(post.posted_at, 'MMM dd, yyyy HH:mm')}">Posted date</div>
+
+                    <div class="flex space-x-2 text-sm">
+                        <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-xs flex items-center">
+                            <i class="fas fa-user-plus mr-1"></i> Invite
+                        </button>
+                        <button class="like-btn bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-xs flex items-center space-x-1"
+                                th:attr="data-post-id=${post.id}, data-liked=${post.userLikes != null and post.userLikes.contains(user) ? 'true' : 'false'}"
+                                th:classappend="${post.userLikes != null and post.userLikes.contains(user) ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'}">
+                            <i class="like-icon fas fa-heart" th:classappend="${post.userLikes != null and post.userLikes.contains(user) ? 'text-red-300' : ''}"></i>
+                            <span class="like-text" th:text="${post.userLikes != null and post.userLikes.contains(user) ? 'Liked' : 'Like'}">Like</span>
+                            <span class="like-count" th:text="'(' + ${post.userLikes != null ? post.userLikes.size() : 0} + ')'">0</span>
+                        </button>
+                        <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-xs flex items-center">
+                            <i class="fas fa-flag mr-1"></i> Report
+                        </button>
                     </div>
                 </div>
             </div>
@@ -119,18 +167,73 @@
         <!-- Daily Logs Tab (Athlete only) -->
         <div id="dailylogs" class="tab-content" th:if="${role == 'athlete'}">
             <h2 class="text-2xl font-bold mb-4">Daily Logs</h2>
-            <div class="bg-white p-6 rounded-lg shadow">
-                <h3 class="text-lg font-semibold mb-4">Track Your Daily Activities</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="border p-4 rounded">
-                        <h4 class="font-semibold mb-2">Today's Workout</h4>
-                        <p class="text-gray-600">No workout logged yet</p>
-                        <button class="mt-2 bg-blue-500 text-white px-4 py-2 rounded">Add Workout</button>
+
+            <!-- Today's Summary -->
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <h3 class="text-lg font-semibold mb-4">Training Statistics</h3>
+                <div id="todaysSummary" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-blue-50 p-4 rounded">
+                        <h4 class="font-semibold text-blue-800">Today's Duration</h4>
+                        <p id="totalDuration" class="text-2xl font-bold text-blue-600">0 min</p>
                     </div>
-                    <div class="border p-4 rounded">
-                        <h4 class="font-semibold mb-2">Nutrition</h4>
-                        <p class="text-gray-600">No meals logged yet</p>
-                        <button class="mt-2 bg-green-500 text-white px-4 py-2 rounded">Log Meal</button>
+                    <div class="bg-green-50 p-4 rounded">
+                        <h4 class="font-semibold text-green-800">Today's Sessions</h4>
+                        <p id="totalSessions" class="text-2xl font-bold text-green-600">0</p>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded">
+                        <h4 class="font-semibold text-orange-800">Current Streak</h4>
+                        <p id="currentStreak" class="text-2xl font-bold text-orange-600">0 days</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded">
+                        <h4 class="font-semibold text-purple-800">Total Lifetime</h4>
+                        <p id="totalLifetimeDuration" class="text-2xl font-bold text-purple-600">0 min</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Log Button -->
+            <div class="mb-6">
+                <button id="addLogBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center">
+                    <i class="fas fa-plus mr-2"></i> Add Training Log
+                </button>
+            </div>
+
+            <!-- Performance Chart Section -->
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Training Performance Overview</h3>
+                    <div class="flex space-x-2">
+                        <button id="chartPeriod7" class="chart-period-btn active px-3 py-1 rounded text-sm bg-blue-500 text-white" data-period="7">7 Days</button>
+                        <button id="chartPeriod30" class="chart-period-btn px-3 py-1 rounded text-sm bg-gray-200 text-gray-700 hover:bg-gray-300" data-period="30">30 Days</button>
+                        <button id="chartPeriod90" class="chart-period-btn px-3 py-1 rounded text-sm bg-gray-200 text-gray-700 hover:bg-gray-300" data-period="90">90 Days</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Training Duration Chart -->
+                    <div>
+                        <h4 class="text-md font-medium mb-3 text-gray-700">Daily Training Duration</h4>
+                        <div style="position: relative; height: 250px;">
+                            <canvas id="durationChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Training Type Distribution -->
+                    <div>
+                        <h4 class="text-md font-medium mb-3 text-gray-700">Training Type Distribution</h4>
+                        <div style="position: relative; height: 250px;">
+                            <canvas id="trainingTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Logs List -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold mb-4">Recent Training Logs</h3>
+                <div id="dailyLogsList">
+                    <!-- Daily logs will be loaded here -->
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-dumbbell text-4xl mb-4"></i>
+                        <p>No training logs yet. Start by adding your first workout!</p>
                     </div>
                 </div>
             </div>
@@ -146,17 +249,129 @@
 
         <!-- Profile Tab (Common for all roles) -->
         <div id="profile" class="tab-content">
-            <h2 class="text-2xl font-bold mb-4">Profile</h2>
-            <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex items-center mb-6">
-                    <img th:src="${user.profileImageUrl}" alt="Profile" class="w-24 h-24 rounded-full mr-6">
+            <h2 class="text-2xl font-bold mb-6">My Profile</h2>
+
+            <!-- Personal Information Section -->
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Personal Information</h3>
+                    <button id="editPersonalBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
+                        <i class="fas fa-edit mr-2"></i> Edit
+                    </button>
+                </div>
+
+                <!-- Personal Info Display Mode -->
+                <div id="personalDisplay" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2 flex items-center mb-4">
+                        <img id="profileImage" src="/placeholder-avatar.png" alt="Profile" class="w-20 h-20 rounded-full mr-6 object-cover border-4 border-gray-200">
+                        <div>
+                            <h4 id="fullName" class="text-xl font-semibold text-gray-900">Loading...</h4>
+                            <p id="userEmail" class="text-gray-600">Loading...</p>
+                            <span id="userRole" class="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full mt-1">Loading...</span>
+                        </div>
+                    </div>
+
                     <div>
-                        <h3 class="text-xl font-semibold" th:text="${user.firstName} + ' ' + ${user.lastName}">User Name</h3>
-                        <p class="text-gray-600" th:text="${user.email}">user@example.com</p>
-                        <p class="text-blue-600 font-semibold" th:text="${role}">Role</p>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        <p id="phoneDisplay" class="text-gray-900">Not provided</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                        <p id="countryDisplay" class="text-gray-900">Not provided</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                        <p id="genderDisplay" class="text-gray-900">Not provided</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Aadhaar Number</label>
+                        <p id="aadhaarDisplay" class="text-gray-900">Not provided</p>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                        <p id="bioDisplay" class="text-gray-900">No bio provided</p>
                     </div>
                 </div>
-                <button class="bg-blue-500 text-white px-4 py-2 rounded">Edit Profile</button>
+
+                <!-- Personal Info Edit Mode -->
+                <div id="personalEdit" class="hidden">
+                    <form id="personalForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                            <input type="text" id="firstName" name="firstName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                            <input type="tel" id="phone" name="phone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                            <input type="text" id="country" name="country" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                            <select id="gender" name="gender" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Gender</option>
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Aadhaar Number</label>
+                            <input type="text" id="aadhaarNumber" name="aadhaarNumber" maxlength="12" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                            <textarea id="bio" name="bio" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+
+                        <div class="md:col-span-2 flex space-x-3">
+                            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg flex items-center">
+                                <i class="fas fa-save mr-2"></i> Save Changes
+                            </button>
+                            <button type="button" id="cancelPersonalBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg flex items-center">
+                                <i class="fas fa-times mr-2"></i> Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Professional Information Section -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Professional Information</h3>
+                    <button id="editProfessionalBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
+                        <i class="fas fa-edit mr-2"></i> Edit
+                    </button>
+                </div>
+
+                <!-- Professional Info Display Mode -->
+                <div id="professionalDisplay">
+                    <!-- Content will be loaded dynamically based on user role -->
+                </div>
+
+                <!-- Professional Info Edit Mode -->
+                <div id="professionalEdit" class="hidden">
+                    <form id="professionalForm">
+                        <!-- Content will be loaded dynamically based on user role -->
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -188,47 +403,120 @@
         </div>
     </div>
 
-    <script>
-        function showTab(tabName) {
-            // Hide all tab contents
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabContents.forEach(content => content.classList.remove('active'));
+    <!-- New Post Modal -->
+    <div id="newPostModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Create New Post</h3>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
 
-            // Remove active class from all tab buttons
-            const tabButtons = document.querySelectorAll('.tab-btn');
-            tabButtons.forEach(btn => btn.classList.remove('active'));
+            <form id="newPostForm" enctype="multipart/form-data">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                        <input type="text" id="postTitle" name="title" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Enter post title">
+                    </div>
 
-            // Show selected tab content
-            document.getElementById(tabName).classList.add('active');
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea id="postDescription" name="description" required rows="4"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="What's on your mind?"></textarea>
+                    </div>
 
-            // Add active class to clicked button
-            event.target.classList.add('active');
-        }
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Post Type</label>
+                        <select id="postType" name="postType" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select post type</option>
+                            <option value="DAILYLOG">Daily Log</option>
+                            <option value="EVENT">Event</option>
+                            <option value="SPONSORSHIP">Sponsorship</option>
+                            <option value="COACHING">Coaching</option>
+                            <option value="FRESHER">Fresher</option>
+                            <option value="BEGINNER">Beginner</option>
+                        </select>
+                    </div>
 
-        // Add click handlers for post actions
-        document.addEventListener('DOMContentLoaded', function() {
-            // Handle invite buttons
-            document.querySelectorAll('button:contains("Invite")').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    alert('Invitation sent!');
-                });
-            });
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Image (Optional)</label>
+                        <input type="file" id="postImage" name="image" accept="image/*"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
 
-            // Handle like buttons
-            document.querySelectorAll('button:contains("Like")').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    this.style.backgroundColor = '#10b981';
-                    this.textContent = '👍 Liked';
-                });
-            });
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="cancelPost" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Create Post
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-            // Handle report buttons
-            document.querySelectorAll('button:contains("Report")').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    alert('Post reported. Thank you for helping keep our community safe.');
-                });
-            });
-        });
+    <!-- Daily Log Modal -->
+    <div id="dailyLogModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Add Training Log</h3>
+                <button id="closeDailyLogModal" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+
+            <form id="dailyLogForm">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Training Type</label>
+                        <select id="trainingType" name="trainingType" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select training type</option>
+                            <option value="Cardio">Cardio</option>
+                            <option value="Strength Training">Strength Training</option>
+                            <option value="Flexibility">Flexibility</option>
+                            <option value="Endurance">Endurance</option>
+                            <option value="Speed Training">Speed Training</option>
+                            <option value="Skill Practice">Skill Practice</option>
+                            <option value="Recovery">Recovery</option>
+                            <option value="Cross Training">Cross Training</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Duration (minutes)</label>
+                        <input type="number" id="trainingDuration" name="trainingDurationMinutes" required min="1" max="1440"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Enter duration in minutes">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+                        <textarea id="trainingNotes" name="notes" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Add any notes about your training session..."></textarea>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="cancelDailyLog" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Save Log
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Make current user ID available to JavaScript
+        window.currentUserId = /*[[${user.id}]]*/ null;
     </script>
+    <script th:src="@{/dashboard.js}"></script>
 </body>
 </html>

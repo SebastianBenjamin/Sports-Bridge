@@ -13,13 +13,19 @@ public class Post {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String title, description;
+    private String title, description, imageUrl;
     @Enumerated(EnumType.STRING)
     private PostType postType;
 
     @ManyToOne
     private User user;
-    @ManyToMany
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+        name = "post_likes",
+        joinColumns = @JoinColumn(name = "post_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
     private List<User> userLikes;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -49,6 +55,14 @@ public class Post {
         this.description = description;
     }
 
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     public PostType getPostType() {
         return postType;
     }
@@ -71,6 +85,14 @@ public class Post {
 
     public void setUserLikes(List<User> userLikes) {
         this.userLikes = userLikes;
+    }
+
+    public LocalDateTime getPosted_at() {
+        return posted_at;
+    }
+
+    public void setPosted_at(LocalDateTime posted_at) {
+        this.posted_at = posted_at;
     }
 
     public Post() {

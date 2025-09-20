@@ -25,4 +25,17 @@ public class UserService {
     public boolean save(User user) {
         return userRepository.save(user)!=null;
     }
+
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElse(null);
+    }
+
+    public boolean updateUser(User user) {
+        try {
+            return userRepository.save(user) != null;
+        } catch (Exception e) {
+            System.out.println("Error updating user: " + e.getMessage());
+            return false;
+        }
+    }
 }

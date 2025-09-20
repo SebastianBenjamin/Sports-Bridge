@@ -15,6 +15,8 @@ public class DailyLog {
 
     private Integer trainingDurationMinutes;
     private String trainingType, notes;
+    private Integer currentStreak = 0;
+    private Integer totalLifetimeDuration = 0;
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
@@ -78,6 +80,22 @@ public class DailyLog {
 
     public void setSport(Sport sport) {
         this.sport = sport;
+    }
+
+    public Integer getCurrentStreak() {
+        return currentStreak;
+    }
+
+    public void setCurrentStreak(Integer currentStreak) {
+        this.currentStreak = currentStreak;
+    }
+
+    public Integer getTotalLifetimeDuration() {
+        return totalLifetimeDuration;
+    }
+
+    public void setTotalLifetimeDuration(Integer totalLifetimeDuration) {
+        this.totalLifetimeDuration = totalLifetimeDuration;
     }
 
     public DailyLog() {
