@@ -46,7 +46,13 @@ function initializePage() {
     } else if (activeTab === 'profile') {
         loadProfileData();
         initializeProfileHandlers();
+    } else if (activeTab === 'invitations') {
+        loadInvitations();
+        initializeInvitationHandlers();
     }
+
+    // Initialize invitation modal handlers
+    initializeInvitationModal();
 }
 
 // Modal functionality
@@ -62,6 +68,12 @@ const dailyLogModal = document.getElementById('dailyLogModal');
 const closeDailyLogModal = document.getElementById('closeDailyLogModal');
 const cancelDailyLog = document.getElementById('cancelDailyLog');
 const dailyLogForm = document.getElementById('dailyLogForm');
+
+// Invitation Modal functionality
+const invitationModal = document.getElementById('invitationModal');
+const closeInvitationModal = document.getElementById('closeInvitationModal');
+const cancelInvitation = document.getElementById('cancelInvitation');
+const invitationForm = document.getElementById('invitationForm');
 
 newPostBtn.addEventListener('click', () => {
     newPostModal.classList.add('active');
@@ -91,6 +103,16 @@ if (closeDailyLogModal && cancelDailyLog) {
     });
 }
 
+// Invitation Modal close events
+if (closeInvitationModal && cancelInvitation) {
+    [closeInvitationModal, cancelInvitation].forEach(btn => {
+        btn.addEventListener('click', () => {
+            invitationModal.classList.remove('active');
+            invitationForm.reset();
+        });
+    });
+}
+
 // Close modals when clicking outside
 newPostModal.addEventListener('click', (e) => {
     if (e.target === newPostModal) {
@@ -104,6 +126,15 @@ if (dailyLogModal) {
         if (e.target === dailyLogModal) {
             dailyLogModal.classList.remove('active');
             dailyLogForm.reset();
+        }
+    });
+}
+
+if (invitationModal) {
+    invitationModal.addEventListener('click', (e) => {
+        if (e.target === invitationModal) {
+            invitationModal.classList.remove('active');
+            invitationForm.reset();
         }
     });
 }
@@ -194,6 +225,29 @@ document.addEventListener('click', async function(e) {
         return;
     }
 
+    // Handle send invitation button
+    if (e.target.classList.contains('send-invitation-btn') || e.target.closest('.send-invitation-btn')) {
+        e.preventDefault();
+        const inviteBtn = e.target.classList.contains('send-invitation-btn') ? e.target : e.target.closest('.send-invitation-btn');
+        const postId = inviteBtn.getAttribute('data-post-id');
+
+        // Open invitation modal with post details
+        openInvitationModal(postId);
+        return;
+    }
+
+    // Handle visit profile button
+    if (e.target.classList.contains('visit-profile-btn') || e.target.closest('.visit-profile-btn')) {
+        e.preventDefault();
+        const profileBtn = e.target.classList.contains('visit-profile-btn') ? e.target : e.target.closest('.visit-profile-btn');
+        const userId = profileBtn.getAttribute('data-user-id');
+        const userRole = profileBtn.getAttribute('data-user-role');
+
+        // Redirect to user's profile page
+        window.location.href = `/${userRole}/profile/${userId}`;
+        return;
+    }
+
     // Handle like button
     if (e.target.classList.contains('like-btn') || e.target.closest('.like-btn')) {
         e.preventDefault();
@@ -240,10 +294,8 @@ document.addEventListener('click', async function(e) {
         return;
     }
 
-    // Handle other buttons
-    if (e.target.textContent.includes('Invite')) {
-        showMessage('Invitation sent!', 'success');
-    } else if (e.target.textContent.includes('Report')) {
+    // Handle report button
+    if (e.target.textContent.includes('Report')) {
         showMessage('Post reported. Thank you for helping keep our community safe.', 'success');
     }
 });
@@ -1385,3 +1437,414 @@ async function handleProfessionalFormSubmit(e) {
     }
 }
 
+// ===== INVITATION FUNCTIONALITY =====
+
+// Function to open invitation modal with post details
+async function openInvitationModal(postId) {
+    try {
+        // Fetch post details for preview
+        const response = await fetch(`/api/posts/${postId}`);
+        const result = await response.json();
+
+        if (result.success) {
+            const post = result.post;
+
+            // Set post ID in hidden field
+            document.getElementById('invitationPostId').value = postId;
+
+            // Update post preview
+            const postPreview = document.getElementById('postPreview');
+            postPreview.innerHTML = `
+                <div class="flex items-center space-x-3 mb-2">
+                    <img src="${post.user?.profileImageUrl || 'https://via.placeholder.com/40'}" 
+                         alt="User" class="w-8 h-8 rounded-full object-cover">
+                    <div>
+                        <h4 class="font-semibold text-sm">${post.user?.firstName || ''} ${post.user?.lastName || ''}</h4>
+                        <p class="text-xs text-gray-500">${post.postType || ''}</p>
+                    </div>
+                </div>
+                <h5 class="font-medium text-gray-900 mb-1">${post.title}</h5>
+                <p class="text-sm text-gray-600">${post.description}</p>
+            `;
+
+            // Open the modal
+            invitationModal.classList.add('active');
+        } else {
+            showMessage('Failed to load post details', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading post details:', error);
+        showMessage('Error loading post details', 'error');
+    }
+}
+
+// Handle invitation form submission
+if (invitationForm) {
+    invitationForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(invitationForm);
+        const postId = formData.get('postId');
+        const message = formData.get('message');
+
+        try {
+            const response = await fetch('/api/invitations/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    postId: postId,
+                    message: message || ''
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showMessage('Invitation sent successfully!', 'success');
+                invitationModal.classList.remove('active');
+                invitationForm.reset();
+            } else {
+                showMessage(result.message || 'Failed to send invitation', 'error');
+            }
+        } catch (error) {
+            console.error('Error sending invitation:', error);
+            showMessage('An error occurred while sending the invitation', 'error');
+        }
+    });
+}
+
+// ===== INVITATION TAB FUNCTIONALITY =====
+
+// Function to load invitations
+async function loadInvitations() {
+    try {
+        // Load both received and sent invitations
+        const [receivedResponse, sentResponse] = await Promise.all([
+            fetch('/api/invitations/received'),
+            fetch('/api/invitations/sent')
+        ]);
+
+        const receivedResult = await receivedResponse.json();
+        const sentResult = await sentResponse.json();
+
+        if (receivedResult.success) {
+            renderReceivedInvitations(receivedResult.invitations);
+        } else {
+            console.error('Failed to load received invitations:', receivedResult.message);
+        }
+
+        if (sentResult.success) {
+            renderSentInvitations(sentResult.invitations);
+        } else {
+            console.error('Failed to load sent invitations:', sentResult.message);
+        }
+    } catch (error) {
+        console.error('Error loading invitations:', error);
+        showMessage('Error loading invitations', 'error');
+    }
+}
+
+// Function to initialize invitation handlers
+function initializeInvitationHandlers() {
+    const receivedTab = document.getElementById('receivedInvitationsTab');
+    const sentTab = document.getElementById('sentInvitationsTab');
+    const receivedContent = document.getElementById('receivedInvitations');
+    const sentContent = document.getElementById('sentInvitations');
+
+    if (receivedTab) {
+        receivedTab.addEventListener('click', () => {
+            // Switch to received tab
+            receivedTab.classList.add('active', 'bg-blue-500', 'text-white');
+            receivedTab.classList.remove('hover:bg-gray-100');
+            sentTab.classList.remove('active', 'bg-blue-500', 'text-white');
+            sentTab.classList.add('hover:bg-gray-100');
+
+            receivedContent.classList.remove('hidden');
+            sentContent.classList.add('hidden');
+        });
+    }
+
+    if (sentTab) {
+        sentTab.addEventListener('click', () => {
+            // Switch to sent tab
+            sentTab.classList.add('active', 'bg-blue-500', 'text-white');
+            sentTab.classList.remove('hover:bg-gray-100');
+            receivedTab.classList.remove('active', 'bg-blue-500', 'text-white');
+            receivedTab.classList.add('hover:bg-gray-100');
+
+            sentContent.classList.remove('hidden');
+            receivedContent.classList.add('hidden');
+        });
+    }
+}
+
+// Function to render received invitations
+function renderReceivedInvitations(invitations) {
+    const container = document.getElementById('receivedInvitationsList');
+
+    if (invitations.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-inbox text-4xl mb-4"></i>
+                <p>No invitations received yet</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = invitations.map(invitation => `
+        <div class="border-b border-gray-200 py-4 last:border-b-0" data-invitation-id="${invitation.id}">
+            <div class="flex items-start space-x-4">
+                <img src="${invitation.sender.profileImageUrl || 'https://via.placeholder.com/40'}" 
+                     alt="Sender" class="w-12 h-12 rounded-full object-cover">
+                <div class="flex-1">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="font-semibold text-gray-900">${invitation.sender.name}</h4>
+                            <p class="text-sm text-gray-500">${invitation.sender.role}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-block px-2 py-1 text-xs rounded-full ${getStatusClass(invitation.status)}">
+                                ${invitation.status}
+                            </span>
+                            <p class="text-xs text-gray-400 mt-1">${formatDateTime(invitation.sentAt)}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-3 rounded mb-3">
+                        <h5 class="font-medium text-sm mb-1">Post: ${invitation.post.title}</h5>
+                        <p class="text-xs text-gray-600">${invitation.post.description}</p>
+                        <span class="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                            ${invitation.post.postType}
+                        </span>
+                    </div>
+                    
+                    ${invitation.message ? `
+                        <div class="mb-3">
+                            <p class="text-sm text-gray-700 italic">"${invitation.message}"</p>
+                        </div>
+                    ` : ''}
+                    
+                    ${invitation.status === 'PENDING' ? `
+                        <div class="flex space-x-2">
+                            <button class="accept-invitation-btn bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm"
+                                    data-invitation-id="${invitation.id}">
+                                <i class="fas fa-check mr-1"></i> Accept
+                            </button>
+                            <button class="decline-invitation-btn bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm"
+                                    data-invitation-id="${invitation.id}">
+                                <i class="fas fa-times mr-1"></i> Decline
+                            </button>
+                        </div>
+                    ` : invitation.status === 'ACCEPTED' ? `
+                        <div class="flex space-x-2">
+                            <button class="visit-sender-profile-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm"
+                                    data-user-id="${invitation.sender.id}" data-user-role="${invitation.sender.role}">
+                                <i class="fas fa-user mr-1"></i> Visit Profile
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Function to render sent invitations
+function renderSentInvitations(invitations) {
+    const container = document.getElementById('sentInvitationsList');
+
+    if (invitations.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-paper-plane text-4xl mb-4"></i>
+                <p>No invitations sent yet</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = invitations.map(invitation => `
+        <div class="border-b border-gray-200 py-4 last:border-b-0" data-invitation-id="${invitation.id}">
+            <div class="flex items-start space-x-4">
+                <img src="${invitation.receiver.profileImageUrl || 'https://via.placeholder.com/40'}" 
+                     alt="Receiver" class="w-12 h-12 rounded-full object-cover">
+                <div class="flex-1">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="font-semibold text-gray-900">${invitation.receiver.name}</h4>
+                            <p class="text-sm text-gray-500">${invitation.receiver.role}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-block px-2 py-1 text-xs rounded-full ${getStatusClass(invitation.status)}">
+                                ${invitation.status}
+                            </span>
+                            <p class="text-xs text-gray-400 mt-1">${formatDateTime(invitation.sentAt)}</p>
+                            ${invitation.respondedAt ? `
+                                <p class="text-xs text-gray-400">Responded: ${formatDateTime(invitation.respondedAt)}</p>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-3 rounded mb-3">
+                        <h5 class="font-medium text-sm mb-1">Post: ${invitation.post.title}</h5>
+                        <p class="text-xs text-gray-600">${invitation.post.description}</p>
+                        <span class="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                            ${invitation.post.postType}
+                        </span>
+                    </div>
+                    
+                    ${invitation.message ? `
+                        <div class="mb-3">
+                            <p class="text-sm text-gray-700 italic">"${invitation.message}"</p>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Function to get status CSS class
+function getStatusClass(status) {
+    switch (status) {
+        case 'PENDING':
+            return 'bg-yellow-100 text-yellow-800';
+        case 'ACCEPTED':
+            return 'bg-green-100 text-green-800';
+        case 'DECLINED':
+            return 'bg-red-100 text-red-800';
+        default:
+            return 'bg-gray-100 text-gray-800';
+    }
+}
+
+// Handle invitation action buttons
+document.addEventListener('click', async function(e) {
+    // Handle accept invitation button
+    if (e.target.classList.contains('accept-invitation-btn') || e.target.closest('.accept-invitation-btn')) {
+        e.preventDefault();
+        const btn = e.target.classList.contains('accept-invitation-btn') ? e.target : e.target.closest('.accept-invitation-btn');
+        const invitationId = btn.getAttribute('data-invitation-id');
+
+        await respondToInvitation(invitationId, 'ACCEPTED');
+        return;
+    }
+
+    // Handle decline invitation button
+    if (e.target.classList.contains('decline-invitation-btn') || e.target.closest('.decline-invitation-btn')) {
+        e.preventDefault();
+        const btn = e.target.classList.contains('decline-invitation-btn') ? e.target : e.target.closest('.decline-invitation-btn');
+        const invitationId = btn.getAttribute('data-invitation-id');
+
+        await respondToInvitation(invitationId, 'DECLINED');
+        return;
+    }
+
+    // Handle visit sender profile button
+    if (e.target.classList.contains('visit-sender-profile-btn') || e.target.closest('.visit-sender-profile-btn')) {
+        e.preventDefault();
+        const btn = e.target.classList.contains('visit-sender-profile-btn') ? e.target : e.target.closest('.visit-sender-profile-btn');
+        const userId = btn.getAttribute('data-user-id');
+        const userRole = btn.getAttribute('data-user-role');
+
+        // Redirect to user's profile page
+        window.location.href = `/${userRole}/profile/${userId}`;
+        return;
+    }
+});
+
+// Function to respond to invitation
+async function respondToInvitation(invitationId, status) {
+    try {
+        const response = await fetch(`/api/invitations/${invitationId}/respond`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                status: status
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showMessage(`Invitation ${status.toLowerCase()} successfully!`, 'success');
+
+            // If accepted and redirect information is provided
+            if (status === 'ACCEPTED' && result.redirectToProfile) {
+                setTimeout(() => {
+                    window.location.href = `/${result.senderRole}/profile/${result.senderId}`;
+                }, 1500);
+            } else {
+                // Reload invitations to show updated status
+                loadInvitations();
+            }
+        } else {
+            showMessage(result.message || `Failed to ${status.toLowerCase()} invitation`, 'error');
+        }
+    } catch (error) {
+        console.error(`Error ${status.toLowerCase()}ing invitation:`, error);
+        showMessage(`An error occurred while ${status.toLowerCase()}ing the invitation`, 'error');
+    }
+}
+
+// Initialize invitation modal handlers
+function initializeInvitationModal() {
+    const inviteBtns = document.querySelectorAll('.invite-btn');
+    const sendInvitationBtn = document.getElementById('sendInvitationBtn');
+
+    inviteBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const postId = this.getAttribute('data-post-id');
+            const postTitle = this.getAttribute('data-post-title');
+
+            // Set post details in the modal
+            document.getElementById('invitationPostId').value = postId;
+            document.getElementById('invitationPostTitle').textContent = postTitle;
+
+            // Open the invitation modal
+            invitationModal.classList.add('active');
+        });
+    });
+
+    // Send invitation button click
+    if (sendInvitationBtn) {
+        sendInvitationBtn.addEventListener('click', async () => {
+            const postId = document.getElementById('invitationPostId').value;
+            const email = document.getElementById('inviteeEmail').value.trim();
+
+            if (!email) {
+                return showMessage('Please enter an email address', 'error');
+            }
+
+            try {
+                const response = await fetch('/api/invitations/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ postId, email })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('Invitation sent successfully!', 'success');
+                    invitationModal.classList.remove('active');
+                    invitationForm.reset();
+                } else {
+                    showMessage(result.message || 'Failed to send invitation', 'error');
+                }
+            } catch (error) {
+                console.error('Error sending invitation:', error);
+                showMessage('An error occurred while sending the invitation', 'error');
+            }
+        });
+    }
+}
+
+//# sourceMappingURL=app.js.map

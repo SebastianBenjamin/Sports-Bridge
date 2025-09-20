@@ -6,6 +6,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "invitations")
 public class Invitation {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,6 +25,10 @@ public class Invitation {
     @ManyToOne
     @JoinColumn(name = "receiver_id")
     private User receiver;
+
+    @ManyToOne
+    @JoinColumn(name = "post_id")
+    private Post post;
 
     public Long getId() {
         return id;
@@ -78,5 +84,13 @@ public class Invitation {
 
     public void setReceiver(User receiver) {
         this.receiver = receiver;
+    }
+
+    public Post getPost() {
+        return post;
+    }
+
+    public void setPost(Post post) {
+        this.post = post;
     }
 }

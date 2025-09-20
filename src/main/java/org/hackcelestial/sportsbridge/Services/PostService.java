@@ -155,4 +155,17 @@ public class PostService {
             return new ArrayList<>();
         }
     }
+
+    public List<Post> searchPostsAndProfiles(String query) {
+        try {
+            if (query == null || query.trim().isEmpty()) {
+                return getAllPosts();
+            }
+            // Search in posts and also include posts by users whose names match the query
+            return postRepository.findByTitleOrDescriptionOrUserNameContainingIgnoreCase(query);
+        } catch (Exception e) {
+            System.out.println("Error searching posts and profiles: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
 }

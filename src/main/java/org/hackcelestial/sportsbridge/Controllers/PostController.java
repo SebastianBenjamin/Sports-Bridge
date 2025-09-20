@@ -288,6 +288,30 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/search-with-profiles")
+    public ResponseEntity<Map<String, Object>> searchPostsAndProfiles(@RequestParam String query) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            List<Post> posts = postService.searchPostsAndProfiles(query);
+            List<Map<String, Object>> postResponses = posts.stream()
+                    .map(this::createPostResponse)
+                    .toList();
+
+            response.put("success", true);
+            response.put("posts", postResponses);
+            response.put("message", posts.isEmpty() ? "No posts or profiles found matching your search" : null);
+
+        } catch (Exception e) {
+            System.out.println("Error searching posts and profiles: " + e.getMessage());
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Error searching posts and profiles");
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
     private Map<String, Object> createPostResponse(Post post) {
         Map<String, Object> postData = new HashMap<>();
         postData.put("id", post.getId());

@@ -41,7 +41,7 @@
         <div class="container mx-auto flex flex-col md:flex-row items-center justify-between px-4 py-2 gap-2">
             <!-- Search Box -->
             <div class="flex items-center w-full md:w-1/2 mb-2 md:mb-0">
-                <input type="text" id="searchInput" placeholder="Search posts..."
+                <input type="text" id="searchInput" placeholder="Search posts and profiles..."
                     class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-black" />
                 <button id="searchBtn" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-r-md text-white flex items-center">
                     <i class="fas fa-search w-4 h-4 mr-1"></i> Search
@@ -146,9 +146,20 @@
                     <div class="text-xs text-gray-400 mb-3" th:text="${#temporals.format(post.posted_at, 'MMM dd, yyyy HH:mm')}">Posted date</div>
 
                     <div class="flex space-x-2 text-sm">
-                        <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-xs flex items-center">
-                            <i class="fas fa-user-plus mr-1"></i> Invite
+                        <!-- Show invitation button only for EVENT, SPONSORSHIP, COACHING posts and not for own posts -->
+                        <button th:if="${post.postType.name() == 'EVENT' or post.postType.name() == 'SPONSORSHIP' or post.postType.name() == 'COACHING'} and ${post.user?.id != user.id}"
+                                class="send-invitation-btn bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-xs flex items-center"
+                                th:attr="data-post-id=${post.id}">
+                            <i class="fas fa-paper-plane mr-1"></i> Send Invitation
                         </button>
+
+                        <!-- Visit Profile button for post owner -->
+                        <button th:if="${post.user?.id != user.id}"
+                                class="visit-profile-btn bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600 text-xs flex items-center"
+                                th:attr="data-user-id=${post.user?.id}, data-user-role=${post.user?.role}">
+                            <i class="fas fa-user mr-1"></i> Visit Profile
+                        </button>
+
                         <button class="like-btn bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-xs flex items-center space-x-1"
                                 th:attr="data-post-id=${post.id}, data-liked=${post.userLikes != null and post.userLikes.contains(user) ? 'true' : 'false'}"
                                 th:classappend="${post.userLikes != null and post.userLikes.contains(user) ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'}">
@@ -241,9 +252,42 @@
 
         <!-- Invitations Tab (Common for all roles) -->
         <div id="invitations" class="tab-content">
-            <h2 class="text-2xl font-bold mb-4">Invitations</h2>
-            <div class="bg-white p-6 rounded-lg shadow">
-                <p class="text-gray-600">No pending invitations</p>
+            <h2 class="text-2xl font-bold mb-6">Invitations</h2>
+
+            <!-- Invitation Tabs -->
+            <div class="mb-6">
+                <div class="flex space-x-2 border-b">
+                    <button id="receivedInvitationsTab" class="invitation-tab-btn active px-4 py-2 rounded-t bg-blue-500 text-white">Received Invitations</button>
+                    <button id="sentInvitationsTab" class="invitation-tab-btn px-4 py-2 rounded-t hover:bg-gray-100">Sent Invitations</button>
+                </div>
+            </div>
+
+            <!-- Received Invitations -->
+            <div id="receivedInvitations" class="invitation-tab-content">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">Received Invitations</h3>
+                    <div id="receivedInvitationsList">
+                        <!-- Received invitations will be loaded here -->
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-inbox text-4xl mb-4"></i>
+                            <p>No invitations received yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sent Invitations -->
+            <div id="sentInvitations" class="invitation-tab-content hidden">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">Sent Invitations</h3>
+                    <div id="sentInvitationsList">
+                        <!-- Sent invitations will be loaded here -->
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-paper-plane text-4xl mb-4"></i>
+                            <p>No invitations sent yet</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -507,6 +551,41 @@
                     </button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                         Save Log
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Invitation Modal -->
+    <div id="invitationModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Send Invitation</h3>
+                <button id="closeInvitationModal" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+
+            <form id="invitationForm">
+                <input type="hidden" id="invitationPostId" name="postId">
+                <div class="space-y-4">
+                    <div id="postPreview" class="bg-gray-50 p-3 rounded border">
+                        <!-- Post preview will be loaded here -->
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
+                        <textarea id="invitationMessage" name="message" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Add a personal message to your invitation..."></textarea>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="cancelInvitation" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Send Invitation
                     </button>
                 </div>
             </form>

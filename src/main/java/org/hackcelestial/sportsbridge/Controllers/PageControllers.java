@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -472,6 +473,51 @@ public class PageControllers {
     @GetMapping("/sponsor/sponsorships")
     public String sponsorSponsorships(Model model) {
         return getSponsorPageWithTab(model, "sponsorships");
+    }
+
+    // Profile viewing routes for other users
+    @GetMapping("/athlete/profile/{userId}")
+    public String viewAthleteProfile(@PathVariable Long userId, Model model) {
+        return getUserProfilePage(userId, model, "athlete");
+    }
+
+    @GetMapping("/coach/profile/{userId}")
+    public String viewCoachProfile(@PathVariable Long userId, Model model) {
+        return getUserProfilePage(userId, model, "coach");
+    }
+
+    @GetMapping("/sponsor/profile/{userId}")
+    public String viewSponsorProfile(@PathVariable Long userId, Model model) {
+        return getUserProfilePage(userId, model, "sponsor");
+    }
+
+    // Helper method for viewing other users' profiles
+    private String getUserProfilePage(Long userId, Model model, String expectedRole) {
+        User currentUser = (User) session.getAttribute("user");
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+
+        // Get the target user
+        User targetUser = userService.getUserById(userId);
+        if (targetUser == null) {
+            model.addAttribute("errorMessage", "User not found");
+            return "redirect:/" + currentUser.getRole().toString().toLowerCase() + "/explore";
+        }
+
+        // Verify role matches the URL pattern
+        if (!targetUser.getRole().toString().toLowerCase().equals(expectedRole)) {
+            model.addAttribute("errorMessage", "Invalid profile link");
+            return "redirect:/" + currentUser.getRole().toString().toLowerCase() + "/explore";
+        }
+
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("targetUser", targetUser);
+        model.addAttribute("role", currentUser.getRole().toString().toLowerCase());
+        model.addAttribute("targetRole", targetUser.getRole().toString().toLowerCase());
+        model.addAttribute("isOwnProfile", currentUser.getId().equals(userId));
+
+        return "userProfile";
     }
 
     // Helper methods for role-based page rendering
