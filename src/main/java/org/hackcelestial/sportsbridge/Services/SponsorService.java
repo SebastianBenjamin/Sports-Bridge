@@ -32,4 +32,13 @@ public class SponsorService {
             return false;
         }
     }
+
+    public java.util.List<Sponsor> getAllSponsors() {
+        try {
+            return sponsorRepository.findAll();
+        } catch (Exception e) {
+            System.out.println("Error fetching all sponsors: " + e.getMessage());
+            return new java.util.ArrayList<>();
+        }
+    }
 }

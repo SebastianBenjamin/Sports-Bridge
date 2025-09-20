@@ -4,6 +4,7 @@ import org.hackcelestial.sportsbridge.Models.Post;
 import org.hackcelestial.sportsbridge.Models.User;
 import org.hackcelestial.sportsbridge.Enums.PostType;
 import org.hackcelestial.sportsbridge.Repositories.PostRepository;
+import org.hackcelestial.sportsbridge.Repositories.InvitationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,9 @@ public class PostService {
 
     @Autowired
     PostRepository postRepository;
+
+    @Autowired
+    InvitationRepository invitationRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -58,7 +62,15 @@ public class PostService {
             System.out.println("Attempting to delete post " + postId + " with " +
                 (post.getUserLikes() != null ? post.getUserLikes().size() : 0) + " likes");
 
-            // Method 1: Clear likes using JPA relationship
+            // Step 1: Delete related invitations first to avoid foreign key constraint
+            try {
+                invitationRepository.deleteByPost(post);
+                System.out.println("Deleted invitations for post " + postId);
+            } catch (Exception invEx) {
+                System.out.println("Warning: Could not delete invitations for post " + postId + ": " + invEx.getMessage());
+            }
+
+            // Step 2: Clear likes using JPA relationship
             if (post.getUserLikes() != null && !post.getUserLikes().isEmpty()) {
                 int likesCount = post.getUserLikes().size();
                 post.getUserLikes().clear();
@@ -67,7 +79,7 @@ public class PostService {
                 System.out.println("Cleared " + likesCount + " likes from post " + postId + " using JPA");
             }
 
-            // Method 2: Backup - Direct SQL delete for any remaining likes
+            // Step 3: Backup - Direct SQL delete for any remaining likes
             try {
                 int deletedLikes = entityManager.createNativeQuery(
                     "DELETE FROM post_likes WHERE post_id = :postId")
@@ -80,11 +92,11 @@ public class PostService {
                 System.out.println("Warning: Could not delete likes using SQL (may not exist): " + sqlEx.getMessage());
             }
 
-            // Force synchronization before deletion
+            // Step 4: Force synchronization before deletion
             entityManager.flush();
             entityManager.clear();
 
-            // Now delete the post
+            // Step 5: Now delete the post
             postRepository.deleteById(postId);
             System.out.println("Post deleted successfully: " + postId);
             return true;

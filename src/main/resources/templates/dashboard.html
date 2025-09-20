@@ -18,6 +18,43 @@
         .tab-btn.active { background-color: #3b82f6; color: white; }
         .modal { display: none; }
         .modal.active { display: flex; }
+
+        /* Floating Action Button styles */
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .fab i {
+            color: white;
+            font-size: 24px;
+        }
+
+        /* Hide the header new post button */
+        #newPostBtn {
+            display: none;
+        }
+
+        /* Confirmation modal styles */
+        .confirmation-modal {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -26,6 +63,7 @@
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-bold">SportsBridge</h1>
             <div class="flex items-center space-x-4">
+                <!-- Keep the original button but hide it with CSS -->
                 <button id="newPostBtn" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded text-white font-medium flex items-center">
                     <i class="fas fa-plus w-5 h-5 mr-2"></i> New Post
                 </button>
@@ -35,6 +73,11 @@
             </div>
         </div>
     </header>
+
+    <!-- Floating Action Button for New Post -->
+    <button id="fabNewPost" class="fab" title="Create New Post">
+        <i class="fas fa-plus"></i>
+    </button>
 
     <!-- Search & Filter Secondary Navbar - Only shown in explore tab -->
     <nav id="searchFilterNav" class="bg-white shadow-sm border-b border-gray-200" style="display: none;">
@@ -81,20 +124,31 @@
     <div class="container mx-auto p-6">
         <!-- Tab Navigation -->
         <div class="mb-6">
-            <div class="flex space-x-2 border-b">
+            <div class="flex space-x-2 border-b overflow-x-auto">
                 <!-- Athlete Tabs -->
                 <div th:if="${role == 'athlete'}">
-                    <a href="/athlete/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Explore</a>
-                    <a href="/athlete/dailylogs" th:class="${activeTab == 'dailylogs' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Daily Logs</a>
-                    <a href="/athlete/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Invitations</a>
-                    <a href="/athlete/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Profile</a>
-                    <a href="/athlete/mycoach" th:class="${activeTab == 'mycoach' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">My Coach</a>
+                    <a href="/athlete/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Explore</a>
+                    <a href="/athlete/dailylogs" th:class="${activeTab == 'dailylogs' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Daily Logs</a>
+                    <a href="/athlete/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t relative whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 relative whitespace-nowrap'}">
+                        Invitations
+                        <span th:if="${pendingInvitationCount > 0}"
+                              th:text="${pendingInvitationCount}"
+                              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">0</span>
+                    </a>
+                    <a href="/athlete/sponsorships" th:class="${activeTab == 'sponsorships' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Sponsorships</a>
+                    <a href="/athlete/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Profile</a>
+                    <a href="/athlete/mycoach" th:class="${activeTab == 'mycoach' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">My Coach</a>
                 </div>
 
                 <!-- Coach Tabs -->
                 <div th:if="${role == 'coach'}">
                     <a href="/coach/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Explore</a>
-                    <a href="/coach/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Invitations</a>
+                    <a href="/coach/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t relative' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 relative'}">
+                        Invitations
+                        <span th:if="${pendingInvitationCount > 0}"
+                              th:text="${pendingInvitationCount}"
+                              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">0</span>
+                    </a>
                     <a href="/coach/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Profile</a>
                     <a href="/coach/myathletes" th:class="${activeTab == 'myathletes' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">My Athletes</a>
                 </div>
@@ -102,7 +156,12 @@
                 <!-- Sponsor Tabs -->
                 <div th:if="${role == 'sponsor'}">
                     <a href="/sponsor/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Explore</a>
-                    <a href="/sponsor/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Invitations</a>
+                    <a href="/sponsor/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t relative' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 relative'}">
+                        Invitations
+                        <span th:if="${pendingInvitationCount > 0}"
+                              th:text="${pendingInvitationCount}"
+                              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">0</span>
+                    </a>
                     <a href="/sponsor/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Profile</a>
                     <a href="/sponsor/sponsorships" th:class="${activeTab == 'sponsorships' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Sponsorships</a>
                 </div>
@@ -512,6 +571,110 @@
                 <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Create Sponsorship</button>
             </div>
         </div>
+
+        <!-- Sponsorships Tab Content (Athlete only) -->
+        <div id="sponsorships" class="tab-content" th:if="${role == 'athlete'}">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">My Sponsorships</h2>
+                <div class="flex space-x-2">
+                    <button id="sponsorshipFilterAll" class="sponsorship-filter-btn active px-4 py-2 rounded bg-blue-500 text-white" data-filter="all">All</button>
+                    <button id="sponsorshipFilterActive" class="sponsorship-filter-btn px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="active">Active</button>
+                    <button id="sponsorshipFilterPending" class="sponsorship-filter-btn px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="pending">Pending</button>
+                    <button id="sponsorshipFilterCompleted" class="sponsorship-filter-btn px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="completed">Completed</button>
+                </div>
+            </div>
+
+            <!-- Sponsorship Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="bg-gradient-to-r from-green-400 to-green-600 text-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <i class="fas fa-handshake text-3xl mr-4"></i>
+                        <div>
+                            <p class="text-green-100">Total Sponsorships</p>
+                            <p id="totalSponsorshipsCount" class="text-2xl font-bold">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-blue-400 to-blue-600 text-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle text-3xl mr-4"></i>
+                        <div>
+                            <p class="text-blue-100">Active Sponsorships</p>
+                            <p id="activeSponsorshipsCount" class="text-2xl font-bold">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <i class="fas fa-dollar-sign text-3xl mr-4"></i>
+                        <div>
+                            <p class="text-yellow-100">Total Value</p>
+                            <p id="totalSponsorshipValue" class="text-2xl font-bold">$0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-purple-400 to-purple-600 text-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <i class="fas fa-calendar text-3xl mr-4"></i>
+                        <div>
+                            <p class="text-purple-100">Current Month</p>
+                            <p id="currentMonthValue" class="text-2xl font-bold">$0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sponsorships List -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6">
+                    <div id="sponsorshipsContainer">
+                        <div id="sponsorshipsLoading" class="text-center py-8">
+                            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                            <p class="text-gray-500 mt-2">Loading sponsorships...</p>
+                        </div>
+
+                        <div id="sponsorshipsEmpty" class="text-center py-12" style="display: none;">
+                            <i class="fas fa-handshake text-6xl text-gray-300 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-600 mb-2">No Sponsorships Yet</h3>
+                            <p class="text-gray-500 mb-6">Start building relationships with sponsors by engaging with their posts and demonstrating your athletic achievements.</p>
+                            <a href="/athlete/explore" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
+                                <i class="fas fa-search mr-2"></i>
+                                Explore Sponsor Posts
+                            </a>
+                        </div>
+
+                        <div id="sponsorshipsList" class="space-y-4" style="display: none;">
+                            <!-- Sponsorships will be loaded here dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Modal for Invitation Acceptance -->
+        <div id="confirmationModal" class="modal confirmation-modal fixed inset-0 items-center justify-center z-50" style="display: none;">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-exclamation-triangle text-yellow-500 text-2xl mr-3"></i>
+                        <h3 class="text-lg font-semibold">Confirm Relationship Change</h3>
+                    </div>
+                    <p id="confirmationMessage" class="text-gray-600 mb-6"></p>
+                    <div class="flex space-x-3">
+                        <button id="confirmAccept" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                            Yes, Replace
+                        </button>
+                        <button id="confirmCancel" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- New Post Modal -->

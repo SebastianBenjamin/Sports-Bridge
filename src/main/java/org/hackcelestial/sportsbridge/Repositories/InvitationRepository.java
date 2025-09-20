@@ -25,4 +25,8 @@ public interface InvitationRepository extends JpaRepository<Invitation, Long> {
 
     @Query("SELECT i FROM Invitation i WHERE i.receiver = ?1 AND i.status = 'PENDING' ORDER BY i.sentAt DESC")
     List<Invitation> findPendingInvitationsByReceiver(User receiver);
+
+    List<Invitation> findByPost(Post post);
+
+    void deleteByPost(Post post);
 }

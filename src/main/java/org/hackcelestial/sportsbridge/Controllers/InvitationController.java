@@ -1,12 +1,9 @@
 package org.hackcelestial.sportsbridge.Controllers;
 
 import jakarta.servlet.http.HttpSession;
-import org.hackcelestial.sportsbridge.Models.Invitation;
-import org.hackcelestial.sportsbridge.Models.Post;
-import org.hackcelestial.sportsbridge.Models.User;
+import org.hackcelestial.sportsbridge.Models.*;
 import org.hackcelestial.sportsbridge.Enums.InvitationStatus;
-import org.hackcelestial.sportsbridge.Services.InvitationService;
-import org.hackcelestial.sportsbridge.Services.PostService;
+import org.hackcelestial.sportsbridge.Services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +21,15 @@ public class InvitationController {
 
     @Autowired
     private PostService postService;
+
+    @Autowired
+    private AthleteService athleteService;
+
+    @Autowired
+    private CoachService coachService;
+
+    @Autowired
+    private SponsorService sponsorService;
 
     @Autowired
     private HttpSession session;
@@ -107,30 +113,63 @@ public class InvitationController {
                 return ResponseEntity.badRequest().body(response);
             }
 
-            boolean responded = invitationService.respondToInvitation(invitationId, invitationStatus, user);
-            if (responded) {
-                response.put("success", true);
-                response.put("message", "Invitation " + status.toLowerCase() + " successfully");
+            // Use the enhanced invitation service
+            Map<String, Object> result = invitationService.respondToInvitation(invitationId, invitationStatus, user);
 
-                // If accepted, provide sender profile URL for redirection
-                if (invitationStatus == InvitationStatus.ACCEPTED) {
-                    Invitation invitation = invitationService.getInvitationById(invitationId);
-                    if (invitation != null) {
-                        response.put("redirectToProfile", true);
-                        response.put("senderRole", invitation.getSender().getRole().toString().toLowerCase());
-                        response.put("senderId", invitation.getSender().getId());
-                    }
+            if ((Boolean) result.get("success")) {
+                Invitation invitation = invitationService.getInvitationById(invitationId);
+                if (invitation != null && invitationStatus == InvitationStatus.ACCEPTED) {
+                    response.put("redirectToProfile", true);
+                    response.put("senderRole", invitation.getSender().getRole().toString().toLowerCase());
+                    response.put("senderId", invitation.getSender().getId());
                 }
-            } else {
-                response.put("success", false);
-                response.put("message", "Failed to respond to invitation");
             }
+
+            return ResponseEntity.ok(result);
 
         } catch (Exception e) {
             System.out.println("Error responding to invitation: " + e.getMessage());
             e.printStackTrace();
             response.put("success", false);
             response.put("message", "Error responding to invitation");
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{invitationId}/confirm")
+    public ResponseEntity<Map<String, Object>> confirmInvitationAcceptance(
+            @PathVariable Long invitationId,
+            @RequestParam("forceAccept") Boolean forceAccept) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            User user = (User) session.getAttribute("user");
+            if (user == null) {
+                response.put("success", false);
+                response.put("message", "User not authenticated");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            Map<String, Object> result = invitationService.confirmInvitationAcceptance(invitationId, user, forceAccept);
+
+            if ((Boolean) result.get("success")) {
+                Invitation invitation = invitationService.getInvitationById(invitationId);
+                if (invitation != null) {
+                    response.put("redirectToProfile", true);
+                    response.put("senderRole", invitation.getSender().getRole().toString().toLowerCase());
+                    response.put("senderId", invitation.getSender().getId());
+                }
+            }
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            System.out.println("Error confirming invitation: " + e.getMessage());
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Error confirming invitation");
         }
 
         return ResponseEntity.ok(response);

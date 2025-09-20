@@ -32,4 +32,13 @@ public class CoachService {
             return false;
         }
     }
+
+    public java.util.List<Coach> getAllCoaches() {
+        try {
+            return coachRepository.findAll();
+        } catch (Exception e) {
+            System.out.println("Error fetching all coaches: " + e.getMessage());
+            return new java.util.ArrayList<>();
+        }
+    }
 }

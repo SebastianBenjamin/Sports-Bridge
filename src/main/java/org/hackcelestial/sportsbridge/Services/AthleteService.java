@@ -36,4 +36,13 @@ public class AthleteService {
             return false;
         }
     }
+
+    public java.util.List<Athlete> getAllAthletes() {
+        try {
+            return athleteRepository.findAll();
+        } catch (Exception e) {
+            System.out.println("Error fetching all athletes: " + e.getMessage());
+            return new java.util.ArrayList<>();
+        }
+    }
 }

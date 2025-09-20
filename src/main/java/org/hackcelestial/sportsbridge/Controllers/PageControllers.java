@@ -40,6 +40,8 @@ public class PageControllers {
     SponsorService sponsorService;
     @Autowired
     PostService postService;
+    @Autowired
+    InvitationService invitationService;
 
     @GetMapping("/")
     public String home() {
@@ -551,10 +553,13 @@ public class PageControllers {
         }
 
         List<Post> posts = postService.getAllPosts();
+        int pendingInvitationCount = invitationService.getPendingInvitationCount(user);
+
         model.addAttribute("user", user);
         model.addAttribute("role", "athlete");
         model.addAttribute("posts", posts);
         model.addAttribute("activeTab", activeTab);
+        model.addAttribute("pendingInvitationCount", pendingInvitationCount);
 
         return "dashboard";
     }
@@ -566,10 +571,13 @@ public class PageControllers {
         }
 
         List<Post> posts = postService.getAllPosts();
+        int pendingInvitationCount = invitationService.getPendingInvitationCount(user);
+
         model.addAttribute("user", user);
         model.addAttribute("role", "coach");
         model.addAttribute("posts", posts);
         model.addAttribute("activeTab", activeTab);
+        model.addAttribute("pendingInvitationCount", pendingInvitationCount);
 
         return "dashboard";
     }
@@ -581,10 +589,13 @@ public class PageControllers {
         }
 
         List<Post> posts = postService.getAllPosts();
+        int pendingInvitationCount = invitationService.getPendingInvitationCount(user);
+
         model.addAttribute("user", user);
         model.addAttribute("role", "sponsor");
         model.addAttribute("posts", posts);
         model.addAttribute("activeTab", activeTab);
+        model.addAttribute("pendingInvitationCount", pendingInvitationCount);
 
         return "dashboard";
     }

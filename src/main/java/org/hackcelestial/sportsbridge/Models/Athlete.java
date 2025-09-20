@@ -26,8 +26,15 @@ public class Athlete {
     @ManyToOne
     private Coach currentCoach;
 
+    @ManyToOne
+    private Sponsor currentSponsor;
+
+
     @ManyToMany
     private List<Coach> previousCoaches;
+
+    @ManyToMany
+    private List<Sponsor> previousSponsors;
 
     public Long getId() {
         return id;
@@ -117,12 +124,28 @@ public class Athlete {
         this.currentCoach = currentCoach;
     }
 
+    public Sponsor getCurrentSponsor() {
+        return currentSponsor;
+    }
+
+    public void setCurrentSponsor(Sponsor currentSponsor) {
+        this.currentSponsor = currentSponsor;
+    }
+
     public List<Coach> getPreviousCoaches() {
         return previousCoaches;
     }
 
     public void setPreviousCoaches(List<Coach> previousCoaches) {
         this.previousCoaches = previousCoaches;
+    }
+
+    public List<Sponsor> getPreviousSponsors() {
+        return previousSponsors;
+    }
+
+    public void setPreviousSponsors(List<Sponsor> previousSponsors) {
+        this.previousSponsors = previousSponsors;
     }
 
     public Athlete() {
