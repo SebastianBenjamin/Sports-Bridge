@@ -28,23 +28,23 @@ INSERT INTO users (id, first_name, last_name, email, password, role, phone, date
 (110, 'Una', 'Unverified', 'una.unverified@sports.com', '$2a$10$N.zmdr9k7uOLTACIxHKHhOKrnyGSpP5/CKWq7/FxvhgLQvPZaHYlu', 'ATHELETE', '+919900000110', '2001-01-01', 'FEMALE', '111122223343', '1 Pending Dr', 'Kolkata', 'West Bengal', '700001', 'India', NOW() - INTERVAL '100 days', NOW());
 
 -- Legacy coaches, athletes, sponsors referencing users
-INSERT INTO coaches (id, user_id, authority, specialization, experienceYears, state, district) VALUES
+INSERT INTO coaches (id, user_id, authority, specialization, experience_years, state, district) VALUES
 (200, 104, 'National Board', 'Strength & Conditioning', 15, 'Karnataka', 'Bangalore Urban');
 
-INSERT INTO athletes (id, user_id, height, weight, isDisabled, disabilityType, emergencyContactName, emergencyContactPhone, state, district) VALUES
+INSERT INTO athletes (id, user_id, height, weight, is_disabled, disability_type, emergency_contact_name, emergency_contact_phone, state, district) VALUES
 (300, 100, 1.70, 60.5, false, NULL, 'Mom Ava', '+911234567890', 'Maharashtra', 'Mumbai'),
 (301, 101, NULL, NULL, false, NULL, 'Friend Zed', '+911234567891', 'Nowhere', 'Nowhere'),
 (302, 102, 1.85, 80.0, false, NULL, 'Coach Max', '+911234567892', 'Delhi', 'New Delhi'),
 (303, 108, 1.68, 55.0, false, NULL, 'Dad Clara', '+911234567893', 'Maharashtra', 'Mumbai'),
 (304, 109, 1.80, 78.0, false, NULL, 'Sister Diego', '+5211111111', 'CDMX', 'Benito Juarez');
 
-INSERT INTO sponsors (id, user_id, companyName, industry, website, budgetRange) VALUES
+INSERT INTO sponsors (id, user_id, company_name, industry, website, budget_range) VALUES
 (400, 105, 'BigFunds Ltd', 'Finance', 'https://bigfunds.example.com', '1000000-5000000'),
 (401, 106, 'MicroFund', 'Non-profit', NULL, '100-500'),
 (402, 107, 'Unknown Inc', 'Unknown', NULL, NULL);
 
 -- Achievements for players (many vs none)
-INSERT INTO achievements (id, athlete_id, title, description, competitionName, certificateUrl, achievementDate, rankPosition, createdAt) VALUES
+INSERT INTO achievements (id, athlete_id, title, description, competition_name, certificate_url, achievement_date, rank_position, created_at) VALUES
 (500, 300, 'State Gold', 'Won gold at state meet', 'Maharashtra State Meet', NULL, '2023-01-15', 1, NOW() - INTERVAL '500 days'),
 (501, 300, 'National Silver', 'Runner-up', 'National Games', NULL, '2024-02-18', 2, NOW() - INTERVAL '300 days'),
 (502, 302, 'City Bronze', 'Third place in city trials', 'Delhi Trials', NULL, '2022-11-10', 3, NOW() - INTERVAL '700 days');

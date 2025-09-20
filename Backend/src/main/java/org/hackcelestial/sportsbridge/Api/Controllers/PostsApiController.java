@@ -41,15 +41,28 @@ public class PostsApiController {
         if (user == null) return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         if (!rolePolicyService.canPost(user)) return ResponseEntity.status(403).body(Map.of("error", "Role not allowed to post"));
 
+        String cap = caption != null ? caption.trim() : null;
+        if (cap != null && cap.length() > 250) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Caption too long (max 250 characters)"));
+        }
+        boolean hasImage = false;
+        if (images != null) {
+            for (MultipartFile f : images) { if (f != null && !f.isEmpty()) { hasImage = true; break; } }
+        }
+        if ((cap == null || cap.isBlank()) && !hasImage) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Provide a caption or at least one image"));
+        }
+        String vis = (visibility == null || visibility.isBlank()) ? "PUBLIC" : visibility;
+
         SbPost post = new SbPost();
         post.setAuthor(user);
-        post.setCaption(caption);
-        post.setVisibility(visibility);
+        post.setCaption(cap);
+        post.setVisibility(vis);
         post.setLikeCount(0);
         post.setCreatedAt(LocalDateTime.now());
         post = postRepository.save(post);
 
-        if (images != null) {
+        if (hasImage) {
             for (MultipartFile f : images) {
                 if (f == null || f.isEmpty()) continue;
                 try {
@@ -65,7 +78,7 @@ public class PostsApiController {
             }
         }
 
-        mirrorInsertLegacyPosts(caption);
+        mirrorInsertLegacyPosts(cap);
 
         CreatePostResponse resp = new CreatePostResponse();
         resp.id = post.getId();
@@ -256,5 +269,31 @@ public class PostsApiController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
+    }
+0
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getOne(@CurrentUser SbUser currentUser, @PathVariable Long id) {
+        SbPost p = postRepository.findById(id).orElse(null);
+        if (p == null) return ResponseEntity.status(404).body(Map.of("error", "Post not found"));
+        long likeCount = likeRepository.countByPost(p);
+        if (!Objects.equals(p.getLikeCount(), likeCount)) {
+            p.setLikeCount(likeCount);
+            postRepository.save(p);
+        }
+        boolean likedByCurrent = currentUser != null && likeRepository.existsByUserAndPost(currentUser, p);
+        List<SbPostImage> imgs = postImageRepository.findByPost(p);
+        Map<String, Object> dto = new LinkedHashMap<>();
+        dto.put("id", p.getId());
+        dto.put("caption", p.getCaption());
+        dto.put("created_at", p.getCreatedAt());
+        Map<String, Object> author = new LinkedHashMap<>();
+        author.put("id", p.getAuthor() != null ? p.getAuthor().getId() : null);
+        author.put("name", p.getAuthor() != null ? p.getAuthor().getFullName() : null);
+        author.put("profilePicUrl", p.getAuthor() != null ? p.getAuthor().getProfilePicUrl() : null);
+        dto.put("user", author);
+        dto.put("images", imgs.stream().map(SbPostImage::getImageUrl).toArray(String[]::new));
+        dto.put("like_count", likeCount);
+        dto.put("liked_by_current_user", likedByCurrent);
+        return ResponseEntity.ok(dto);
     }
 }

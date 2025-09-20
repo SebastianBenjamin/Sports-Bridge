@@ -1,6 +1,5 @@
 package org.hackcelestial.sportsbridge.Api.Controllers;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.hackcelestial.sportsbridge.Api.Entities.SbUser;
 import org.hackcelestial.sportsbridge.Api.Security.CurrentUser;
@@ -57,10 +56,10 @@ public class InvitationsV2Controller {
         if (coachId == null) return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         // Ensure current legacy user is a coach
         String role = jdbc.query("SELECT role FROM users WHERE id = ?", rs -> rs.next() ? rs.getString(1) : null, coachId);
-        if (role == null || !"COACH".equalsIgnoreCase(role)) {
+        if (!"COACH".equalsIgnoreCase(String.valueOf(role))) {
             return ResponseEntity.status(403).body(Map.of("error", "Only coaches can send invitations"));
         }
-        // Insert invitation PENDING, prevent duplicates if desired (best-effort)
+        // Insert invitation PENDING
         NamedParameterJdbcTemplate np = new NamedParameterJdbcTemplate(jdbc);
         MapSqlParameterSource ps = new MapSqlParameterSource()
                 .addValue("coach", coachId)
@@ -69,6 +68,7 @@ public class InvitationsV2Controller {
         Long id = np.queryForObject(
                 "INSERT INTO invitations (coach_id, player_id, status, created_at) VALUES (:coach, :player, :status, NOW()) RETURNING id",
                 ps, Long.class);
+        if (id == null) return ResponseEntity.status(500).body(Map.of("error", "Failed to create invitation"));
         return ResponseEntity.ok(Map.of("id", id, "status", "PENDING"));
     }
 

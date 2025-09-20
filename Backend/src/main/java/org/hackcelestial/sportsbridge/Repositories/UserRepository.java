@@ -3,6 +3,7 @@ package org.hackcelestial.sportsbridge.Repositories;
 import org.hackcelestial.sportsbridge.Models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByEmail(String email);
@@ -14,6 +15,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Finder used for fetching the actual user on login
     User findByEmailAndPassword(String email, String password);
 
-    User save(User user);
-
+    // NEW: find legacy user by phone to sync OTP signups into legacy table
+    User findByPhone(String phone);
 }

@@ -84,14 +84,15 @@ public class ChatController {
             return ResponseEntity.status(403).body(Map.of("error", "Not a participant of this room"));
         }
         // Enforce: only coach may send the first message
-        Integer count = jdbc.query("SELECT COUNT(*) FROM chat_messages WHERE room_id = ?", rs -> rs.next() ? rs.getInt(1) : 0, roomId);
+        Integer cobj = jdbc.query("SELECT COUNT(*) FROM chat_messages WHERE room_id = ?", rs -> rs.next() ? rs.getInt(1) : 0, roomId);
+        int count = cobj != null ? cobj : 0;
         if (count == 0 && !Objects.equals(uid, coachId)) {
             return ResponseEntity.status(403).body(Map.of("error", "Coach must send the first message"));
         }
         Long msgId = jdbc.query("INSERT INTO chat_messages (room_id, sender_id, content, created_at) VALUES (?, ?, ?, NOW()) RETURNING id",
                 rs -> rs.next() ? rs.getLong(1) : null, roomId, uid, body.content.trim());
+        if (msgId == null) return ResponseEntity.status(500).body(Map.of("error", "Failed to persist message"));
         Map<String, Object> resp = Map.of("id", msgId, "room_id", roomId, "sender_id", uid, "content", body.content.trim());
         return ResponseEntity.ok(resp);
     }
 }
-
