@@ -11,6 +11,9 @@ public class SponsorService {
     @Autowired
     SponsorRepository sponsorRepository;
 
+    @Autowired
+    UserService userService;
+
     public boolean save(Sponsor sponsor) {
         return sponsorRepository.save(sponsor) != null;
     }
@@ -20,6 +23,19 @@ public class SponsorService {
             return sponsorRepository.findByUser(user);
         } catch (Exception e) {
             System.out.println("Error finding sponsor by user: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public Sponsor getSponsorByUserId(Long userId) {
+        try {
+            User user = userService.getUserById(userId);
+            if (user != null) {
+                return sponsorRepository.findByUser(user);
+            }
+            return null;
+        } catch (Exception e) {
+            System.out.println("Error finding sponsor by user ID: " + e.getMessage());
             return null;
         }
     }

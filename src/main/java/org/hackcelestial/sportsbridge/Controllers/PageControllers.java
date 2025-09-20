@@ -9,7 +9,6 @@ import org.hackcelestial.sportsbridge.Models.Sponsor;
 import org.hackcelestial.sportsbridge.Models.User;
 import org.hackcelestial.sportsbridge.Services.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -56,7 +54,6 @@ public class PageControllers {
     @PostMapping("/login")
     public String loginUser(@RequestParam("email") String email,
                            @RequestParam("password") String password,
-                           @RequestParam(value = "remember", required = false) String remember,
                            RedirectAttributes redirectAttributes) {
         try {
             // Check if user exists with the given email
@@ -102,7 +99,7 @@ public class PageControllers {
 
         } catch (Exception e) {
             System.out.println("Exception during login: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Login error: " + e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", "An error occurred during login. Please try again.");
             return "redirect:/login";
         }
@@ -298,7 +295,7 @@ public class PageControllers {
 
         } catch (Exception e) {
             System.out.println("Exception in saveRoleDetails: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Role registration error: " + e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", "Error creating profile: " + e.getMessage());
             return "redirect:/roleRegister";
         }
@@ -328,7 +325,7 @@ public class PageControllers {
             }
         } catch (Exception e) {
             System.out.println("Exception saving athlete: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Athlete save error: " + e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", "Error creating athlete profile: " + e.getMessage());
             return "redirect:/roleRegister";
         }
@@ -358,7 +355,7 @@ public class PageControllers {
             }
         } catch (Exception e) {
             System.out.println("Exception saving coach: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Coach save error: " + e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", "Error creating coach profile: " + e.getMessage());
             return "redirect:/roleRegister";
         }
@@ -388,7 +385,7 @@ public class PageControllers {
             }
         } catch (Exception e) {
             System.out.println("Exception saving sponsor: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Sponsor profile visit error: " + e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", "Error creating sponsor profile: " + e.getMessage());
             return "redirect:/roleRegister";
         }
@@ -484,36 +481,104 @@ public class PageControllers {
         return getSponsorPageWithTab(model, "sponsorships");
     }
 
-    // Profile viewing routes for other users
+    // Profile visiting endpoints
     @GetMapping("/athlete/profile/{userId}")
-    public String viewAthleteProfile(@PathVariable Long userId, Model model) {
-        return getUserProfilePage(userId, model, "athlete");
+    public String visitAthleteProfile(@PathVariable Long userId, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            User currentUser = (User) session.getAttribute("user");
+            if (currentUser == null) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Please log in to view profiles.");
+                return "redirect:/login";
+            }
+
+            User targetUser = userService.getUserById(userId);
+            if (targetUser == null || !targetUser.getRole().equals(UserRole.ATHLETE)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Athlete profile not found.");
+                return "redirect:/" + currentUser.getRole().toString().toLowerCase() + "/dashboard";
+            }
+
+            Athlete athlete = athleteService.getAthleteByUserId(userId);
+
+            model.addAttribute("user", currentUser);
+            model.addAttribute("role", currentUser.getRole().toString().toLowerCase());
+            model.addAttribute("activeTab", "profile");
+            model.addAttribute("targetUser", targetUser);
+            model.addAttribute("targetProfile", athlete);
+            model.addAttribute("isOwnProfile", currentUser.getId().equals(userId));
+
+            return "userProfile";
+        } catch (Exception e) {
+            System.out.println("Error visiting athlete profile: " + e.getMessage());
+            System.err.println("Athlete profile visit error: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error loading profile.");
+            return "redirect:/" + ((User) session.getAttribute("user")).getRole().toString().toLowerCase() + "/dashboard";
+        }
     }
 
     @GetMapping("/coach/profile/{userId}")
-    public String viewCoachProfile(@PathVariable Long userId, Model model) {
-        return getUserProfilePage(userId, model, "coach");
+    public String visitCoachProfile(@PathVariable Long userId, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            User currentUser = (User) session.getAttribute("user");
+            if (currentUser == null) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Please log in to view profiles.");
+                return "redirect:/login";
+            }
+
+            User targetUser = userService.getUserById(userId);
+            if (targetUser == null || !targetUser.getRole().equals(UserRole.COACH)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Coach profile not found.");
+                return "redirect:/" + currentUser.getRole().toString().toLowerCase() + "/dashboard";
+            }
+
+            Coach coach = coachService.getCoachByUserId(userId);
+
+            model.addAttribute("user", currentUser);
+            model.addAttribute("role", currentUser.getRole().toString().toLowerCase());
+            model.addAttribute("activeTab", "profile");
+            model.addAttribute("targetUser", targetUser);
+            model.addAttribute("targetProfile", coach);
+            model.addAttribute("isOwnProfile", currentUser.getId().equals(userId));
+
+            return "userProfile";
+        } catch (Exception e) {
+            System.out.println("Error visiting coach profile: " + e.getMessage());
+            System.err.println("Coach profile visit error: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error loading profile.");
+            return "redirect:/" + ((User) session.getAttribute("user")).getRole().toString().toLowerCase() + "/dashboard";
+        }
     }
 
     @GetMapping("/sponsor/profile/{userId}")
-    public String viewSponsorProfile(@PathVariable Long userId, Model model) {
-        return getUserProfilePage(userId, model, "sponsor");
-    }
+    public String visitSponsorProfile(@PathVariable Long userId, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            User currentUser = (User) session.getAttribute("user");
+            if (currentUser == null) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Please log in to view profiles.");
+                return "redirect:/login";
+            }
 
-    // Case-insensitive profile viewing routes (uppercase URLs)
-    @GetMapping("/ATHLETE/profile/{userId}")
-    public String viewAthleteProfileUpper(@PathVariable Long userId, Model model) {
-        return getUserProfilePage(userId, model, "athlete");
-    }
+            User targetUser = userService.getUserById(userId);
+            if (targetUser == null || !targetUser.getRole().equals(UserRole.SPONSOR)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Sponsor profile not found.");
+                return "redirect:/" + currentUser.getRole().toString().toLowerCase() + "/dashboard";
+            }
 
-    @GetMapping("/COACH/profile/{userId}")
-    public String viewCoachProfileUpper(@PathVariable Long userId, Model model) {
-        return getUserProfilePage(userId, model, "coach");
-    }
+            Sponsor sponsor = sponsorService.getSponsorByUserId(userId);
 
-    @GetMapping("/SPONSOR/profile/{userId}")
-    public String viewSponsorProfileUpper(@PathVariable Long userId, Model model) {
-        return getUserProfilePage(userId, model, "sponsor");
+            model.addAttribute("user", currentUser);
+            model.addAttribute("role", currentUser.getRole().toString().toLowerCase());
+            model.addAttribute("activeTab", "profile");
+            model.addAttribute("targetUser", targetUser);
+            model.addAttribute("targetProfile", sponsor);
+            model.addAttribute("isOwnProfile", currentUser.getId().equals(userId));
+
+            return "userProfile";
+        } catch (Exception e) {
+            System.out.println("Error visiting sponsor profile: " + e.getMessage());
+            System.err.println("Sponsor profile visit error: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error loading profile.");
+            return "redirect:/" + ((User) session.getAttribute("user")).getRole().toString().toLowerCase() + "/dashboard";
+        }
     }
 
     // Helper method for viewing other users' profiles
@@ -527,13 +592,13 @@ public class PageControllers {
         User targetUser = userService.getUserById(userId);
         if (targetUser == null) {
             model.addAttribute("errorMessage", "User not found");
-            return "redirect:/" + currentUser.getRole().toString().toLowerCase() + "/explore";
+            return "redirect:/" + currentUser.getRole().toString().toLowerCase() + "/dashboard";
         }
 
-        // Verify role matches the URL pattern (case-insensitive)
-        if (!targetUser.getRole().toString().toLowerCase().equals(expectedRole.toLowerCase())) {
+        // Verify role matches the URL pattern using equalsIgnoreCase
+        if (!targetUser.getRole().toString().equalsIgnoreCase(expectedRole)) {
             model.addAttribute("errorMessage", "Invalid profile link");
-            return "redirect:/" + currentUser.getRole().toString().toLowerCase() + "/explore";
+            return "redirect:/" + currentUser.getRole().toString().toLowerCase() + "/dashboard";
         }
 
         model.addAttribute("currentUser", currentUser);

@@ -1,10 +1,390 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <meta charset="UTF-8" />
+    <title>SportsBridge - Home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="SportsBridge connects athletes, coaches, sponsors & fans across India with performance, community & opportunity." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#2563eb',
+                            indigo: '#4f46e5',
+                            saffron: '#FF8F1F',
+                            green: '#138808'
+                        }
+                    },
+                    keyframes: {
+                        float: { '0%,100%': { transform:'translateY(0)' }, '50%': { transform:'translateY(-14px)' } },
+                        pulseRing: { '0%': { transform:'scale(.33)', opacity:.6 }, '40%,80%': { opacity:0 }, '100%': { opacity:0 } },
+                        marquee: { '0%': { transform:'translateX(0)' }, '100%': { transform:'translateX(-50%)' } }
+                    },
+                    animation: {
+                        float: 'float 6s ease-in-out infinite',
+                        floatSlow: 'float 9s ease-in-out infinite',
+                        pulseRing: 'pulseRing 3s cubic-bezier(0.215,0.61,0.355,1) infinite',
+                        marquee: 'marquee 38s linear infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-flag-text { background:linear-gradient(90deg,#FF8F1F,#ffffff,#138808); -webkit-background-clip:text; color:transparent; }
+        .gradient-brand { background:linear-gradient(135deg,#2563eb,#4f46e5); }
+        .flag-bar { background:linear-gradient(90deg,#FF8F1F 0%,#ffffff 48%,#138808 100%); }
+        .hero-bg { background:radial-gradient(circle at 25% 25%,rgba(255,255,255,0.15),transparent 60%), linear-gradient(135deg,#1e3a8a 0%,#0f172a 60%  ); }
+        .glass { backdrop-filter:blur(14px); background:rgba(255,255,255,0.08); }
+        .tilt { perspective:900px; }
+        .tilt > div { transform-style:preserve-3d; transition:transform .6s; }
+        .tilt:hover > div { transform:rotateX(9deg) rotateY(-9deg) scale(1.02); }
+        @media (prefers-reduced-motion: reduce) { .animate-float, .animate-floatSlow, .animate-pulseRing, .animate-marquee { animation:none !important; } }
+    </style>
 </head>
-<body>
-Hello World
+<body class="bg-gray-100 text-gray-800 selection:bg-brand-blue/90 selection:text-white">
+<!-- NAV -->
+<header class="w-full bg-white/80 backdrop-blur border-b border-gray-200/70 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <a href="/" class="flex items-center space-x-2 group">
+            <div class="relative">
+                <span class="absolute inset-0 rounded-xl bg-gradient-to-r from-brand-blue to-brand-indigo blur-sm opacity-60 group-hover:opacity-90 transition"></span>
+                <div class="relative rounded-xl bg-white ring-2 ring-brand-blue/40 px-3 py-1 font-bold text-brand-blue">SB</div>
+            </div>
+            <span class="text-lg sm:text-xl font-extrabold tracking-tight bg-gradient-to-r from-brand-blue via-brand-indigo to-brand-blue bg-clip-text text-transparent">SportsBridge</span>
+        </a>
+        <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
+            <a href="#features" class="hover:text-brand-blue transition">Features</a>
+            <a href="#roles" class="hover:text-brand-blue transition">Roles</a>
+            <a href="#why" class="hover:text-brand-blue transition">Why Us</a>
+            <a href="#join" class="hover:text-brand-blue transition">Get Started</a>
+        </nav>
+        <div class="flex items-center space-x-3">
+            <a href="/login" class="text-sm font-semibold text-gray-700 hover:text-brand-blue">Log in</a>
+            <a href="/register" class="inline-flex items-center text-sm font-semibold text-white gradient-brand hover:brightness-110 shadow px-4 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-indigo">
+                Sign up
+            </a>
+        </div>
+    </div>
+    <div class="flag-bar h-1 w-full"></div>
+</header>
+
+<!-- HERO -->
+<section class="relative overflow-hidden hero-bg">
+    <div class="absolute inset-0 opacity-10 pointer-events-none" aria-hidden="true">
+        <div class="absolute -left-10 top-10 w-72 h-72 rounded-full bg-brand-indigo blur-3xl"></div>
+        <div class="absolute right-0 bottom-0 w-80 h-80 rounded-full bg-brand-blue blur-3xl"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-28 relative">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight text-white drop-shadow-sm">
+                    Bridge Talent, Data & Opportunity for <span class="gradient-flag-text">Every Sport</span>
+                </h1>
+                <p class="mt-6 text-lg sm:text-xl text-blue-100 max-w-xl">A unified platform powering athletes, coaches and sponsors across India with performance tracking, discovery, collaboration & growth.</p>
+                <div class="mt-8 flex flex-wrap gap-4">
+                    <a href="/register" class="gradient-brand inline-flex items-center px-6 py-3 rounded-lg text-white font-semibold shadow hover:shadow-lg transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-indigo">
+                        Get Started
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 5l7 7-7 7"/></svg>
+                    </a>
+                    <a href="#features" class="inline-flex items-center px-6 py-3 rounded-lg font-semibold bg-white/10 backdrop-blur text-white border border-white/20 hover:bg-white/20 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white">
+                        Explore Features
+                    </a>
+                </div>
+                <div class="mt-10 grid grid-cols-3 sm:grid-cols-4 gap-4 max-w-md text-center text-white/90 text-xs">
+                    <div class="p-3 rounded-lg bg-white/10 backdrop-blur">
+                        <div class="text-lg font-bold" th:text="${athleteCount} ?: '12.4K'">12.4K</div>
+                        <div class="uppercase tracking-wide">Athletes</div>
+                    </div>
+                    <div class="p-3 rounded-lg bg-white/10 backdrop-blur">
+                        <div class="text-lg font-bold" th:text="${teamsCount} ?: '860'">860</div>
+                        <div class="uppercase tracking-wide">Teams</div>
+                    </div>
+                    <div class="p-3 rounded-lg bg-white/10 backdrop-blur">
+                        <div class="text-lg font-bold" th:text="${sponsorsCount} ?: '310'">310</div>
+                        <div class="uppercase tracking-wide">Sponsors</div>
+                    </div>
+                    <div class="p-3 rounded-lg bg-white/10 backdrop-blur hidden sm:block">
+                        <div class="text-lg font-bold" th:text="${eventsCount} ?: '4.2K'">4.2K</div>
+                        <div class="uppercase tracking-wide">Events</div>
+                    </div>
+                </div>
+            </div>
+            <div class="relative">
+                <div class="absolute -top-10 -left-10 w-24 h-24 rounded-full bg-gradient-to-br from-brand-blue to-brand-indigo opacity-30 animate-float"></div>
+                <div class="absolute -bottom-12 -right-6 w-28 h-28 rounded-full bg-gradient-to-br from-brand-indigo to-brand-blue opacity-30 animate-floatSlow"></div>
+                <div class="p-6 md:p-8 rounded-2xl bg-white/70 backdrop-blur border border-white/40 shadow-xl space-y-6">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center">Live Snapshot <span class="ml-2 inline-flex h-2 w-2 relative"><span class="animate-pulseRing absolute inline-flex h-full w-full rounded-full bg-brand-blue/40"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-brand-blue"></span></span></h2>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="rounded-lg p-4 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+                            <div class="text-xs uppercase tracking-wide text-blue-700 font-semibold">New Signups</div>
+                            <div class="mt-1 text-2xl font-extrabold text-blue-700" th:text="${newSignupsToday} ?: '128'">128</div>
+                        </div>
+                        <div class="rounded-lg p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200">
+                            <div class="text-xs uppercase tracking-wide text-indigo-700 font-semibold">Active Now</div>
+                            <div class="mt-1 text-2xl font-extrabold text-indigo-700" th:text="${activeNow} ?: '542'">542</div>
+                        </div>
+                        <div class="rounded-lg p-4 bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200">
+                            <div class="text-xs uppercase tracking-wide text-amber-700 font-semibold">Sessions</div>
+                            <div class="mt-1 text-2xl font-extrabold text-amber-700" th:text="${sessionsToday} ?: '2.7K'">2.7K</div>
+                        </div>
+                        <div class="rounded-lg p-4 bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200">
+                            <div class="text-xs uppercase tracking-wide text-emerald-700 font-semibold">Invites Sent</div>
+                            <div class="mt-1 text-2xl font-extrabold text-emerald-700" th:text="${invitesToday} ?: '94'">94</div>
+                        </div>
+                    </div>
+                    <div class="text-[10px] uppercase tracking-wider text-gray-500">Real-time metrics simulated • Integrate API for live data</div>
+                </div>
+            </div>
+        </div>
+        <!-- Marquee Ticker -->
+        <div class="mt-20 relative overflow-hidden rounded-lg border border-white/20 bg-white/10 backdrop-blur text-white">
+            <div class="flex whitespace-nowrap animate-marquee text-xs md:text-sm font-semibold py-3" aria-hidden="true">
+                <div class="flex space-x-8 px-8">
+                    <span>CRICKET IND 172/4 (18.2)</span>
+                    <span>FOOTBALL IND 2 - 1 UAE 78'</span>
+                    <span>KABADDI IND 41 - 29 KOR FINAL</span>
+                    <span>HOCKEY IND 3 - 2 AUS Q4</span>
+                    <span>BADMINTON SINDHU W 21-18 21-16</span>
+                    <span>TENNIS NAGPAL 6-4 3-6 5-3*</span>
+                    <span>ATHLETICS NEERAJ 88.12m</span>
+                </div>
+                <div class="flex space-x-8 px-8">
+                    <span>CRICKET IND 172/4 (18.2)</span>
+                    <span>FOOTBALL IND 2 - 1 UAE 78'</span>
+                    <span>KABADDI IND 41 - 29 KOR FINAL</span>
+                    <span>HOCKEY IND 3 - 2 AUS Q4</span>
+                    <span>BADMINTON SINDHU W 21-18 21-16</span>
+                    <span>TENNIS NAGPAL 6-4 3-6 5-3*</span>
+                    <span>ATHLETICS NEERAJ 88.12m</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="py-20 bg-white relative">
+    <div class="absolute inset-x-0 -top-10 h-10 bg-gradient-to-b from-gray-100 to-transparent pointer-events-none"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto">
+            <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Platform Features</h2>
+            <p class="mt-4 text-gray-600 text-lg">Everything you need to showcase talent, build trust and accelerate growth in the Indian sports ecosystem.</p>
+        </div>
+        <div class="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="group tilt">
+                <div class="h-full rounded-2xl p-6 bg-gradient-to-br from-blue-50 to-white border border-blue-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-blue-100 group-hover:scale-125 transition"></div>
+                    <h3 class="font-semibold text-lg text-blue-800 mb-2">Performance Profiles</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">Centralized athletic identity with stats, progress, media & verified credentials.</p>
+                </div>
+            </div>
+            <div class="group tilt">
+                <div class="h-full rounded-2xl p-6 bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-indigo-100 group-hover:scale-125 transition"></div>
+                    <h3 class="font-semibold text-lg text-indigo-800 mb-2">Smart Analytics</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">Training load, engagement signals & comparative benchmarking to inform decisions.</p>
+                </div>
+            </div>
+            <div class="group tilt">
+                <div class="h-full rounded-2xl p-6 bg-gradient-to-br from-amber-50 to-white border border-amber-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-amber-100 group-hover:scale-125 transition"></div>
+                    <h3 class="font-semibold text-lg text-amber-800 mb-2">Discovery & Matching</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">Athletes, coaches & sponsors dynamically surfaced via intent + performance signals.</p>
+                </div>
+            </div>
+            <div class="group tilt">
+                <div class="h-full rounded-2xl p-6 bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-emerald-100 group-hover:scale-125 transition"></div>
+                    <h3 class="font-semibold text-lg text-emerald-800 mb-2">Secure Invitations</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">Structured flows for sponsorships, coaching relationships & event participation.</p>
+                </div>
+            </div>
+            <div class="group tilt">
+                <div class="h-full rounded-2xl p-6 bg-gradient-to-br from-fuchsia-50 to-white border border-fuchsia-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-fuchsia-100 group-hover:scale-125 transition"></div>
+                    <h3 class="font-semibold text-lg text-fuchsia-800 mb-2">Community Feed</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">Share logs, achievements & opportunities—moderated for trust & authenticity.</p>
+                </div>
+            </div>
+            <div class="group tilt">
+                <div class="h-full rounded-2xl p-6 bg-gradient-to-br from-slate-50 to-white border border-slate-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-slate-100 group-hover:scale-125 transition"></div>
+                    <h3 class="font-semibold text-lg text-slate-800 mb-2">Scalable Architecture</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">API-first design (coming) enabling integrations with wearables & event systems.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ROLES -->
+<section id="roles" class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+            <div class="max-w-xl">
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900">Built for Every Role</h2>
+                <p class="mt-4 text-gray-600">Tailored workflows that empower each stakeholder—aligned to a shared performance & opportunity graph.</p>
+            </div>
+            <div class="flex space-x-2 text-xs font-semibold uppercase tracking-wide">
+                <span class="px-3 py-1 rounded-full bg-brand-blue text-white">Athlete</span>
+                <span class="px-3 py-1 rounded-full bg-brand-indigo text-white">Coach</span>
+                <span class="px-3 py-1 rounded-full bg-amber-500 text-white">Sponsor</span>
+            </div>
+        </div>
+        <div class="mt-12 grid gap-8 md:grid-cols-3">
+            <div class="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col shadow-sm hover:shadow-md transition">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center gradient-brand text-white font-bold shadow">A</div>
+                    <h3 class="ml-4 text-xl font-semibold text-gray-800">Athletes</h3>
+                </div>
+                <ul class="space-y-2 text-sm text-gray-600 flex-1">
+                    <li>• Training & daily log tracking</li>
+                    <li>• Sponsorship & event offers</li>
+                    <li>• Verified performance identity</li>
+                    <li>• Relationship management</li>
+                </ul>
+                <a href="/register" class="mt-6 inline-flex items-center text-sm font-semibold text-brand-blue hover:underline">Join as Athlete →</a>
+            </div>
+            <div class="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col shadow-sm hover:shadow-md transition">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br from-indigo-500 to-indigo-600 text-white font-bold shadow">C</div>
+                    <h3 class="ml-4 text-xl font-semibold text-gray-800">Coaches</h3>
+                </div>
+                <ul class="space-y-2 text-sm text-gray-600 flex-1">
+                    <li>• Athlete roster oversight</li>
+                    <li>• Training insight dashboards</li>
+                    <li>• Performance communication</li>
+                    <li>• Structured invitations</li>
+                </ul>
+                <a href="/register" class="mt-6 inline-flex items-center text-sm font-semibold text-indigo-600 hover:underline">Join as Coach →</a>
+            </div>
+            <div class="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col shadow-sm hover:shadow-md transition">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br from-amber-500 to-orange-500 text-white font-bold shadow">S</div>
+                    <h3 class="ml-4 text-xl font-semibold text-gray-800">Sponsors</h3>
+                </div>
+                <ul class="space-y-2 text-sm text-gray-600 flex-1">
+                    <li>• Prospect discovery & filtering</li>
+                    <li>• Structured sponsorship channels</li>
+                    <li>• Authentic engagement signals</li>
+                    <li>• Campaign performance view</li>
+                </ul>
+                <a href="/register" class="mt-6 inline-flex items-center text-sm font-semibold text-amber-600 hover:underline">Join as Sponsor →</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- WHY SECTION -->
+<section id="why" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900">Why SportsBridge?</h2>
+                <p class="mt-6 text-gray-600 leading-relaxed">We are digitizing the fragmented pathways of Indian sport—integrating performance data, relationships & opportunity signals into a trust-centric ecosystem. Our roadmap expands into wearables, federated scoring, and open performance verifiability.</p>
+                <div class="mt-8 space-y-4">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-brand-blue to-brand-indigo text-white font-bold">1</div>
+                        <p class="text-sm text-gray-700">Unified identity & cross-role visibility.</p>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold">2</div>
+                        <p class="text-sm text-gray-700">Integrity-first interactions with verifiable context.</p>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-600 text-white font-bold">3</div>
+                        <p class="text-sm text-gray-700">Scalable data model ready for advanced analytics.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="relative">
+                <div class="grid gap-6 sm:grid-cols-2">
+                    <div class="p-5 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg">
+                        <div class="text-xs uppercase tracking-wider text-white/70">Athletes</div>
+                        <div class="mt-2 text-3xl font-extrabold" th:text="${athleteCount} ?: '12.4K'">12.4K</div>
+                        <p class="text-xs mt-1 text-white/80">growing profiles</p>
+                    </div>
+                    <div class="p-5 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg">
+                        <div class="text-xs uppercase tracking-wider text-white/70">Invitations</div>
+                        <div class="mt-2 text-3xl font-extrabold" th:text="${invitesTotal} ?: '58K'">58K</div>
+                        <p class="text-xs mt-1 text-white/80">securely processed</p>
+                    </div>
+                    <div class="p-5 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg">
+                        <div class="text-xs uppercase tracking-wider text-white/70">Sponsors</div>
+                        <div class="mt-2 text-3xl font-extrabold" th:text="${sponsorsCount} ?: '310'">310</div>
+                        <p class="text-xs mt-1 text-white/80">active stakeholders</p>
+                    </div>
+                    <div class="p-5 rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white shadow-lg">
+                        <div class="text-xs uppercase tracking-wider text-white/70">Events</div>
+                        <div class="mt-2 text-3xl font-extrabold" th:text="${eventsCount} ?: '4.2K'">4.2K</div>
+                        <p class="text-xs mt-1 text-white/80">registered activities</p>
+                    </div>
+                </div>
+                <div class="absolute -inset-2 rounded-2xl pointer-events-none border-2 border-dashed border-brand-blue/20"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section id="join" class="py-24 bg-gradient-to-br from-brand-blue via-brand-indigo to-brand-blue relative overflow-hidden">
+    <div class="absolute inset-0 opacity-20 mix-blend-overlay bg-[radial-gradient(circle_at_30%_30%,white,transparent_60%),radial-gradient(circle_at_70%_60%,white,transparent_60%)]"></div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white">Ready to Build Your Sports Identity?</h2>
+        <p class="mt-6 text-white/90 text-lg max-w-2xl mx-auto">Join a growing network shaping the future of competitive & grassroots sports in India. Your journey deserves structure, visibility & acceleration.</p>
+        <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/register" class="gradient-brand inline-flex justify-center items-center px-8 py-4 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white">Create Free Account</a>
+            <a href="/login" class="inline-flex justify-center items-center px-8 py-4 rounded-xl font-semibold bg-white/15 backdrop-blur text-white border border-white/30 hover:bg-white/25 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white">Access Dashboard</a>
+        </div>
+        <div class="mt-12 text-[10px] uppercase tracking-widest font-semibold text-white/60">Made in India • Built for Global Play</div>
+    </div>
+    <div class="flag-bar h-1 w-full absolute bottom-0 left-0"></div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-white border-t border-gray-200 py-12 text-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-4 gap-10">
+        <div>
+            <div class="flex items-center space-x-2 mb-4">
+                <div class="rounded-lg bg-gradient-to-br from-brand-blue to-brand-indigo text-white w-10 h-10 flex items-center justify-center font-bold shadow">SB</div>
+                <span class="font-extrabold text-gray-800">SportsBridge</span>
+            </div>
+            <p class="text-gray-500 text-xs leading-relaxed">Empowering India's sports ecosystem with unified performance, opportunity & trust layers.</p>
+        </div>
+        <div>
+            <h4 class="font-semibold text-gray-900 mb-3">Platform</h4>
+            <ul class="space-y-2 text-gray-600">
+                <li><a href="#features" class="hover:text-brand-blue">Features</a></li>
+                <li><a href="#roles" class="hover:text-brand-blue">Roles</a></li>
+                <li><a href="#why" class="hover:text-brand-blue">Why Us</a></li>
+                <li><a href="#join" class="hover:text-brand-blue">Join</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 class="font-semibold text-gray-900 mb-3">Resources</h4>
+            <ul class="space-y-2 text-gray-600">
+                <li><span class="opacity-60">API (Coming Soon)</span></li>
+                <li><span class="opacity-60">Blog (Coming)</span></li>
+                <li><span class="opacity-60">Security</span></li>
+                <li><span class="opacity-60">Support</span></li>
+            </ul>
+        </div>
+        <div>
+            <h4 class="font-semibold text-gray-900 mb-3">Get Involved</h4>
+            <ul class="space-y-2 text-gray-600">
+                <li><a href="/register" class="hover:text-brand-blue">Create Account</a></li>
+                <li><a href="/login" class="hover:text-brand-blue">Dashboard Access</a></li>
+                <li><span class="opacity-60">Partner With Us</span></li>
+                <li><span class="opacity-60">Careers (Soon)</span></li>
+            </ul>
+        </div>
+    </div>
+    <div class="mt-10 border-t border-gray-100 pt-6 text-center text-xs text-gray-500">&copy; <span th:text="${year} ?: ${#dates.format(#dates.createNow(),'yyyy')}"></span> SportsBridge. All rights reserved.</div>
+</footer>
+
 </body>
 </html>

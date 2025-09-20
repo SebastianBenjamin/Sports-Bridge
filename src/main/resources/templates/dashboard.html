@@ -1,23 +1,61 @@
+                                    <option value="Regional">Regional</option>
+                                    <option value="State">State</option>
+                                    <option value="National">National</option>
+                                    <option value="International">International</option>
+                                </select>
+                            </div>
+                        </div>
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title th:text="'SportsBridge - ' + ${role} + ' Dashboard'">SportsBridge Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome CDN -->
-    <link rel="stylesheet"
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Organization</label>
+                                <input type="text" id="achievementOrganization" name="organization"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       placeholder="e.g. Sports Authority of India">
+                            </div>
           th:href="@{https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css}"
-          integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=="
-          crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <style>
-        .tab-content { display: none; }
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Position/Result</label>
+                                <input type="text" id="achievementPosition" name="position"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       placeholder="e.g. 1st Place, Gold Medal">
+                            </div>
+                        </div>
         .tab-content.active { display: block; }
-        .tab-btn.active { background-color: #3b82f6; color: white; }
-        .modal { display: none; }
-        .modal.active { display: flex; }
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Certificate/Proof (Optional)</label>
+                            <input type="file" id="achievementCertificate" name="certificate" accept="image/*"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Upload certificate or proof image (JPEG, PNG)</p>
+                        </div>
+                    </div>
+            top: 0;
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" id="cancelAchievement" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                            <i class="fas fa-save mr-2"></i>Save Achievement
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        .search-filter-nav {
+        <script th:inline="javascript">
+            // Make current user ID available to JavaScript
+            window.currentUserId = /*[[${user.id}]]*/ null;
+        </script>
+        <script th:src="@{/dashboard.js}"></script>
+    </body>
+    </html>
+        .tab-navigation {
+            position: sticky;
+            top: 140px; /* Below header and search nav when visible */
+            z-index: 998;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+        }
 
         /* Floating Action Button styles */
         .fab {
@@ -55,11 +93,32 @@
             background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(5px);
         }
+
+        /* Invitation tab styles */
+        .invitation-tab-btn.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .invitation-tab-content.hidden {
+            display: none;
+        }
+
+        /* Prevent horizontal scroll on tab navigation */
+        .tab-navigation-container {
+            overflow-x: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+
+        .tab-navigation-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
     </style>
 </head>
 <body class="bg-gray-100">
-    <!-- Header -->
-    <header class="bg-blue-600 text-white p-4">
+    <!-- Fixed Header -->
+    <header class="fixed-header bg-blue-600 text-white p-4">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-bold">SportsBridge</h1>
             <div class="flex items-center space-x-4">
@@ -80,7 +139,7 @@
     </button>
 
     <!-- Search & Filter Secondary Navbar - Only shown in explore tab -->
-    <nav id="searchFilterNav" class="bg-white shadow-sm border-b border-gray-200 py-3 overflow-hidden" style="display: none; max-height: 120px;">
+    <nav id="searchFilterNav" class="search-filter-nav py-3" style="display: none;">
         <div class="container mx-auto px-4">
             <!-- Search Box Row -->
             <div class="flex items-center justify-center mb-3">
@@ -96,832 +155,821 @@
                 </div>
             </div>
             <!-- Filter Section Row -->
-            <div class="flex items-center justify-center overflow-x-auto">
-                <div class="flex items-center gap-2 min-w-max px-2">
-                    <span class="text-sm text-gray-600 mr-2 whitespace-nowrap">Filter:</span>
-                    <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="all">
-                        <i class="fas fa-list w-3 h-3 mr-1"></i>All
-                    </a>
-                    <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="DAILYLOG">
-                        <i class="fas fa-calendar-alt w-3 h-3 mr-1"></i>Daily Log
-                    </a>
-                    <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="EVENT">
-                        <i class="fas fa-calendar-check w-3 h-3 mr-1"></i>Event
-                    </a>
-                    <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="SPONSORSHIP">
-                        <i class="fas fa-hand-holding-usd w-3 h-3 mr-1"></i>Sponsorship
-                    </a>
-                    <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="COACHING">
-                        <i class="fas fa-chalkboard-teacher w-3 h-3 mr-1"></i>Coaching
-                    </a>
-                    <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="FRESHER">
-                        <i class="fas fa-user-plus w-3 h-3 mr-1"></i>Fresher
-                    </a>
-                    <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="BEGINNER">
-                        <i class="fas fa-seedling w-3 h-3 mr-1"></i>Beginner
-                    </a>
+            <div class="flex items-center justify-center">
+                <div class="tab-navigation-container w-full">
+                    <div class="flex items-center gap-2 justify-center px-2">
+                        <span class="text-sm text-gray-600 mr-2 whitespace-nowrap">Filter:</span>
+                        <a href="#" class="filter-tag bg-blue-500 text-white px-3 py-1 rounded-full text-xs hover:bg-blue-600 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="all">
+                            <i class="fas fa-list w-3 h-3 mr-1"></i>All
+                        </a>
+                        <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="DAILYLOG">
+                            <i class="fas fa-calendar-alt w-3 h-3 mr-1"></i>Daily Log
+                        </a>
+                        <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="EVENT">
+                            <i class="fas fa-calendar-check w-3 h-3 mr-1"></i>Event
+                        </a>
+                        <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="SPONSORSHIP">
+                            <i class="fas fa-hand-holding-usd w-3 h-3 mr-1"></i>Sponsorship
+                        </a>
+                        <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="COACHING">
+                            <i class="fas fa-chalkboard-teacher w-3 h-3 mr-1"></i>Coaching
+                        </a>
+                        <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="FRESHER">
+                            <i class="fas fa-user-plus w-3 h-3 mr-1"></i>Fresher
+                        </a>
+                        <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="BEGINNER">
+                            <i class="fas fa-seedling w-3 h-3 mr-1"></i>Beginner
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Success/Error Messages -->
-    <div th:if="${message}" class="container mx-auto mt-4">
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            <span th:text="${message}"></span>
-        </div>
-    </div>
-
-    <div th:if="${errorMessage}" class="container mx-auto mt-4">
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            <span th:text="${errorMessage}"></span>
-        </div>
-    </div>
-
     <!-- Main Content -->
-    <div class="container mx-auto p-6">
-        <!-- Tab Navigation -->
-        <div class="mb-6">
-            <div class="flex space-x-2 border-b overflow-x-auto">
-                <!-- Athlete Tabs -->
-                <div th:if="${role == 'athlete'}">
-                    <a href="/athlete/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Explore</a>
-                    <a href="/athlete/dailylogs" th:class="${activeTab == 'dailylogs' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Daily Logs</a>
-                    <a href="/athlete/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t relative whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 relative whitespace-nowrap'}">
-                        Invitations
-                        <span th:if="${pendingInvitationCount > 0}"
-                              th:text="${pendingInvitationCount}"
-                              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">0</span>
-                    </a>
-                    <a href="/athlete/sponsorships" th:class="${activeTab == 'sponsorships' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Sponsorships</a>
-                    <a href="/athlete/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Profile</a>
-                    <a href="/athlete/mycoach" th:class="${activeTab == 'mycoach' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">My Coach</a>
-                </div>
-
-                <!-- Coach Tabs -->
-                <div th:if="${role == 'coach'}">
-                    <a href="/coach/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Explore</a>
-                    <a href="/coach/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t relative' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 relative'}">
-                        Invitations
-                        <span th:if="${pendingInvitationCount > 0}"
-                              th:text="${pendingInvitationCount}"
-                              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">0</span>
-                    </a>
-                    <a href="/coach/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Profile</a>
-                    <a href="/coach/myathletes" th:class="${activeTab == 'myathletes' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">My Athletes</a>
-                </div>
-
-                <!-- Sponsor Tabs -->
-                <div th:if="${role == 'sponsor'}">
-                    <a href="/sponsor/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Explore</a>
-                    <a href="/sponsor/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t relative' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 relative'}">
-                        Invitations
-                        <span th:if="${pendingInvitationCount > 0}"
-                              th:text="${pendingInvitationCount}"
-                              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">0</span>
-                    </a>
-                    <a href="/sponsor/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Profile</a>
-                    <a href="/sponsor/sponsorships" th:class="${activeTab == 'sponsorships' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Sponsorships</a>
-                </div>
+    <div class="main-content">
+        <!-- Success/Error Messages -->
+        <div th:if="${message}" class="container mx-auto mt-4">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                <span th:text="${message}"></span>
             </div>
         </div>
 
-        <!-- Tab Contents -->
+        <div th:if="${errorMessage}" class="container mx-auto mt-4">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <span th:text="${errorMessage}"></span>
+            </div>
+        </div>
 
-        <!-- Explore Tab (Common for all roles) -->
-        <div id="explore" class="tab-content active">
-            <h2 class="text-2xl font-bold mb-4">Explore Posts</h2>
-            <div id="postsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Posts will be loaded here dynamically -->
-                <div th:each="post : ${posts}" class="bg-white p-4 rounded-lg shadow-md" th:attr="data-post-id=${post.id}">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center">
-                            <img th:src="${post.user?.profileImageUrl ?: 'https://via.placeholder.com/40'}"
-                                 alt="User" class="w-10 h-10 rounded-full mr-3 object-cover">
-                            <div>
-                                <h3 class="font-semibold text-sm" th:text="${post.user?.firstName + ' ' + post.user?.lastName}">User Name</h3>
-                                <p class="text-gray-500 text-xs" th:text="${post.user?.role}">Role</p>
+        <div class="container mx-auto p-6">
+            <!-- Tab Navigation -->
+            <div class="tab-navigation mb-6">
+                <div class="tab-navigation-container">
+                    <div class="flex space-x-2 border-b min-w-max">
+                        <!-- Athlete Tabs -->
+                        <div th:if="${role == 'athlete'}" class="flex space-x-2">
+                            <a href="/athlete/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Explore</a>
+                            <a href="/athlete/dailylogs" th:class="${activeTab == 'dailylogs' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Daily Logs</a>
+                            <a href="/athlete/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t relative whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 relative whitespace-nowrap'}">
+                                Invitations
+                                <span th:if="${pendingInvitationCount > 0}"
+                                      th:text="${pendingInvitationCount}"
+                                      class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">0</span>
+                            </a>
+                            <a href="/athlete/sponsorships" th:class="${activeTab == 'sponsorships' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Sponsorships</a>
+                            <a href="/athlete/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Profile</a>
+                            <a href="/athlete/mycoach" th:class="${activeTab == 'mycoach' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">My Coach</a>
+                        </div>
+
+                        <!-- Coach Tabs -->
+                        <div th:if="${role == 'coach'}" class="flex space-x-2">
+                            <a href="/coach/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Explore</a>
+                            <a href="/coach/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t relative whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 relative whitespace-nowrap'}">
+                                Invitations
+                                <span th:if="${pendingInvitationCount > 0}"
+                                      th:text="${pendingInvitationCount}"
+                                      class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">0</span>
+                            </a>
+                            <a href="/coach/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Profile</a>
+                            <a href="/coach/myathletes" th:class="${activeTab == 'myathletes' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">My Athletes</a>
+                        </div>
+
+                        <!-- Sponsor Tabs -->
+                        <div th:if="${role == 'sponsor'}" class="flex space-x-2">
+                            <a href="/sponsor/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Explore</a>
+                            <a href="/sponsor/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t relative whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 relative whitespace-nowrap'}">
+                                Invitations
+                                <span th:if="${pendingInvitationCount > 0}"
+                                      th:text="${pendingInvitationCount}"
+                                      class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">0</span>
+                            </a>
+                            <a href="/sponsor/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Profile</a>
+                            <a href="/sponsor/sponsorships" th:class="${activeTab == 'sponsorships' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Sponsorships</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Contents -->
+
+            <!-- Explore Tab (Common for all roles) -->
+            <div id="explore" class="tab-content active">
+                <h2 class="text-2xl font-bold mb-4">Explore Posts</h2>
+                <div id="postsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Posts will be loaded here dynamically -->
+                    <div th:each="post : ${posts}" class="bg-white p-4 rounded-lg shadow-md" th:attr="data-post-id=${post.id}">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <img th:src="${post.user?.profileImageUrl ?: 'https://via.placeholder.com/40'}"
+                                     alt="User" class="w-10 h-10 rounded-full mr-3 object-cover">
+                                <div>
+                                    <h3 class="font-semibold text-gray-900" th:text="${post.user?.firstName + ' ' + post.user?.lastName}">User Name</h3>
+                                    <p class="text-sm text-gray-600" th:text="${post.user?.role}">Role</p>
+                                    <button class="visit-profile-btn text-blue-600 hover:text-blue-800 text-sm"
+                                            th:attr="data-user-id=${post.user?.id}, data-user-role=${post.user?.role}">
+                                        <i class="fas fa-user mr-1"></i>View Profile
+                                    </button>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                                  th:text="${post.postType}"
+                                  th:attr="data-post-type=${post.postType}">Type</span>
+                        </div>
+
+                        <h4 class="font-bold text-lg mb-2" th:text="${post.title}">Post Title</h4>
+                        <p class="text-gray-700 mb-3" th:text="${post.description}">Post Description</p>
+
+                        <div th:if="${post.imageUrl}" class="mb-3">
+                            <img th:src="${post.imageUrl}" alt="Post Image" class="w-full h-48 object-cover rounded">
+                        </div>
+
+                        <div class="flex justify-between items-center text-sm text-gray-500 mb-3">
+                            <span th:text="${#temporals.format(post.createdAt, 'MMM dd, yyyy')}">Date</span>
+                            <div class="flex items-center">
+                                <i class="fas fa-heart mr-1"></i>
+                                <span th:text="${post.likesCount ?: 0}">0</span>
                             </div>
                         </div>
-                        <!-- Delete button - only show for post owner -->
-                        <div th:if="${post.user?.id == user.id}">
-                            <button class="delete-post-btn text-red-500 hover:text-red-700 text-sm"
-                                    th:attr="data-post-id=${post.id}"
-                                    title="Delete post">
-                                <i class="fas fa-trash"></i>
+
+                        <div class="flex space-x-2">
+                            <button class="like-btn bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm flex items-center"
+                                    th:attr="data-post-id=${post.id}">
+                                <i class="fas fa-heart like-icon mr-1"></i>
+                                <span class="like-text">Like</span>
+                                <span class="like-count ml-1" th:text="'(' + ${post.likesCount ?: 0} + ')'">()0)</span>
+                            </button>
+                            <button class="send-invitation-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center"
+                                    th:attr="data-post-id=${post.id}">
+                                <i class="fas fa-envelope mr-1"></i>Send Invitation
                             </button>
                         </div>
                     </div>
-
-                    <h4 class="text-md font-semibold mb-2" th:text="${post.title}">Post Title</h4>
-                    <p class="mb-3 text-sm text-gray-700" th:text="${post.description}">Post Description</p>
-
-                    <div th:if="${post.imageUrl}" class="mb-3">
-                        <img th:src="${post.imageUrl}" alt="Post Image" class="w-full h-32 object-cover rounded">
-                    </div>
-
-                    <div class="text-xs text-gray-400 mb-3" th:text="${#temporals.format(post.posted_at, 'MMM dd, yyyy HH:mm')}">Posted date</div>
-
-                    <div class="flex space-x-2 text-sm">
-                        <!-- Show invitation button only for EVENT, SPONSORSHIP, COACHING posts and not for own posts -->
-                        <button th:if="${post.postType.name() == 'EVENT' or post.postType.name() == 'SPONSORSHIP' or post.postType.name() == 'COACHING'} and ${post.user?.id != user.id}"
-                                class="send-invitation-btn bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-xs flex items-center min-w-[90px] justify-center"
-                                th:attr="data-post-id=${post.id}">
-                            <i class="fas fa-paper-plane mr-1"></i> Send Invitation
-                        </button>
-
-                        <!-- Visit Profile button for post owner -->
-                        <button th:if="${post.user?.id != user.id}"
-                                class="visit-profile-btn bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600 text-xs flex items-center min-w-[90px] justify-center"
-                                th:attr="data-user-id=${post.user?.id}, data-user-role=${post.user?.role}">
-                            <i class="fas fa-user mr-1"></i> Visit Profile
-                        </button>
-
-                        <button class="like-btn bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-xs flex items-center space-x-1 min-w-[70px] justify-center"
-                                th:attr="data-post-id=${post.id}, data-liked=${post.userLikes != null and post.userLikes.contains(user) ? 'true' : 'false'}"
-                                th:classappend="${post.userLikes != null and post.userLikes.contains(user) ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'}">
-                            <i class="like-icon fas fa-heart" th:classappend="${post.userLikes != null and post.userLikes.contains(user) ? 'text-red-300' : ''}"></i>
-                            <span class="like-text" th:text="${post.userLikes != null and post.userLikes.contains(user) ? 'Liked' : 'Like'}">Like</span>
-                            <span class="like-count" th:text="'(' + ${post.userLikes != null ? post.userLikes.size() : 0} + ')'">0</span>
-                        </button>
-                        <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-xs flex items-center min-w-[70px] justify-center">
-                            <i class="fas fa-flag mr-1"></i> Report
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Daily Logs Tab (Athlete only) -->
-        <div id="dailylogs" class="tab-content" th:if="${role == 'athlete'}">
-            <h2 class="text-2xl font-bold mb-4">Daily Logs</h2>
-
-            <!-- Today's Summary -->
-            <div class="bg-white p-6 rounded-lg shadow mb-6">
-                <h3 class="text-lg font-semibold mb-4">Training Statistics</h3>
-                <div id="todaysSummary" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="bg-blue-50 p-4 rounded">
-                        <h4 class="font-semibold text-blue-800">Today's Duration</h4>
-                        <p id="totalDuration" class="text-2xl font-bold text-blue-600">0 min</p>
-                    </div>
-                    <div class="bg-green-50 p-4 rounded">
-                        <h4 class="font-semibold text-green-800">Today's Sessions</h4>
-                        <p id="totalSessions" class="text-2xl font-bold text-green-600">0</p>
-                    </div>
-                    <div class="bg-orange-50 p-4 rounded">
-                        <h4 class="font-semibold text-orange-800">Current Streak</h4>
-                        <p id="currentStreak" class="text-2xl font-bold text-orange-600">0 days</p>
-                    </div>
-                    <div class="bg-purple-50 p-4 rounded">
-                        <h4 class="font-semibold text-purple-800">Total Lifetime</h4>
-                        <p id="totalLifetimeDuration" class="text-2xl font-bold text-purple-600">0 min</p>
-                    </div>
                 </div>
             </div>
 
-            <!-- Add New Log Button -->
-            <div class="mb-6">
-                <button id="addLogBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center">
-                    <i class="fas fa-plus mr-2"></i> Add Training Log
-                </button>
-            </div>
+            <!-- Daily Logs Tab (Athlete only) -->
+            <div id="dailylogs" class="tab-content" th:if="${role == 'athlete'}">
+                <h2 class="text-2xl font-bold mb-4">Daily Logs</h2>
 
-            <!-- Performance Chart Section -->
-            <div class="bg-white p-6 rounded-lg shadow mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold">Training Performance Overview</h3>
-                    <div class="flex space-x-2">
-                        <button id="chartPeriod7" class="chart-period-btn active px-3 py-1 rounded text-sm bg-blue-500 text-white" data-period="7">7 Days</button>
-                        <button id="chartPeriod30" class="chart-period-btn px-3 py-1 rounded text-sm bg-gray-200 text-gray-700 hover:bg-gray-300" data-period="30">30 Days</button>
-                        <button id="chartPeriod90" class="chart-period-btn px-3 py-1 rounded text-sm bg-gray-200 text-gray-700 hover:bg-gray-300" data-period="90">90 Days</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Training Duration Chart -->
-                    <div>
-                        <h4 class="text-md font-medium mb-3 text-gray-700">Daily Training Duration</h4>
-                        <div style="position: relative; height: 250px;">
-                            <canvas id="durationChart"></canvas>
+                <!-- Today's Summary -->
+                <div class="bg-white p-6 rounded-lg shadow mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Training Statistics</h3>
+                    <div id="todaysSummary" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-blue-50 p-4 rounded">
+                            <h4 class="font-semibold text-blue-800">Today's Duration</h4>
+                            <p id="totalDuration" class="text-2xl font-bold text-blue-600">0 min</p>
                         </div>
-                    </div>
-                    <!-- Training Type Distribution -->
-                    <div>
-                        <h4 class="text-md font-medium mb-3 text-gray-700">Training Type Distribution</h4>
-                        <div style="position: relative; height: 250px;">
-                            <canvas id="trainingTypeChart"></canvas>
+                        <div class="bg-green-50 p-4 rounded">
+                            <h4 class="font-semibold text-green-800">Today's Sessions</h4>
+                            <p id="totalSessions" class="text-2xl font-bold text-green-600">0</p>
+                        </div>
+                        <div class="bg-orange-50 p-4 rounded">
+                            <h4 class="font-semibold text-orange-800">Current Streak</h4>
+                            <p id="currentStreak" class="text-2xl font-bold text-orange-600">0 days</p>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded">
+                            <h4 class="font-semibold text-purple-800">Total Lifetime</h4>
+                            <p id="totalLifetimeDuration" class="text-2xl font-bold text-purple-600">0 min</p>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Daily Logs List -->
-            <div class="bg-white p-6 rounded-lg shadow">
-                <h3 class="text-lg font-semibold mb-4">Recent Training Logs</h3>
-                <div id="dailyLogsList">
-                    <!-- Daily logs will be loaded here -->
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-dumbbell text-4xl mb-4"></i>
-                        <p>No training logs yet. Start by adding your first workout!</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Invitations Tab (Common for all roles) -->
-        <div id="invitations" class="tab-content">
-            <h2 class="text-2xl font-bold mb-6">Invitations</h2>
-
-            <!-- Invitation Tabs -->
-            <div class="mb-6">
-                <div class="flex space-x-2 border-b">
-                    <button id="receivedInvitationsTab" class="invitation-tab-btn active px-4 py-2 rounded-t bg-blue-500 text-white">Received Invitations</button>
-                    <button id="sentInvitationsTab" class="invitation-tab-btn px-4 py-2 rounded-t hover:bg-gray-100">Sent Invitations</button>
-                </div>
-            </div>
-
-            <!-- Received Invitations -->
-            <div id="receivedInvitations" class="invitation-tab-content">
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <h3 class="text-lg font-semibold mb-4">Received Invitations</h3>
-                    <div id="receivedInvitationsList">
-                        <!-- Received invitations will be loaded here -->
-                        <div class="text-center py-8 text-gray-500">
-                            <i class="fas fa-inbox text-4xl mb-4"></i>
-                            <p>No invitations received yet</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sent Invitations -->
-            <div id="sentInvitations" class="invitation-tab-content hidden">
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <h3 class="text-lg font-semibold mb-4">Sent Invitations</h3>
-                    <div id="sentInvitationsList">
-                        <!-- Sent invitations will be loaded here -->
-                        <div class="text-center py-8 text-gray-500">
-                            <i class="fas fa-paper-plane text-4xl mb-4"></i>
-                            <p>No invitations sent yet</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Profile Tab (Common for all roles) -->
-        <div id="profile" class="tab-content">
-            <h2 class="text-2xl font-bold mb-6">My Profile</h2>
-
-            <!-- Personal Information Section -->
-            <div class="bg-white p-6 rounded-lg shadow mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800">Personal Information</h3>
-                    <button id="editPersonalBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
-                        <i class="fas fa-edit mr-2"></i> Edit
+                <!-- Add New Log Button -->
+                <div class="mb-6">
+                    <button id="addLogBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center">
+                        <i class="fas fa-plus mr-2"></i> Add Training Log
                     </button>
                 </div>
 
-                <!-- Personal Info Display Mode -->
-                <div id="personalDisplay" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="md:col-span-2 flex items-center mb-4">
-                        <img id="profileImage" src="/placeholder-avatar.png" alt="Profile" class="w-20 h-20 rounded-full mr-6 object-cover border-4 border-gray-200">
-                        <div>
-                            <h4 id="fullName" class="text-xl font-semibold text-gray-900">Loading...</h4>
-                            <p id="userEmail" class="text-gray-600">Loading...</p>
-                            <span id="userRole" class="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full mt-1">Loading...</span>
+                <!-- Performance Chart Section -->
+                <div class="bg-white p-6 rounded-lg shadow mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">Training Performance Overview</h3>
+                        <div class="flex space-x-2">
+                            <button id="chartPeriod7" class="chart-period-btn active px-3 py-1 rounded text-sm bg-blue-500 text-white" data-period="7">7 Days</button>
+                            <button id="chartPeriod30" class="chart-period-btn px-3 py-1 rounded text-sm bg-gray-200 text-gray-700 hover:bg-gray-300" data-period="30">30 Days</button>
+                            <button id="chartPeriod90" class="chart-period-btn px-3 py-1 rounded text-sm bg-gray-200 text-gray-700 hover:bg-gray-300" data-period="90">90 Days</button>
                         </div>
                     </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                        <p id="phoneDisplay" class="text-gray-900">Not provided</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                        <p id="countryDisplay" class="text-gray-900">Not provided</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-                        <p id="genderDisplay" class="text-gray-900">Not provided</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Aadhaar Number</label>
-                        <p id="aadhaarDisplay" class="text-gray-900">Not provided</p>
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Bio</label>
-                        <p id="bioDisplay" class="text-gray-900">No bio provided</p>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Training Duration Chart -->
+                        <div>
+                            <h4 class="text-md font-medium mb-3 text-gray-700">Daily Training Duration</h4>
+                            <div style="position: relative; height: 250px;">
+                                <canvas id="durationChart"></canvas>
+                            </div>
+                        </div>
+                        <!-- Training Type Distribution -->
+                        <div>
+                            <h4 class="text-md font-medium mb-3 text-gray-700">Training Type Distribution</h4>
+                            <div style="position: relative; height: 250px;">
+                                <canvas id="trainingTypeChart"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Personal Info Edit Mode -->
-                <div id="personalEdit" class="hidden">
-                    <form id="personalForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                            <input type="text" id="firstName" name="firstName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <!-- Daily Logs List -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">Recent Training Logs</h3>
+                    <div id="dailyLogsList">
+                        <!-- Daily logs will be loaded here -->
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-dumbbell text-4xl mb-4"></i>
+                            <p>No training logs yet. Start by adding your first workout!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invitations Tab (Common for all roles) -->
+            <div id="invitations" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6">Invitations</h2>
+
+                <!-- Invitation Tabs -->
+                <div class="mb-6">
+                    <div class="flex space-x-2 border-b">
+                        <button id="receivedInvitationsTab" class="invitation-tab-btn active px-4 py-2 rounded-t bg-blue-500 text-white">Received Invitations</button>
+                        <button id="sentInvitationsTab" class="invitation-tab-btn px-4 py-2 rounded-t hover:bg-gray-100">Sent Invitations</button>
+                    </div>
+                </div>
+
+                <!-- Received Invitations -->
+                <div id="receivedInvitations" class="invitation-tab-content">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-4">Received Invitations</h3>
+                        <div id="receivedInvitationsList">
+                            <!-- Received invitations will be loaded here -->
+                            <div class="text-center py-8 text-gray-500">
+                                <i class="fas fa-inbox text-4xl mb-4"></i>
+                                <p>No invitations received yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sent Invitations -->
+                <div id="sentInvitations" class="invitation-tab-content hidden">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-4">Sent Invitations</h3>
+                        <div id="sentInvitationsList">
+                            <!-- Sent invitations will be loaded here -->
+                            <div class="text-center py-8 text-gray-500">
+                                <i class="fas fa-paper-plane text-4xl mb-4"></i>
+                                <p>No invitations sent yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Tab (Common for all roles) -->
+            <div id="profile" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6">My Profile</h2>
+
+                <!-- Personal Information Section -->
+                <div class="bg-white p-6 rounded-lg shadow mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Personal Information</h3>
+                        <button id="editPersonalBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
+                            <i class="fas fa-edit mr-2"></i> Edit
+                        </button>
+                    </div>
+
+                    <!-- Personal Info Display Mode -->
+                    <div id="personalDisplay" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2 flex items-center mb-4">
+                            <img id="profileImage" src="/placeholder-avatar.png" alt="Profile" class="w-20 h-20 rounded-full mr-6 object-cover border-4 border-gray-200">
+                            <div>
+                                <h4 id="fullName" class="text-xl font-semibold text-gray-900">Loading...</h4>
+                                <p id="userEmail" class="text-gray-600">Loading...</p>
+                                <span id="userRole" class="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full mt-1">Loading...</span>
+                            </div>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                            <input type="text" id="lastName" name="lastName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                            <p id="phoneDisplay" class="text-gray-900">Not provided</p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                            <input type="tel" id="phone" name="phone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                            <p id="countryDisplay" class="text-gray-900">Not provided</p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                            <input type="text" id="country" name="country" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                            <p id="genderDisplay" class="text-gray-900">Not provided</p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-                            <select id="gender" name="gender" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">Select Gender</option>
-                                <option value="MALE">Male</option>
-                                <option value="FEMALE">Female</option>
-                                <option value="OTHER">Other</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Aadhaar Number</label>
-                            <input type="text" id="aadhaarNumber" name="aadhaarNumber" maxlength="12" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Aadhaar Number</label>
+                            <p id="aadhaarDisplay" class="text-gray-900">Not provided</p>
                         </div>
 
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
-                            <textarea id="bio" name="bio" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                            <p id="bioDisplay" class="text-gray-900">No bio provided</p>
                         </div>
+                    </div>
 
-                        <div class="md:col-span-2 flex space-x-3">
-                            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg flex items-center">
-                                <i class="fas fa-save mr-2"></i> Save Changes
-                            </button>
-                            <button type="button" id="cancelPersonalBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg flex items-center">
-                                <i class="fas fa-times mr-2"></i> Cancel
-                            </button>
-                        </div>
-                    </form>
+                    <!-- Personal Info Edit Mode -->
+                    <div id="personalEdit" class="hidden">
+                        <form id="personalForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                                <input type="text" id="firstName" name="firstName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                                <input type="text" id="lastName" name="lastName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                                <input type="tel" id="phone" name="phone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                                <input type="text" id="country" name="country" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                                <select id="gender" name="gender" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Gender</option>
+                                    <option value="MALE">Male</option>
+                                    <option value="FEMALE">Female</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Aadhaar Number</label>
+                                <input type="text" id="aadhaarNumber" name="aadhaarNumber" maxlength="12" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                                <textarea id="bio" name="bio" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            </div>
+
+                            <div class="md:col-span-2 flex space-x-3">
+                                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg flex items-center">
+                                    <i class="fas fa-save mr-2"></i> Save Changes
+                                </button>
+                                <button type="button" id="cancelPersonalBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg flex items-center">
+                                    <i class="fas fa-times mr-2"></i> Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Professional Information Section -->
-            <div class="bg-white p-6 rounded-lg shadow mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800">Professional Information</h3>
-                    <button id="editProfessionalBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
-                        <i class="fas fa-edit mr-2"></i> Edit
-                    </button>
-                </div>
+                <!-- Professional Information Section -->
+                <div class="bg-white p-6 rounded-lg shadow mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Professional Information</h3>
+                        <button id="editProfessionalBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
+                            <i class="fas fa-edit mr-2"></i> Edit
+                        </button>
+                    </div>
 
-                <!-- Professional Info Display Mode -->
-                <div id="professionalDisplay">
-                    <!-- Content will be loaded dynamically based on user role -->
-                </div>
-
-                <!-- Professional Info Edit Mode -->
-                <div id="professionalEdit" class="hidden">
-                    <form id="professionalForm">
+                    <!-- Professional Info Display Mode -->
+                    <div id="professionalDisplay">
                         <!-- Content will be loaded dynamically based on user role -->
-                    </form>
+                    </div>
+
+                    <!-- Professional Info Edit Mode -->
+                    <div id="professionalEdit" class="hidden">
+                        <form id="professionalForm">
+                            <!-- Content will be loaded dynamically based on user role -->
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Security Section -->
+                <div class="bg-white p-6 rounded-lg shadow mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Security Settings</h3>
+                        <button id="editPasswordBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
+                            <i class="fas fa-key mr-2"></i> Change Password
+                        </button>
+                    </div>
+
+                    <!-- Password Change Form (Hidden by default) -->
+                    <div id="passwordEdit" class="hidden">
+                        <form id="passwordForm" class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                                <div class="relative">
+                                    <input type="password" id="currentPassword" name="currentPassword" required
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
+                                    <button type="button" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center"
+                                            data-target="currentPassword">
+                                        <i class="fas fa-eye text-gray-400"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                                <div class="relative">
+                                    <input type="password" id="newPassword" name="newPassword" required
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
+                                    <button type="button" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center"
+                                            data-target="newPassword">
+                                        <i class="fas fa-eye text-gray-400"></i>
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Password must be at least 8 characters long with at least one number and one symbol</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                                <div class="relative">
+                                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
+                                    <button type="button" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center"
+                                            data-target="confirmPassword">
+                                        <i class="fas fa-eye text-gray-400"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="flex space-x-3">
+                                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg flex items-center">
+                                    <i class="fas fa-save mr-2"></i> Update Password
+                                </button>
+                                <button type="button" id="cancelPasswordBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg flex items-center">
+                                    <i class="fas fa-times mr-2"></i> Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Security Info Display -->
+                    <div id="securityDisplay">
+                        <p class="text-gray-600">Keep your account secure by regularly updating your password.</p>
+                        <p class="text-sm text-gray-500 mt-2">Last password change: <span class="font-medium">Click "Change Password" to update</span></p>
+                    </div>
+                </div>
+
+                <!-- Achievements Section (For Athletes and Coaches only) -->
+                <div class="bg-white p-6 rounded-lg shadow mb-6" th:if="${role == 'athlete' or role == 'coach'}">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Achievements</h3>
+                        <button id="addAchievementBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
+                            <i class="fas fa-plus mr-2"></i> Add Achievement
+                        </button>
+                    </div>
+
+                    <!-- Achievements Display -->
+                    <div id="achievementsDisplay">
+                        <div id="achievementsList" class="space-y-4">
+                            <!-- Achievements will be loaded here -->
+                            <div id="noAchievements" class="text-center py-8 text-gray-500">
+                                <i class="fas fa-trophy text-4xl mb-4 text-gray-400"></i>
+                                <p>No achievements added yet</p>
+                                <p class="text-sm mt-2">Add your first achievement to showcase your accomplishments</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Security Section -->
-            <div class="bg-white p-6 rounded-lg shadow mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800">Security Settings</h3>
-                    <button id="editPasswordBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
-                        <i class="fas fa-key mr-2"></i> Change Password
-                    </button>
+            <!-- My Coach Tab (Athlete only) -->
+            <div id="mycoach" class="tab-content" th:if="${role == 'athlete'}">
+                <h2 class="text-2xl font-bold mb-4">My Coach</h2>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <p class="text-gray-600">No coach assigned yet</p>
+                    <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Find a Coach</button>
+                </div>
+            </div>
+
+            <!-- My Athletes Tab (Coach only) -->
+            <div id="myathletes" class="tab-content" th:if="${role == 'coach'}">
+                <h2 class="text-2xl font-bold mb-4">My Athletes</h2>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <p class="text-gray-600">No athletes under your coaching yet</p>
+                    <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Find Athletes</button>
+                </div>
+            </div>
+
+            <!-- Sponsorships Tab (Sponsor only) -->
+            <div id="sponsorships" class="tab-content" th:if="${role == 'sponsor'}">
+                <h2 class="text-2xl font-bold mb-4">Sponsorships</h2>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <p class="text-gray-600">No active sponsorships</p>
+                    <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Create Sponsorship</button>
+                </div>
+            </div>
+
+            <!-- Sponsorships Tab Content (Athlete only) -->
+            <div id="sponsorships" class="tab-content" th:if="${role == 'athlete'}">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">My Sponsorships</h2>
+                    <div class="flex space-x-2">
+                        <button id="sponsorshipFilterAll" class="sponsorship-filter-btn active px-4 py-2 rounded bg-blue-500 text-white" data-filter="all">All</button>
+                        <button id="sponsorshipFilterActive" class="sponsorship-filter-btn px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="active">Active</button>
+                        <button id="sponsorshipFilterPending" class="sponsorship-filter-btn px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="pending">Pending</button>
+                        <button id="sponsorshipFilterCompleted" class="sponsorship-filter-btn px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="completed">Completed</button>
+                    </div>
                 </div>
 
-                <!-- Password Change Form (Hidden by default) -->
-                <div id="passwordEdit" class="hidden">
-                    <form id="passwordForm" class="grid grid-cols-1 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
-                            <div class="relative">
-                                <input type="password" id="currentPassword" name="currentPassword" required
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
-                                <button type="button" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center"
-                                        data-target="currentPassword">
-                                    <i class="fas fa-eye text-gray-400"></i>
-                                </button>
+                <!-- Sponsorship Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-gradient-to-r from-green-400 to-green-600 text-white p-6 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <i class="fas fa-handshake text-3xl mr-4"></i>
+                            <div>
+                                <p class="text-green-100">Total Sponsorships</p>
+                                <p id="totalSponsorshipsCount" class="text-2xl font-bold">0</p>
                             </div>
                         </div>
+                    </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
-                            <div class="relative">
-                                <input type="password" id="newPassword" name="newPassword" required
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
-                                <button type="button" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center"
-                                        data-target="newPassword">
-                                    <i class="fas fa-eye text-gray-400"></i>
-                                </button>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">Password must be at least 8 characters long with at least one number and one symbol</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
-                            <div class="relative">
-                                <input type="password" id="confirmPassword" name="confirmPassword" required
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
-                                <button type="button" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center"
-                                        data-target="confirmPassword">
-                                    <i class="fas fa-eye text-gray-400"></i>
-                                </button>
+                    <div class="bg-gradient-to-r from-blue-400 to-blue-600 text-white p-6 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-3xl mr-4"></i>
+                            <div>
+                                <p class="text-blue-100">Active Sponsorships</p>
+                                <p id="activeSponsorshipsCount" class="text-2xl font-bold">0</p>
                             </div>
                         </div>
+                    </div>
 
+                    <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white p-6 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <i class="fas fa-dollar-sign text-3xl mr-4"></i>
+                            <div>
+                                <p class="text-yellow-100">Total Value</p>
+                                <p id="totalSponsorshipValue" class="text-2xl font-bold">$0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-purple-400 to-purple-600 text-white p-6 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <i class="fas fa-calendar text-3xl mr-4"></i>
+                            <div>
+                                <p class="text-purple-100">Current Month</p>
+                                <p id="currentMonthValue" class="text-2xl font-bold">$0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sponsorships List -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6">
+                        <div id="sponsorshipsContainer">
+                            <div id="sponsorshipsLoading" class="text-center py-8">
+                                <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                                <p class="text-gray-500 mt-2">Loading sponsorships...</p>
+                            </div>
+
+                            <div id="sponsorshipsEmpty" class="text-center py-12" style="display: none;">
+                                <i class="fas fa-handshake text-6xl text-gray-300 mb-4"></i>
+                                <h3 class="text-xl font-semibold text-gray-600 mb-2">No Sponsorships Yet</h3>
+                                <p class="text-gray-500 mb-6">Start building relationships with sponsors by engaging with their posts and demonstrating your athletic achievements.</p>
+                                <a href="/athlete/explore" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
+                                    <i class="fas fa-search mr-2"></i>
+                                    Explore Sponsor Posts
+                                </a>
+                            </div>
+
+                            <div id="sponsorshipsList" class="space-y-4" style="display: none;">
+                                <!-- Sponsorships will be loaded here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirmation Modal for Invitation Acceptance -->
+            <div id="confirmationModal" class="modal confirmation-modal fixed inset-0 items-center justify-center z-50" style="display: none;">
+                <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-exclamation-triangle text-yellow-500 text-2xl mr-3"></i>
+                            <h3 class="text-lg font-semibold">Confirm Relationship Change</h3>
+                        </div>
+                        <p id="confirmationMessage" class="text-gray-600 mb-6"></p>
                         <div class="flex space-x-3">
-                            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg flex items-center">
-                                <i class="fas fa-save mr-2"></i> Update Password
+                            <button id="confirmAccept" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                                Yes, Replace
                             </button>
-                            <button type="button" id="cancelPasswordBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg flex items-center">
-                                <i class="fas fa-times mr-2"></i> Cancel
+                            <button id="confirmCancel" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                                Cancel
                             </button>
                         </div>
-                    </form>
-                </div>
-
-                <!-- Security Info Display -->
-                <div id="securityDisplay">
-                    <p class="text-gray-600">Keep your account secure by regularly updating your password.</p>
-                    <p class="text-sm text-gray-500 mt-2">Last password change: <span class="font-medium">Click "Change Password" to update</span></p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Achievements Section (For Athletes and Coaches only) -->
-            <div class="bg-white p-6 rounded-lg shadow mb-6" th:if="${role == 'athlete' or role == 'coach'}">
+        </div>
+
+        <!-- New Post Modal -->
+        <div id="newPostModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-4">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800">Achievements</h3>
-                    <button id="addAchievementBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
-                        <i class="fas fa-plus mr-2"></i> Add Achievement
-                    </button>
+                    <h3 class="text-lg font-semibold">Create New Post</h3>
+                    <button id="closeModal" class="text-gray-400 hover:text-gray-600">&times;</button>
                 </div>
 
-                <!-- Achievements Display -->
-                <div id="achievementsDisplay">
-                    <div id="achievementsList" class="space-y-4">
-                        <!-- Achievements will be loaded here -->
-                        <div id="noAchievements" class="text-center py-8 text-gray-500">
-                            <i class="fas fa-trophy text-4xl mb-4 text-gray-400"></i>
-                            <p>No achievements added yet</p>
-                            <p class="text-sm mt-2">Add your first achievement to showcase your accomplishments</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- My Coach Tab (Athlete only) -->
-        <div id="mycoach" class="tab-content" th:if="${role == 'athlete'}">
-            <h2 class="text-2xl font-bold mb-4">My Coach</h2>
-            <div class="bg-white p-6 rounded-lg shadow">
-                <p class="text-gray-600">No coach assigned yet</p>
-                <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Find a Coach</button>
-            </div>
-        </div>
-
-        <!-- My Athletes Tab (Coach only) -->
-        <div id="myathletes" class="tab-content" th:if="${role == 'coach'}">
-            <h2 class="text-2xl font-bold mb-4">My Athletes</h2>
-            <div class="bg-white p-6 rounded-lg shadow">
-                <p class="text-gray-600">No athletes under your coaching yet</p>
-                <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Find Athletes</button>
-            </div>
-        </div>
-
-        <!-- Sponsorships Tab (Sponsor only) -->
-        <div id="sponsorships" class="tab-content" th:if="${role == 'sponsor'}">
-            <h2 class="text-2xl font-bold mb-4">Sponsorships</h2>
-            <div class="bg-white p-6 rounded-lg shadow">
-                <p class="text-gray-600">No active sponsorships</p>
-                <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Create Sponsorship</button>
-            </div>
-        </div>
-
-        <!-- Sponsorships Tab Content (Athlete only) -->
-        <div id="sponsorships" class="tab-content" th:if="${role == 'athlete'}">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">My Sponsorships</h2>
-                <div class="flex space-x-2">
-                    <button id="sponsorshipFilterAll" class="sponsorship-filter-btn active px-4 py-2 rounded bg-blue-500 text-white" data-filter="all">All</button>
-                    <button id="sponsorshipFilterActive" class="sponsorship-filter-btn px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="active">Active</button>
-                    <button id="sponsorshipFilterPending" class="sponsorship-filter-btn px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="pending">Pending</button>
-                    <button id="sponsorshipFilterCompleted" class="sponsorship-filter-btn px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="completed">Completed</button>
-                </div>
-            </div>
-
-            <!-- Sponsorship Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                <div class="bg-gradient-to-r from-green-400 to-green-600 text-white p-6 rounded-lg shadow">
-                    <div class="flex items-center">
-                        <i class="fas fa-handshake text-3xl mr-4"></i>
+                <form id="newPostForm" enctype="multipart/form-data">
+                    <div class="space-y-4">
                         <div>
-                            <p class="text-green-100">Total Sponsorships</p>
-                            <p id="totalSponsorshipsCount" class="text-2xl font-bold">0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-gradient-to-r from-blue-400 to-blue-600 text-white p-6 rounded-lg shadow">
-                    <div class="flex items-center">
-                        <i class="fas fa-check-circle text-3xl mr-4"></i>
-                        <div>
-                            <p class="text-blue-100">Active Sponsorships</p>
-                            <p id="activeSponsorshipsCount" class="text-2xl font-bold">0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white p-6 rounded-lg shadow">
-                    <div class="flex items-center">
-                        <i class="fas fa-dollar-sign text-3xl mr-4"></i>
-                        <div>
-                            <p class="text-yellow-100">Total Value</p>
-                            <p id="totalSponsorshipValue" class="text-2xl font-bold">$0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-gradient-to-r from-purple-400 to-purple-600 text-white p-6 rounded-lg shadow">
-                    <div class="flex items-center">
-                        <i class="fas fa-calendar text-3xl mr-4"></i>
-                        <div>
-                            <p class="text-purple-100">Current Month</p>
-                            <p id="currentMonthValue" class="text-2xl font-bold">$0</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sponsorships List -->
-            <div class="bg-white rounded-lg shadow">
-                <div class="p-6">
-                    <div id="sponsorshipsContainer">
-                        <div id="sponsorshipsLoading" class="text-center py-8">
-                            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
-                            <p class="text-gray-500 mt-2">Loading sponsorships...</p>
-                        </div>
-
-                        <div id="sponsorshipsEmpty" class="text-center py-12" style="display: none;">
-                            <i class="fas fa-handshake text-6xl text-gray-300 mb-4"></i>
-                            <h3 class="text-xl font-semibold text-gray-600 mb-2">No Sponsorships Yet</h3>
-                            <p class="text-gray-500 mb-6">Start building relationships with sponsors by engaging with their posts and demonstrating your athletic achievements.</p>
-                            <a href="/athlete/explore" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
-                                <i class="fas fa-search mr-2"></i>
-                                Explore Sponsor Posts
-                            </a>
-                        </div>
-
-                        <div id="sponsorshipsList" class="space-y-4" style="display: none;">
-                            <!-- Sponsorships will be loaded here dynamically -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Confirmation Modal for Invitation Acceptance -->
-        <div id="confirmationModal" class="modal confirmation-modal fixed inset-0 items-center justify-center z-50" style="display: none;">
-            <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-                <div class="p-6">
-                    <div class="flex items-center mb-4">
-                        <i class="fas fa-exclamation-triangle text-yellow-500 text-2xl mr-3"></i>
-                        <h3 class="text-lg font-semibold">Confirm Relationship Change</h3>
-                    </div>
-                    <p id="confirmationMessage" class="text-gray-600 mb-6"></p>
-                    <div class="flex space-x-3">
-                        <button id="confirmAccept" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
-                            Yes, Replace
-                        </button>
-                        <button id="confirmCancel" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- New Post Modal -->
-    <div id="newPostModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold">Create New Post</h3>
-                <button id="closeModal" class="text-gray-400 hover:text-gray-600">&times;</button>
-            </div>
-
-            <form id="newPostForm" enctype="multipart/form-data">
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
-                        <input type="text" id="postTitle" name="title" required
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               placeholder="Enter post title">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                        <textarea id="postDescription" name="description" required rows="4"
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  placeholder="What's on your mind?"></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Post Type</label>
-                        <select id="postType" name="postType" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Select post type</option>
-                            <option value="DAILYLOG">Daily Log</option>
-                            <option value="EVENT">Event</option>
-                            <option value="SPONSORSHIP">Sponsorship</option>
-                            <option value="COACHING">Coaching</option>
-                            <option value="FRESHER">Fresher</option>
-                            <option value="BEGINNER">Beginner</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Image (Optional)</label>
-                        <input type="file" id="postImage" name="image" accept="image/*"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                </div>
-
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button type="button" id="cancelPost" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                        Create Post
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Daily Log Modal -->
-    <div id="dailyLogModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold">Add Training Log</h3>
-                <button id="closeDailyLogModal" class="text-gray-400 hover:text-gray-600">&times;</button>
-            </div>
-
-            <form id="dailyLogForm">
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Training Type</label>
-                        <select id="trainingType" name="trainingType" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Select training type</option>
-                            <option value="Cardio">Cardio</option>
-                            <option value="Strength Training">Strength Training</option>
-                            <option value="Flexibility">Flexibility</option>
-                            <option value="Endurance">Endurance</option>
-                            <option value="Speed Training">Speed Training</option>
-                            <option value="Skill Practice">Skill Practice</option>
-                            <option value="Recovery">Recovery</option>
-                            <option value="Cross Training">Cross Training</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Duration (minutes)</label>
-                        <input type="number" id="trainingDuration" name="trainingDurationMinutes" required min="1" max="1440"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               placeholder="Enter duration in minutes">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
-                        <textarea id="trainingNotes" name="notes" rows="3"
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  placeholder="Add any notes about your training session..."></textarea>
-                    </div>
-                </div>
-
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button type="button" id="cancelDailyLog" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                        Save Log
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Invitation Modal -->
-    <div id="invitationModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold">Send Invitation</h3>
-                <button id="closeInvitationModal" class="text-gray-400 hover:text-gray-600">&times;</button>
-            </div>
-
-            <form id="invitationForm">
-                <input type="hidden" id="invitationPostId" name="postId">
-                <div class="space-y-4">
-                    <div id="postPreview" class="bg-gray-50 p-3 rounded border">
-                        <!-- Post preview will be loaded here -->
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
-                        <textarea id="invitationMessage" name="message" rows="3"
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  placeholder="Add a personal message to your invitation..."></textarea>
-                    </div>
-                </div>
-
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button type="button" id="cancelInvitation" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                        Send Invitation
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Achievement Modal -->
-    <div id="achievementModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold">Add Achievement</h3>
-                <button id="closeAchievementModal" class="text-gray-400 hover:text-gray-600">&times;</button>
-            </div>
-
-            <form id="achievementForm" enctype="multipart/form-data">
-                <div class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Title *</label>
-                            <input type="text" id="achievementTitle" name="title" required
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                            <input type="text" id="postTitle" name="title" required
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                   placeholder="e.g. National Championship Winner">
+                                   placeholder="Enter post title">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                            <select id="achievementCategory" name="category"
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <textarea id="postDescription" name="description" required rows="4"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="What's on your mind?"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Post Type</label>
+                            <select id="postType" name="postType" required
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">Select Category</option>
-                                <option value="Competition">Competition</option>
-                                <option value="Training">Training</option>
-                                <option value="Certification">Certification</option>
-                                <option value="Recognition">Recognition</option>
-                                <option value="Award">Award</option>
-                                <option value="Personal Best">Personal Best</option>
+                                <option value="">Select post type</option>
+                                <option value="DAILYLOG">Daily Log</option>
+                                <option value="EVENT">Event</option>
+                                <option value="SPONSORSHIP">Sponsorship</option>
+                                <option value="COACHING">Coaching</option>
+                                <option value="FRESHER">Fresher</option>
+                                <option value="BEGINNER">Beginner</option>
                             </select>
                         </div>
-                    </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                        <textarea id="achievementDescription" name="description" rows="3"
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  placeholder="Describe your achievement in detail..."></textarea>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Achievement Date</label>
-                            <input type="date" id="achievementDate" name="achievementDate"
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Image (Optional)</label>
+                            <input type="file" id="postImage" name="image" accept="image/*"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
+                    </div>
 
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" id="cancelPost" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            Create Post
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Daily Log Modal -->
+        <div id="dailyLogModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Add Training Log</h3>
+                    <button id="closeDailyLogModal" class="text-gray-400 hover:text-gray-600">&times;</button>
+                </div>
+
+                <form id="dailyLogForm">
+                    <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Level</label>
-                            <select id="achievementLevel" name="level"
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Training Type</label>
+                            <select id="trainingType" name="trainingType" required
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">Select Level</option>
-                                <option value="Local">Local</option>
-                                <option value="Regional">Regional</option>
-                                <option value="State">State</option>
-                                <option value="National">National</option>
-                                <option value="International">International</option>
+                                <option value="">Select training type</option>
+                                <option value="Cardio">Cardio</option>
+                                <option value="Strength Training">Strength Training</option>
+                                <option value="Flexibility">Flexibility</option>
+                                <option value="Endurance">Endurance</option>
+                                <option value="Speed Training">Speed Training</option>
+                                <option value="Skill Practice">Skill Practice</option>
+                                <option value="Recovery">Recovery</option>
+                                <option value="Cross Training">Cross Training</option>
                             </select>
                         </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Duration (minutes)</label>
+                            <input type="number" id="trainingDuration" name="trainingDurationMinutes" required min="1" max="1440"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="Enter duration in minutes">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+                            <textarea id="trainingNotes" name="notes" rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Add any notes about your training session..."></textarea>
+                        </div>
                     </div>
+
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" id="cancelDailyLog" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            Save Log
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Invitation Modal -->
+        <div id="invitationModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Send Invitation</h3>
+                    <button id="closeInvitationModal" class="text-gray-400 hover:text-gray-600">&times;</button>
+                </div>
+
+                <form id="invitationForm">
+                    <input type="hidden" id="invitationPostId" name="postId">
+                    <div class="space-y-4">
+                        <div id="postPreview" class="bg-gray-50 p-3 rounded border">
+                            <!-- Post preview will be loaded here -->
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
+                            <textarea id="invitationMessage" name="message" rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Add a personal message to your invitation..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" id="cancelInvitation" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            Send Invitation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Achievement Modal -->
+        <div id="achievementModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Add Achievement</h3>
+                    <button id="closeAchievementModal" class="text-gray-400 hover:text-gray-600">&times;</button>
+                </div>
+
+                <form id="achievementForm" enctype="multipart/form-data">
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                                <input type="text" id="achievementTitle" name="title" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       placeholder="e.g. National Championship Winner">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                                <select id="achievementCategory" name="category"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Category</option>
+                                    <option value="Competition">Competition</option>
+                                    <option value="Training">Training</option>
+                                    <option value="Certification">Certification</option>
+                                    <option value="Recognition">Recognition</option>
+                                    <option value="Award">Award</option>
+                                    <option value="Personal Best">Personal Best</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <textarea id="achievementDescription" name="description" rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Describe your achievement in detail..."></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Achievement Date</label>
+                                <input type="date" id="achievementDate" name="achievementDate"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Level</label>
+                                <select id="achievementLevel" name="level"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Level</option>
+                                    <option value="Local">Local</option>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>

@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title th:text="'SportsBridge - ' + ${targetUser.firstName} + ' ' + ${targetUser.lastName} + ' Profile'">User Profile</title>
+    <title th:text="'SportsBridge - ' + ${targetUser.firstName} + ' ' + ${targetUser.lastName} + ' Profile'">SportsBridge - User Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome CDN -->
     <link rel="stylesheet"
@@ -11,273 +11,276 @@
           crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .tab-btn.active { background-color: #3b82f6; color: white; }
+        /* Fixed header to prevent scrolling issues */
+        .fixed-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        /* Main content offset for fixed header */
+        .main-content {
+            margin-top: 80px; /* Height of header */
+        }
     </style>
 </head>
 <body class="bg-gray-100">
-    <!-- Header -->
-    <header class="bg-blue-600 text-white p-4">
+    <!-- Fixed Header -->
+    <header class="fixed-header bg-blue-600 text-white p-4">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-bold">SportsBridge</h1>
             <div class="flex items-center space-x-4">
                 <button onclick="goBack()" class="bg-gray-500 hover:bg-gray-600 px-4 py-2 rounded text-white font-medium flex items-center">
-                    <i class="fas fa-arrow-left w-5 h-5 mr-2"></i> Go Back
+                    <i class="fas fa-arrow-left w-5 h-5 mr-2"></i> Back
                 </button>
-                <span th:text="'Welcome, ' + ${currentUser.firstName} + ' ' + ${currentUser.lastName}">Welcome User</span>
-                <img th:src="${currentUser.profileImageUrl}" alt="Profile" class="w-10 h-10 rounded-full object-cover">
+                <span th:text="'Welcome, ' + ${user.firstName} + ' ' + ${user.lastName}">Welcome User</span>
+                <img th:src="${user.profileImageUrl}" alt="Profile" class="w-10 h-10 rounded-full object-cover">
                 <a href="/logout" class="bg-red-500 px-3 py-1 rounded hover:bg-red-600">Logout</a>
             </div>
         </div>
     </header>
 
-    <!-- Success/Error Messages -->
-    <div th:if="${message}" class="container mx-auto mt-4">
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            <span th:text="${message}"></span>
-        </div>
-    </div>
-
-    <div th:if="${errorMessage}" class="container mx-auto mt-4">
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            <span th:text="${errorMessage}"></span>
-        </div>
-    </div>
-
     <!-- Main Content -->
-    <div class="container mx-auto p-6">
-        <!-- Profile Header -->
-        <div class="bg-white p-6 rounded-lg shadow mb-6">
-            <div class="flex items-center space-x-6">
-                <img th:src="${targetUser.profileImageUrl ?: 'https://via.placeholder.com/120'}"
-                     alt="Profile" class="w-24 h-24 rounded-full object-cover border-4 border-blue-200">
-                <div class="flex-1">
-                    <h1 class="text-3xl font-bold text-gray-900" th:text="${targetUser.firstName + ' ' + targetUser.lastName}">User Name</h1>
-                    <p class="text-lg text-gray-600 capitalize" th:text="${targetRole}">Role</p>
-                    <div th:if="${targetUser.bio}" class="mt-2">
-                        <p class="text-gray-700" th:text="${targetUser.bio}">User bio</p>
+    <div class="main-content">
+        <!-- Success/Error Messages -->
+        <div th:if="${message}" class="container mx-auto mt-4">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                <span th:text="${message}"></span>
+            </div>
+        </div>
+
+        <div th:if="${errorMessage}" class="container mx-auto mt-4">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <span th:text="${errorMessage}"></span>
+            </div>
+        </div>
+
+        <div class="container mx-auto p-6">
+            <!-- Profile Header -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <div class="flex items-center space-x-6">
+                    <img th:src="${targetUser.profileImageUrl ?: '/placeholder-avatar.png'}"
+                         alt="Profile" class="w-24 h-24 rounded-full object-cover border-4 border-blue-200">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <h1 class="text-3xl font-bold text-gray-900"
+                                th:text="${targetUser.firstName} + ' ' + ${targetUser.lastName}">User Name</h1>
+                            <span class="px-3 py-1 rounded-full text-sm font-medium"
+                                  th:classappend="${targetUser.role == 'ATHLETE' ? 'bg-green-100 text-green-800' :
+                                                   targetUser.role == 'COACH' ? 'bg-blue-100 text-blue-800' :
+                                                   'bg-purple-100 text-purple-800'}"
+                                  th:text="${targetUser.role}">Role</span>
+                        </div>
+                        <p class="text-gray-600 mb-3" th:text="${targetUser.email}">email@example.com</p>
+                        <p class="text-gray-700" th:text="${targetUser.bio ?: 'No bio available'}">User bio...</p>
+
+                        <!-- Action Buttons (only if not own profile) -->
+                        <div th:if="!${isOwnProfile}" class="mt-4 flex space-x-3">
+                            <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
+                                    onclick="sendDirectMessage()">
+                                <i class="fas fa-envelope mr-2"></i>Send Message
+                            </button>
+                            <button th:if="${targetUser.role == 'COACH' and user.role.name() == 'ATHLETE'}"
+                                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center"
+                                    onclick="requestCoaching()">
+                                <i class="fas fa-handshake mr-2"></i>Request Coaching
+                            </button>
+                            <button th:if="${targetUser.role == 'SPONSOR' and user.role.name() == 'ATHLETE'}"
+                                    class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center"
+                                    onclick="requestSponsorship()">
+                                <i class="fas fa-star mr-2"></i>Request Sponsorship
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div class="text-right">
-                    <span class="inline-block bg-blue-100 text-blue-800 text-lg px-4 py-2 rounded-full font-semibold capitalize" th:text="${targetRole}">Role</span>
+            </div>
+
+            <!-- Personal Information -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Personal Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div th:if="${targetUser.phone}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        <p class="text-gray-900" th:text="${targetUser.phone}">Phone number</p>
+                    </div>
+                    <div th:if="${targetUser.country}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                        <p class="text-gray-900" th:text="${targetUser.country}">Country</p>
+                    </div>
+                    <div th:if="${targetUser.gender}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                        <p class="text-gray-900" th:text="${targetUser.gender}">Gender</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Member Since</label>
+                        <p class="text-gray-900" th:text="${#temporals.format(targetUser.createdAt, 'MMMM yyyy')}">Date</p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Profile Information -->
-        <div class="bg-white p-6 rounded-lg shadow mb-6">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Profile Information</h2>
-            <div id="profileInfo" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Profile data will be loaded here dynamically -->
-                <div class="text-center py-8 text-gray-500">
-                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                    <p>Loading profile information...</p>
+            <!-- Professional Information (Role-specific) -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Professional Information</h2>
+
+                <!-- Athlete Profile -->
+                <div th:if="${targetUser.role.name() == 'ATHLETE'}" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div th:if="${targetProfile?.state}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                        <p class="text-gray-900" th:text="${targetProfile.state} + (${targetProfile.district} ? ', ' + ${targetProfile.district} : '')">Location</p>
+                    </div>
+                    <div th:if="${targetProfile?.height}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Height</label>
+                        <p class="text-gray-900" th:text="${targetProfile.height} + ' cm'">Height</p>
+                    </div>
+                    <div th:if="${targetProfile?.weight}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Weight</label>
+                        <p class="text-gray-900" th:text="${targetProfile.weight} + ' kg'">Weight</p>
+                    </div>
+                    <div th:if="${targetProfile?.sport}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sport</label>
+                        <p class="text-gray-900" th:text="${targetProfile.sport}">Sport</p>
+                    </div>
+                </div>
+
+                <!-- Coach Profile -->
+                <div th:if="${targetUser.role.name() == 'COACH'}" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div th:if="${targetProfile?.specialization}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
+                        <p class="text-gray-900" th:text="${targetProfile.specialization}">Specialization</p>
+                    </div>
+                    <div th:if="${targetProfile?.experienceYears}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Experience</label>
+                        <p class="text-gray-900" th:text="${targetProfile.experienceYears} + ' years'">Experience</p>
+                    </div>
+                    <div th:if="${targetProfile?.authority}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Authority/Certification</label>
+                        <p class="text-gray-900" th:text="${targetProfile.authority}">Authority</p>
+                    </div>
+                </div>
+
+                <!-- Sponsor Profile -->
+                <div th:if="${targetUser.role.name() == 'SPONSOR'}" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div th:if="${targetProfile?.companyName}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                        <p class="text-gray-900" th:text="${targetProfile.companyName}">Company</p>
+                    </div>
+                    <div th:if="${targetProfile?.industry}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+                        <p class="text-gray-900" th:text="${targetProfile.industry}">Industry</p>
+                    </div>
+                    <div th:if="${targetProfile?.website}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                        <a th:href="${targetProfile.website}" target="_blank"
+                           class="text-blue-600 hover:text-blue-800" th:text="${targetProfile.website}">Website</a>
+                    </div>
+                </div>
+
+                <!-- Show message if no professional info -->
+                <div th:if="${targetProfile == null or (targetUser.role.name() == 'ATHLETE' and !targetProfile.state and !targetProfile.height and !targetProfile.weight and !targetProfile.sport) or
+                            (targetUser.role.name() == 'COACH' and !targetProfile.specialization and !targetProfile.experienceYears and !targetProfile.authority) or
+                            (targetUser.role.name() == 'SPONSOR' and !targetProfile.companyName and !targetProfile.industry and !targetProfile.website)}"
+                     class="text-center text-gray-500 py-8">
+                    <p>No professional information available</p>
                 </div>
             </div>
-        </div>
 
-        <!-- Recent Posts -->
-        <div class="bg-white p-6 rounded-lg shadow">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Recent Posts</h2>
-            <div id="userPosts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- User posts will be loaded here dynamically -->
-                <div class="text-center py-8 text-gray-500">
-                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                    <p>Loading posts...</p>
+            <!-- Recent Posts by User -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Posts</h2>
+                <div id="userPostsContainer">
+                    <!-- Posts will be loaded via JavaScript -->
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-4"></i>
+                        <p>Loading posts...</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script th:inline="javascript">
-        // Get user data from Thymeleaf
-        const targetUserId = /*[[${targetUser.id}]]*/ null;
-        const currentUserId = /*[[${currentUser.id}]]*/ null;
-        const targetRole = /*[[${targetRole}]]*/ '';
-        const currentUserRole = /*[[${role}]]*/ '';
-
-        // Go back function
+    <script>
         function goBack() {
             window.history.back();
         }
 
-        // Load user profile data
-        async function loadUserProfile() {
-            try {
-                const response = await fetch(`/api/profile/user/${targetUserId}`);
-                const result = await response.json();
-
-                if (result.success) {
-                    renderProfileInfo(result);
-                } else {
-                    document.getElementById('profileInfo').innerHTML = `
-                        <div class="col-span-2 text-center text-red-500">
-                            <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
-                            <p>Failed to load profile information</p>
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                console.error('Error loading profile:', error);
-                document.getElementById('profileInfo').innerHTML = `
-                    <div class="col-span-2 text-center text-red-500">
-                        <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
-                        <p>Error loading profile information</p>
-                    </div>
-                `;
-            }
+        function sendDirectMessage() {
+            // TODO: Implement direct messaging functionality
+            alert('Direct messaging feature coming soon!');
         }
 
-        // Render profile information based on role
-        function renderProfileInfo(data) {
-            const container = document.getElementById('profileInfo');
-            let profileHTML = '';
-
-            switch (targetRole) {
-                case 'athlete':
-                    profileHTML = generateAthleteProfile(data.professional);
-                    break;
-                case 'coach':
-                    profileHTML = generateCoachProfile(data.professional);
-                    break;
-                case 'sponsor':
-                    profileHTML = generateSponsorProfile(data.professional);
-                    break;
-                default:
-                    profileHTML = '<div class="col-span-2 text-center text-gray-500"><p>No profile information available</p></div>';
-            }
-
-            container.innerHTML = profileHTML;
+        function requestCoaching() {
+            // TODO: Implement coaching request functionality
+            alert('Coaching request feature coming soon!');
         }
 
-        // Generate athlete profile HTML
-        function generateAthleteProfile(data) {
-            return `
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                    <p class="text-gray-900">${data.state && data.district ? data.state + ', ' + data.district : 'Not specified'}</p>
-                </div>
-                ${data.currentCoach ? `
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Current Coach</label>
-                        <p class="text-gray-900">${data.currentCoach.name}</p>
-                    </div>
-                ` : ''}
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">About</label>
-                    <p class="text-gray-900">Professional athlete focused on achieving excellence in sports.</p>
-                </div>
-            `;
-        }
-
-        // Generate coach profile HTML
-        function generateCoachProfile(data) {
-            return `
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
-                    <p class="text-gray-900">${data.specialization || 'Not specified'}</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Experience</label>
-                    <p class="text-gray-900">${data.experienceYears ? data.experienceYears + ' years' : 'Not specified'}</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Authority/Certification</label>
-                    <p class="text-gray-900">${data.authority || 'Not specified'}</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                    <p class="text-gray-900">${data.state && data.district ? data.state + ', ' + data.district : 'Not specified'}</p>
-                </div>
-            `;
-        }
-
-        // Generate sponsor profile HTML
-        function generateSponsorProfile(data) {
-            return `
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Company</label>
-                    <p class="text-gray-900">${data.companyName || 'Not specified'}</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Industry</label>
-                    <p class="text-gray-900">${data.industry || 'Not specified'}</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                    <p class="text-gray-900">${data.website ? `<a href="${data.website}" target="_blank" class="text-blue-600 hover:underline">${data.website}</a>` : 'Not specified'}</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Budget Range</label>
-                    <p class="text-gray-900">${data.budgetRange || 'Not specified'}</p>
-                </div>
-            `;
+        function requestSponsorship() {
+            // TODO: Implement sponsorship request functionality
+            alert('Sponsorship request feature coming soon!');
         }
 
         // Load user's posts
-        async function loadUserPosts() {
+        document.addEventListener('DOMContentLoaded', function() {
+            const userId = /*[[${targetUser.id}]]*/ null;
+            if (userId) {
+                loadUserPosts(userId);
+            }
+        });
+
+        async function loadUserPosts(userId) {
             try {
-                const response = await fetch(`/api/posts/user/${targetUserId}`);
+                const response = await fetch(`/api/posts/user/${userId}`);
                 const result = await response.json();
 
-                if (result.success) {
-                    renderUserPosts(result.posts);
+                const container = document.getElementById('userPostsContainer');
+
+                if (result.success && result.posts && result.posts.length > 0) {
+                    container.innerHTML = result.posts.map(post => `
+                        <div class="border border-gray-200 rounded-lg p-4 mb-4 hover:shadow-md transition-shadow">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">${post.title}</h3>
+                                    <p class="text-sm text-gray-600 mt-1">${post.description}</p>
+                                </div>
+                                <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">${post.postType}</span>
+                            </div>
+
+                            ${post.imageUrl ? `
+                                <div class="mb-3">
+                                    <img src="${post.imageUrl}" alt="Post Image" class="w-full h-48 object-cover rounded">
+                                </div>
+                            ` : ''}
+
+                            <div class="flex justify-between items-center text-sm text-gray-500">
+                                <span>${new Date(post.createdAt).toLocaleDateString()}</span>
+                                <div class="flex items-center space-x-4">
+                                    <span class="flex items-center">
+                                        <i class="fas fa-heart mr-1"></i>
+                                        ${post.likesCount || 0}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
                 } else {
-                    document.getElementById('userPosts').innerHTML = `
-                        <div class="col-span-3 text-center text-gray-500">
-                            <i class="fas fa-info-circle text-2xl mb-2"></i>
-                            <p>No posts found</p>
+                    container.innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-file-alt text-4xl mb-4"></i>
+                            <p>No posts available</p>
                         </div>
                     `;
                 }
             } catch (error) {
-                console.error('Error loading posts:', error);
-                document.getElementById('userPosts').innerHTML = `
-                    <div class="col-span-3 text-center text-red-500">
-                        <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                console.error('Error loading user posts:', error);
+                document.getElementById('userPostsContainer').innerHTML = `
+                    <div class="text-center text-red-500 py-8">
+                        <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
                         <p>Error loading posts</p>
                     </div>
                 `;
             }
         }
-
-        // Render user posts
-        function renderUserPosts(posts) {
-            const container = document.getElementById('userPosts');
-
-            if (posts.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-3 text-center text-gray-500">
-                        <i class="fas fa-file-alt text-4xl mb-4"></i>
-                        <p>No posts yet</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = posts.map(post => `
-                <div class="bg-gray-50 p-4 rounded-lg border">
-                    <h4 class="font-semibold text-gray-900 mb-2">${post.title}</h4>
-                    <p class="text-sm text-gray-600 mb-3">${post.description}</p>
-                    ${post.imageUrl ? `
-                        <div class="mb-3">
-                            <img src="${post.imageUrl}" alt="Post Image" class="w-full h-32 object-cover rounded">
-                        </div>
-                    ` : ''}
-                    <div class="flex justify-between items-center text-xs text-gray-500">
-                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded">${post.postType}</span>
-                        <span>${new Date(post.postedAt).toLocaleDateString()}</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            loadUserProfile();
-            loadUserPosts();
-        });
     </script>
 </body>
 </html>

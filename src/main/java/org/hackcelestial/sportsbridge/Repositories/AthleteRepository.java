@@ -11,4 +11,5 @@ public interface AthleteRepository extends JpaRepository<Athlete, Integer> {
     Optional<Athlete> findById(Integer integer);
 
     Athlete findByUser(User user);
+    Athlete findByUserId(int id);
 }

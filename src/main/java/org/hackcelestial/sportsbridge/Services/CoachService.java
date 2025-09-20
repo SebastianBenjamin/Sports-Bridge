@@ -11,6 +11,9 @@ public class CoachService {
     @Autowired
     CoachRepository coachRepository;
 
+    @Autowired
+    UserService userService;
+
     public boolean save(Coach coach) {
         return coachRepository.save(coach) != null;
     }
@@ -20,6 +23,19 @@ public class CoachService {
             return coachRepository.findByUser(user);
         } catch (Exception e) {
             System.out.println("Error finding coach by user: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public Coach getCoachByUserId(Long userId) {
+        try {
+            User user = userService.getUserById(userId);
+            if (user != null) {
+                return coachRepository.findByUser(user);
+            }
+            return null;
+        } catch (Exception e) {
+            System.out.println("Error finding coach by user ID: " + e.getMessage());
             return null;
         }
     }

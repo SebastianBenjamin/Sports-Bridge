@@ -11,6 +11,9 @@ public class AthleteService {
     @Autowired
     AthleteRepository athleteRepository;
 
+    @Autowired
+    UserService userService;
+
     public Athlete getAthleteById(int id) {
         return athleteRepository.findById(id).get();
     }
@@ -20,6 +23,19 @@ public class AthleteService {
             return athleteRepository.findByUser(user);
         } catch (Exception e) {
             System.out.println("Error finding athlete by user: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public Athlete getAthleteByUserId(Long userId) {
+        try {
+            User user = userService.getUserById(userId);
+            if (user != null) {
+                return athleteRepository.findByUser(user);
+            }
+            return null;
+        } catch (Exception e) {
+            System.out.println("Error finding athlete by user ID: " + e.getMessage());
             return null;
         }
     }
