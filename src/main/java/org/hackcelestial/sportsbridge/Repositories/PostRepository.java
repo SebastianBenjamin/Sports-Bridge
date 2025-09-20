@@ -26,4 +26,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p FROM Post p WHERE p.postType = ?1 ORDER BY p.posted_at DESC")
     List<Post> findByPostTypeOrderByPostedAtDesc(PostType postType);
+
+    @Query("SELECT p FROM Post p WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(p.description) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(CONCAT(p.user.firstName, ' ', p.user.lastName)) LIKE LOWER(CONCAT('%', ?1, '%')) ORDER BY p.posted_at DESC")
+    List<Post> findByTitleOrDescriptionOrUserNameContainingIgnoreCase(String query);
+
+    @Query("SELECT p FROM Post p WHERE p.user.id = ?1 ORDER BY p.posted_at DESC")
+    List<Post> findByUserIdOrderByPostedAtDesc(Long userId);
 }

@@ -288,6 +288,131 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/search-with-profiles")
+    public ResponseEntity<Map<String, Object>> searchPostsAndProfiles(@RequestParam String query) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            List<Post> posts = postService.searchPostsAndProfiles(query);
+            List<Map<String, Object>> postResponses = posts.stream()
+                    .map(this::createPostResponse)
+                    .toList();
+
+            response.put("success", true);
+            response.put("posts", postResponses);
+            response.put("message", posts.isEmpty() ? "No posts or profiles found matching your search" : null);
+
+        } catch (Exception e) {
+            System.out.println("Error searching posts and profiles: " + e.getMessage());
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Error searching posts and profiles");
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<Map<String, Object>> getPost(@PathVariable Long postId) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            User user = (User) session.getAttribute("user");
+            if (user == null) {
+                response.put("success", false);
+                response.put("message", "User not authenticated");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            Post post = postService.getPostById(postId);
+            if (post == null) {
+                response.put("success", false);
+                response.put("message", "Post not found");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // Build post response with user details
+            Map<String, Object> postData = new HashMap<>();
+            postData.put("id", post.getId());
+            postData.put("title", post.getTitle());
+            postData.put("description", post.getDescription());
+            postData.put("postType", post.getPostType().toString());
+            postData.put("imageUrl", post.getImageUrl());
+            postData.put("postedAt", post.getPosted_at());
+
+            // Add user details
+            if (post.getUser() != null) {
+                Map<String, Object> userData = new HashMap<>();
+                userData.put("id", post.getUser().getId());
+                userData.put("firstName", post.getUser().getFirstName());
+                userData.put("lastName", post.getUser().getLastName());
+                userData.put("role", post.getUser().getRole().toString().toLowerCase());
+                userData.put("profileImageUrl", post.getUser().getProfileImageUrl());
+                postData.put("user", userData);
+            }
+
+            response.put("success", true);
+            response.put("post", postData);
+
+        } catch (Exception e) {
+            System.out.println("Error fetching post: " + e.getMessage());
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Error fetching post");
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Map<String, Object>> getUserPosts(@PathVariable Long userId) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            User user = (User) session.getAttribute("user");
+            if (user == null) {
+                response.put("success", false);
+                response.put("message", "User not authenticated");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            List<Post> userPosts = postService.getPostsByUserId(userId);
+
+            // Convert posts to response format with proper image URLs
+            List<Map<String, Object>> postResponses = userPosts.stream().map(post -> {
+                Map<String, Object> postData = createPostResponse(post);
+
+                // Convert image URLs for existing posts
+                if (post.getUser() != null && post.getUser().getProfileImageUrl() != null) {
+                    postData.put("user", Map.of(
+                        "id", post.getUser().getId(),
+                        "firstName", post.getUser().getFirstName(),
+                        "lastName", post.getUser().getLastName(),
+                        "profileImageUrl", utilityService.convertFilePathToWebUrl(post.getUser().getProfileImageUrl()),
+                        "role", post.getUser().getRole()
+                    ));
+                }
+
+                if (post.getImageUrl() != null) {
+                    postData.put("imageUrl", utilityService.convertFilePathToWebUrl(post.getImageUrl()));
+                }
+
+                return postData;
+            }).toList();
+
+            response.put("success", true);
+            response.put("posts", postResponses);
+
+        } catch (Exception e) {
+            System.out.println("Error fetching user posts: " + e.getMessage());
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Error fetching user posts");
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
     private Map<String, Object> createPostResponse(Post post) {
         Map<String, Object> postData = new HashMap<>();
         postData.put("id", post.getId());

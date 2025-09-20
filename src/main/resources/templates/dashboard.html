@@ -18,6 +18,43 @@
         .tab-btn.active { background-color: #3b82f6; color: white; }
         .modal { display: none; }
         .modal.active { display: flex; }
+
+        /* Floating Action Button styles */
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .fab i {
+            color: white;
+            font-size: 24px;
+        }
+
+        /* Hide the header new post button */
+        #newPostBtn {
+            display: none;
+        }
+
+        /* Confirmation modal styles */
+        .confirmation-modal {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -26,6 +63,7 @@
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-bold">SportsBridge</h1>
             <div class="flex items-center space-x-4">
+                <!-- Keep the original button but hide it with CSS -->
                 <button id="newPostBtn" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded text-white font-medium flex items-center">
                     <i class="fas fa-plus w-5 h-5 mr-2"></i> New Post
                 </button>
@@ -36,12 +74,17 @@
         </div>
     </header>
 
+    <!-- Floating Action Button for New Post -->
+    <button id="fabNewPost" class="fab" title="Create New Post">
+        <i class="fas fa-plus"></i>
+    </button>
+
     <!-- Search & Filter Secondary Navbar - Only shown in explore tab -->
     <nav id="searchFilterNav" class="bg-white shadow-sm border-b border-gray-200" style="display: none;">
         <div class="container mx-auto flex flex-col md:flex-row items-center justify-between px-4 py-2 gap-2">
             <!-- Search Box -->
             <div class="flex items-center w-full md:w-1/2 mb-2 md:mb-0">
-                <input type="text" id="searchInput" placeholder="Search posts..."
+                <input type="text" id="searchInput" placeholder="Search posts and profiles..."
                     class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-black" />
                 <button id="searchBtn" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-r-md text-white flex items-center">
                     <i class="fas fa-search w-4 h-4 mr-1"></i> Search
@@ -81,20 +124,31 @@
     <div class="container mx-auto p-6">
         <!-- Tab Navigation -->
         <div class="mb-6">
-            <div class="flex space-x-2 border-b">
+            <div class="flex space-x-2 border-b overflow-x-auto">
                 <!-- Athlete Tabs -->
                 <div th:if="${role == 'athlete'}">
-                    <a href="/athlete/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Explore</a>
-                    <a href="/athlete/dailylogs" th:class="${activeTab == 'dailylogs' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Daily Logs</a>
-                    <a href="/athlete/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Invitations</a>
-                    <a href="/athlete/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Profile</a>
-                    <a href="/athlete/mycoach" th:class="${activeTab == 'mycoach' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">My Coach</a>
+                    <a href="/athlete/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Explore</a>
+                    <a href="/athlete/dailylogs" th:class="${activeTab == 'dailylogs' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Daily Logs</a>
+                    <a href="/athlete/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t relative whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 relative whitespace-nowrap'}">
+                        Invitations
+                        <span th:if="${pendingInvitationCount > 0}"
+                              th:text="${pendingInvitationCount}"
+                              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">0</span>
+                    </a>
+                    <a href="/athlete/sponsorships" th:class="${activeTab == 'sponsorships' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Sponsorships</a>
+                    <a href="/athlete/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">Profile</a>
+                    <a href="/athlete/mycoach" th:class="${activeTab == 'mycoach' ? 'tab-btn active px-4 py-2 rounded-t whitespace-nowrap' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 whitespace-nowrap'}">My Coach</a>
                 </div>
 
                 <!-- Coach Tabs -->
                 <div th:if="${role == 'coach'}">
                     <a href="/coach/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Explore</a>
-                    <a href="/coach/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Invitations</a>
+                    <a href="/coach/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t relative' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 relative'}">
+                        Invitations
+                        <span th:if="${pendingInvitationCount > 0}"
+                              th:text="${pendingInvitationCount}"
+                              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">0</span>
+                    </a>
                     <a href="/coach/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Profile</a>
                     <a href="/coach/myathletes" th:class="${activeTab == 'myathletes' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">My Athletes</a>
                 </div>
@@ -102,7 +156,12 @@
                 <!-- Sponsor Tabs -->
                 <div th:if="${role == 'sponsor'}">
                     <a href="/sponsor/explore" th:class="${activeTab == 'explore' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Explore</a>
-                    <a href="/sponsor/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Invitations</a>
+                    <a href="/sponsor/invitations" th:class="${activeTab == 'invitations' ? 'tab-btn active px-4 py-2 rounded-t relative' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100 relative'}">
+                        Invitations
+                        <span th:if="${pendingInvitationCount > 0}"
+                              th:text="${pendingInvitationCount}"
+                              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">0</span>
+                    </a>
                     <a href="/sponsor/profile" th:class="${activeTab == 'profile' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Profile</a>
                     <a href="/sponsor/sponsorships" th:class="${activeTab == 'sponsorships' ? 'tab-btn active px-4 py-2 rounded-t' : 'tab-btn px-4 py-2 rounded-t hover:bg-gray-100'}">Sponsorships</a>
                 </div>
@@ -146,17 +205,28 @@
                     <div class="text-xs text-gray-400 mb-3" th:text="${#temporals.format(post.posted_at, 'MMM dd, yyyy HH:mm')}">Posted date</div>
 
                     <div class="flex space-x-2 text-sm">
-                        <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-xs flex items-center">
-                            <i class="fas fa-user-plus mr-1"></i> Invite
+                        <!-- Show invitation button only for EVENT, SPONSORSHIP, COACHING posts and not for own posts -->
+                        <button th:if="${post.postType.name() == 'EVENT' or post.postType.name() == 'SPONSORSHIP' or post.postType.name() == 'COACHING'} and ${post.user?.id != user.id}"
+                                class="send-invitation-btn bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-xs flex items-center min-w-[90px] justify-center"
+                                th:attr="data-post-id=${post.id}">
+                            <i class="fas fa-paper-plane mr-1"></i> Send Invitation
                         </button>
-                        <button class="like-btn bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-xs flex items-center space-x-1"
+
+                        <!-- Visit Profile button for post owner -->
+                        <button th:if="${post.user?.id != user.id}"
+                                class="visit-profile-btn bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600 text-xs flex items-center min-w-[90px] justify-center"
+                                th:attr="data-user-id=${post.user?.id}, data-user-role=${post.user?.role}">
+                            <i class="fas fa-user mr-1"></i> Visit Profile
+                        </button>
+
+                        <button class="like-btn bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-xs flex items-center space-x-1 min-w-[70px] justify-center"
                                 th:attr="data-post-id=${post.id}, data-liked=${post.userLikes != null and post.userLikes.contains(user) ? 'true' : 'false'}"
                                 th:classappend="${post.userLikes != null and post.userLikes.contains(user) ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'}">
                             <i class="like-icon fas fa-heart" th:classappend="${post.userLikes != null and post.userLikes.contains(user) ? 'text-red-300' : ''}"></i>
                             <span class="like-text" th:text="${post.userLikes != null and post.userLikes.contains(user) ? 'Liked' : 'Like'}">Like</span>
                             <span class="like-count" th:text="'(' + ${post.userLikes != null ? post.userLikes.size() : 0} + ')'">0</span>
                         </button>
-                        <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-xs flex items-center">
+                        <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-xs flex items-center min-w-[70px] justify-center">
                             <i class="fas fa-flag mr-1"></i> Report
                         </button>
                     </div>
@@ -241,9 +311,42 @@
 
         <!-- Invitations Tab (Common for all roles) -->
         <div id="invitations" class="tab-content">
-            <h2 class="text-2xl font-bold mb-4">Invitations</h2>
-            <div class="bg-white p-6 rounded-lg shadow">
-                <p class="text-gray-600">No pending invitations</p>
+            <h2 class="text-2xl font-bold mb-6">Invitations</h2>
+
+            <!-- Invitation Tabs -->
+            <div class="mb-6">
+                <div class="flex space-x-2 border-b">
+                    <button id="receivedInvitationsTab" class="invitation-tab-btn active px-4 py-2 rounded-t bg-blue-500 text-white">Received Invitations</button>
+                    <button id="sentInvitationsTab" class="invitation-tab-btn px-4 py-2 rounded-t hover:bg-gray-100">Sent Invitations</button>
+                </div>
+            </div>
+
+            <!-- Received Invitations -->
+            <div id="receivedInvitations" class="invitation-tab-content">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">Received Invitations</h3>
+                    <div id="receivedInvitationsList">
+                        <!-- Received invitations will be loaded here -->
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-inbox text-4xl mb-4"></i>
+                            <p>No invitations received yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sent Invitations -->
+            <div id="sentInvitations" class="invitation-tab-content hidden">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">Sent Invitations</h3>
+                    <div id="sentInvitationsList">
+                        <!-- Sent invitations will be loaded here -->
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-paper-plane text-4xl mb-4"></i>
+                            <p>No invitations sent yet</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -353,7 +456,7 @@
             </div>
 
             <!-- Professional Information Section -->
-            <div class="bg-white p-6 rounded-lg shadow">
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold text-gray-800">Professional Information</h3>
                     <button id="editProfessionalBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
@@ -371,6 +474,73 @@
                     <form id="professionalForm">
                         <!-- Content will be loaded dynamically based on user role -->
                     </form>
+                </div>
+            </div>
+
+            <!-- Security Section -->
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Security Settings</h3>
+                    <button id="editPasswordBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
+                        <i class="fas fa-key mr-2"></i> Change Password
+                    </button>
+                </div>
+
+                <!-- Password Change Form (Hidden by default) -->
+                <div id="passwordEdit" class="hidden">
+                    <form id="passwordForm" class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                            <div class="relative">
+                                <input type="password" id="currentPassword" name="currentPassword" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
+                                <button type="button" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center"
+                                        data-target="currentPassword">
+                                    <i class="fas fa-eye text-gray-400"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                            <div class="relative">
+                                <input type="password" id="newPassword" name="newPassword" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
+                                <button type="button" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center"
+                                        data-target="newPassword">
+                                    <i class="fas fa-eye text-gray-400"></i>
+                                </button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Password must be at least 8 characters long with at least one number and one symbol</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                            <div class="relative">
+                                <input type="password" id="confirmPassword" name="confirmPassword" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
+                                <button type="button" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center"
+                                        data-target="confirmPassword">
+                                    <i class="fas fa-eye text-gray-400"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-3">
+                            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg flex items-center">
+                                <i class="fas fa-save mr-2"></i> Update Password
+                            </button>
+                            <button type="button" id="cancelPasswordBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg flex items-center">
+                                <i class="fas fa-times mr-2"></i> Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Security Info Display -->
+                <div id="securityDisplay">
+                    <p class="text-gray-600">Keep your account secure by regularly updating your password.</p>
+                    <p class="text-sm text-gray-500 mt-2">Last password change: <span class="font-medium">Click "Change Password" to update</span></p>
                 </div>
             </div>
         </div>
@@ -401,6 +571,110 @@
                 <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Create Sponsorship</button>
             </div>
         </div>
+
+        <!-- Sponsorships Tab Content (Athlete only) -->
+        <div id="sponsorships" class="tab-content" th:if="${role == 'athlete'}">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">My Sponsorships</h2>
+                <div class="flex space-x-2">
+                    <button id="sponsorshipFilterAll" class="sponsorship-filter-btn active px-4 py-2 rounded bg-blue-500 text-white" data-filter="all">All</button>
+                    <button id="sponsorshipFilterActive" class="sponsorship-filter-btn px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="active">Active</button>
+                    <button id="sponsorshipFilterPending" class="sponsorship-filter-btn px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="pending">Pending</button>
+                    <button id="sponsorshipFilterCompleted" class="sponsorship-filter-btn px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="completed">Completed</button>
+                </div>
+            </div>
+
+            <!-- Sponsorship Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="bg-gradient-to-r from-green-400 to-green-600 text-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <i class="fas fa-handshake text-3xl mr-4"></i>
+                        <div>
+                            <p class="text-green-100">Total Sponsorships</p>
+                            <p id="totalSponsorshipsCount" class="text-2xl font-bold">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-blue-400 to-blue-600 text-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle text-3xl mr-4"></i>
+                        <div>
+                            <p class="text-blue-100">Active Sponsorships</p>
+                            <p id="activeSponsorshipsCount" class="text-2xl font-bold">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <i class="fas fa-dollar-sign text-3xl mr-4"></i>
+                        <div>
+                            <p class="text-yellow-100">Total Value</p>
+                            <p id="totalSponsorshipValue" class="text-2xl font-bold">$0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-purple-400 to-purple-600 text-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <i class="fas fa-calendar text-3xl mr-4"></i>
+                        <div>
+                            <p class="text-purple-100">Current Month</p>
+                            <p id="currentMonthValue" class="text-2xl font-bold">$0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sponsorships List -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6">
+                    <div id="sponsorshipsContainer">
+                        <div id="sponsorshipsLoading" class="text-center py-8">
+                            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                            <p class="text-gray-500 mt-2">Loading sponsorships...</p>
+                        </div>
+
+                        <div id="sponsorshipsEmpty" class="text-center py-12" style="display: none;">
+                            <i class="fas fa-handshake text-6xl text-gray-300 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-600 mb-2">No Sponsorships Yet</h3>
+                            <p class="text-gray-500 mb-6">Start building relationships with sponsors by engaging with their posts and demonstrating your athletic achievements.</p>
+                            <a href="/athlete/explore" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
+                                <i class="fas fa-search mr-2"></i>
+                                Explore Sponsor Posts
+                            </a>
+                        </div>
+
+                        <div id="sponsorshipsList" class="space-y-4" style="display: none;">
+                            <!-- Sponsorships will be loaded here dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Modal for Invitation Acceptance -->
+        <div id="confirmationModal" class="modal confirmation-modal fixed inset-0 items-center justify-center z-50" style="display: none;">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-exclamation-triangle text-yellow-500 text-2xl mr-3"></i>
+                        <h3 class="text-lg font-semibold">Confirm Relationship Change</h3>
+                    </div>
+                    <p id="confirmationMessage" class="text-gray-600 mb-6"></p>
+                    <div class="flex space-x-3">
+                        <button id="confirmAccept" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                            Yes, Replace
+                        </button>
+                        <button id="confirmCancel" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- New Post Modal -->
@@ -507,6 +781,41 @@
                     </button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                         Save Log
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Invitation Modal -->
+    <div id="invitationModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Send Invitation</h3>
+                <button id="closeInvitationModal" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+
+            <form id="invitationForm">
+                <input type="hidden" id="invitationPostId" name="postId">
+                <div class="space-y-4">
+                    <div id="postPreview" class="bg-gray-50 p-3 rounded border">
+                        <!-- Post preview will be loaded here -->
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
+                        <textarea id="invitationMessage" name="message" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Add a personal message to your invitation..."></textarea>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="cancelInvitation" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Send Invitation
                     </button>
                 </div>
             </form>

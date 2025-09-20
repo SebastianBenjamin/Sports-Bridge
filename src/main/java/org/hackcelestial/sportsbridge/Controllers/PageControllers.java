@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,6 +40,8 @@ public class PageControllers {
     SponsorService sponsorService;
     @Autowired
     PostService postService;
+    @Autowired
+    InvitationService invitationService;
 
     @GetMapping("/")
     public String home() {
@@ -418,8 +421,15 @@ public class PageControllers {
     }
 
     @GetMapping("/athlete/mycoach")
-    public String athleteMyCoach(Model model) {
-        return getAthletePageWithTab(model, "mycoach");
+    public String athleteMyCoach(Model model, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+
+        model.addAttribute("user", user);
+        model.addAttribute("role", user.getRole().toString().toLowerCase());
+        return "mycoach";
     }
 
     // Coach routes
@@ -474,6 +484,67 @@ public class PageControllers {
         return getSponsorPageWithTab(model, "sponsorships");
     }
 
+    // Profile viewing routes for other users
+    @GetMapping("/athlete/profile/{userId}")
+    public String viewAthleteProfile(@PathVariable Long userId, Model model) {
+        return getUserProfilePage(userId, model, "athlete");
+    }
+
+    @GetMapping("/coach/profile/{userId}")
+    public String viewCoachProfile(@PathVariable Long userId, Model model) {
+        return getUserProfilePage(userId, model, "coach");
+    }
+
+    @GetMapping("/sponsor/profile/{userId}")
+    public String viewSponsorProfile(@PathVariable Long userId, Model model) {
+        return getUserProfilePage(userId, model, "sponsor");
+    }
+
+    // Case-insensitive profile viewing routes (uppercase URLs)
+    @GetMapping("/ATHLETE/profile/{userId}")
+    public String viewAthleteProfileUpper(@PathVariable Long userId, Model model) {
+        return getUserProfilePage(userId, model, "athlete");
+    }
+
+    @GetMapping("/COACH/profile/{userId}")
+    public String viewCoachProfileUpper(@PathVariable Long userId, Model model) {
+        return getUserProfilePage(userId, model, "coach");
+    }
+
+    @GetMapping("/SPONSOR/profile/{userId}")
+    public String viewSponsorProfileUpper(@PathVariable Long userId, Model model) {
+        return getUserProfilePage(userId, model, "sponsor");
+    }
+
+    // Helper method for viewing other users' profiles
+    private String getUserProfilePage(Long userId, Model model, String expectedRole) {
+        User currentUser = (User) session.getAttribute("user");
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+
+        // Get the target user
+        User targetUser = userService.getUserById(userId);
+        if (targetUser == null) {
+            model.addAttribute("errorMessage", "User not found");
+            return "redirect:/" + currentUser.getRole().toString().toLowerCase() + "/explore";
+        }
+
+        // Verify role matches the URL pattern (case-insensitive)
+        if (!targetUser.getRole().toString().toLowerCase().equals(expectedRole.toLowerCase())) {
+            model.addAttribute("errorMessage", "Invalid profile link");
+            return "redirect:/" + currentUser.getRole().toString().toLowerCase() + "/explore";
+        }
+
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("targetUser", targetUser);
+        model.addAttribute("role", currentUser.getRole().toString().toLowerCase());
+        model.addAttribute("targetRole", targetUser.getRole().toString().toLowerCase());
+        model.addAttribute("isOwnProfile", currentUser.getId().equals(userId));
+
+        return "userProfile";
+    }
+
     // Helper methods for role-based page rendering
     private String getAthletePageWithTab(Model model, String activeTab) {
         User user = (User) session.getAttribute("user");
@@ -482,10 +553,13 @@ public class PageControllers {
         }
 
         List<Post> posts = postService.getAllPosts();
+        int pendingInvitationCount = invitationService.getPendingInvitationCount(user);
+
         model.addAttribute("user", user);
         model.addAttribute("role", "athlete");
         model.addAttribute("posts", posts);
         model.addAttribute("activeTab", activeTab);
+        model.addAttribute("pendingInvitationCount", pendingInvitationCount);
 
         return "dashboard";
     }
@@ -497,10 +571,13 @@ public class PageControllers {
         }
 
         List<Post> posts = postService.getAllPosts();
+        int pendingInvitationCount = invitationService.getPendingInvitationCount(user);
+
         model.addAttribute("user", user);
         model.addAttribute("role", "coach");
         model.addAttribute("posts", posts);
         model.addAttribute("activeTab", activeTab);
+        model.addAttribute("pendingInvitationCount", pendingInvitationCount);
 
         return "dashboard";
     }
@@ -512,10 +589,13 @@ public class PageControllers {
         }
 
         List<Post> posts = postService.getAllPosts();
+        int pendingInvitationCount = invitationService.getPendingInvitationCount(user);
+
         model.addAttribute("user", user);
         model.addAttribute("role", "sponsor");
         model.addAttribute("posts", posts);
         model.addAttribute("activeTab", activeTab);
+        model.addAttribute("pendingInvitationCount", pendingInvitationCount);
 
         return "dashboard";
     }

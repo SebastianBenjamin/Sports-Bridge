@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  athlete-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+    volumes:
+      - .:/app
+    restart: unless-stopped

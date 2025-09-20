@@ -355,4 +355,187 @@ public class ProfileController {
             return false;
         }
     }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Map<String, Object>> getUserProfile(@PathVariable Long userId) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            User currentUser = (User) session.getAttribute("user");
+            if (currentUser == null) {
+                response.put("success", false);
+                response.put("message", "User not authenticated");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            // Get the target user's data
+            User targetUser = userService.getUserById(userId);
+            if (targetUser == null) {
+                response.put("success", false);
+                response.put("message", "User not found");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // Build personal data (limited for privacy)
+            Map<String, Object> personalData = new HashMap<>();
+            personalData.put("id", targetUser.getId());
+            personalData.put("firstName", targetUser.getFirstName());
+            personalData.put("lastName", targetUser.getLastName());
+            personalData.put("bio", targetUser.getBio());
+            personalData.put("profileImageUrl", targetUser.getProfileImageUrl());
+            // Don't expose sensitive data like email, phone, aadhaar for other users
+
+            response.put("personal", personalData);
+            response.put("role", targetUser.getRole().toString().toLowerCase());
+
+            // Get professional data based on role
+            Map<String, Object> professionalData = new HashMap<>();
+
+            switch (targetUser.getRole()) {
+                case ATHLETE:
+                    Athlete athlete = athleteService.getAthleteByUser(targetUser);
+                    if (athlete != null) {
+                        professionalData.put("id", athlete.getId());
+                        professionalData.put("state", athlete.getState());
+                        professionalData.put("district", athlete.getDistrict());
+                        // Only show basic info for other users
+                        if (athlete.getCurrentCoach() != null) {
+                            Map<String, Object> coachData = new HashMap<>();
+                            coachData.put("id", athlete.getCurrentCoach().getId());
+                            coachData.put("name", athlete.getCurrentCoach().getUser().getFirstName() + " " +
+                                                  athlete.getCurrentCoach().getUser().getLastName());
+                            professionalData.put("currentCoach", coachData);
+                        }
+                    }
+                    break;
+
+                case COACH:
+                    Coach coach = coachService.getCoachByUser(targetUser);
+                    if (coach != null) {
+                        professionalData.put("id", coach.getId());
+                        professionalData.put("authority", coach.getAuthority());
+                        professionalData.put("specialization", coach.getSpecialization());
+                        professionalData.put("experienceYears", coach.getExperienceYears());
+                        professionalData.put("state", coach.getState());
+                        professionalData.put("district", coach.getDistrict());
+                    }
+                    break;
+
+                case SPONSOR:
+                    Sponsor sponsor = sponsorService.getSponsorByUser(targetUser);
+                    if (sponsor != null) {
+                        professionalData.put("id", sponsor.getId());
+                        professionalData.put("companyName", sponsor.getCompanyName());
+                        professionalData.put("industry", sponsor.getIndustry());
+                        professionalData.put("website", sponsor.getWebsite());
+                        professionalData.put("budgetRange", sponsor.getBudgetRange());
+                    }
+                    break;
+            }
+
+            response.put("professional", professionalData);
+            response.put("success", true);
+
+        } catch (Exception e) {
+            System.out.println("Error fetching user profile: " + e.getMessage());
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Error fetching user profile");
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<Map<String, Object>> updatePassword(
+            @RequestParam("currentPassword") String currentPassword,
+            @RequestParam("newPassword") String newPassword,
+            @RequestParam("confirmPassword") String confirmPassword) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            User user = (User) session.getAttribute("user");
+            if (user == null) {
+                response.put("success", false);
+                response.put("message", "User not authenticated");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            // Validate inputs
+            if (currentPassword == null || currentPassword.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Current password is required");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "New password is required");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Enhanced password validation: 8+ characters, 1 number, 1 symbol
+            if (newPassword.length() < 8) {
+                response.put("success", false);
+                response.put("message", "New password must be at least 8 characters long");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (!newPassword.matches(".*\\d.*")) {
+                response.put("success", false);
+                response.put("message", "New password must contain at least one number");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (!newPassword.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
+                response.put("success", false);
+                response.put("message", "New password must contain at least one symbol (!@#$%^&*()_+-=[]{}|;':\"\\,.<>?)");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (!newPassword.equals(confirmPassword)) {
+                response.put("success", false);
+                response.put("message", "New password and confirm password do not match");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Get fresh user data from database
+            User freshUser = userService.getUserById(user.getId());
+            if (freshUser == null) {
+                response.put("success", false);
+                response.put("message", "User not found");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // Verify current password
+            if (!freshUser.getPassword().equals(currentPassword)) {
+                response.put("success", false);
+                response.put("message", "Current password is incorrect");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Update password
+            freshUser.setPassword(newPassword);
+            freshUser.setUpdatedAt(LocalDateTime.now());
+
+            boolean saved = userService.updateUser(freshUser);
+            if (saved) {
+                // Update session with fresh user data
+                session.setAttribute("user", freshUser);
+                response.put("success", true);
+                response.put("message", "Password updated successfully");
+            } else {
+                response.put("success", false);
+                response.put("message", "Failed to update password");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error updating password: " + e.getMessage());
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Error updating password");
+        }
+
+        return ResponseEntity.ok(response);
+    }
 }

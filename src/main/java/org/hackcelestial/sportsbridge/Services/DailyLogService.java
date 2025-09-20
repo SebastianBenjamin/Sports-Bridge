@@ -61,36 +61,38 @@ public class DailyLogService {
     }
 
     private int calculateCurrentStreak(List<DailyLog> existingLogs, DailyLog newLog) {
-        if (existingLogs.isEmpty()) {
-            return 1; // First log, streak is 1
+        // Get all logs including the new one, grouped by date
+        List<DailyLog> allLogs = new ArrayList<>(existingLogs);
+        allLogs.add(newLog);
+
+        // Group logs by date (convert to LocalDate)
+        Map<LocalDate, List<DailyLog>> logsByDate = new HashMap<>();
+        for (DailyLog log : allLogs) {
+            LocalDate date = log.getCreatedAt().toLocalDate();
+            logsByDate.computeIfAbsent(date, k -> new ArrayList<>()).add(log);
         }
 
-        LocalDate today = newLog.getCreatedAt().toLocalDate();
-        LocalDate currentDate = today;
-        int streak = 1; // Count today's log
+        // Get unique dates sorted in descending order
+        List<LocalDate> uniqueDates = logsByDate.keySet().stream()
+                .sorted((a, b) -> b.compareTo(a)) // Sort descending (most recent first)
+                .collect(ArrayList::new, (list, item) -> list.add(item), (list1, list2) -> list1.addAll(list2));
 
-        // Check if there's already a log for today
-        boolean hasLogToday = existingLogs.stream()
-                .anyMatch(log -> log.getCreatedAt().toLocalDate().equals(today));
-
-        if (hasLogToday) {
-            streak = 0; // Don't count duplicate logs for the same day
+        if (uniqueDates.isEmpty()) {
+            return 0;
         }
 
-        // Go backwards day by day and count consecutive days with logs
-        for (int i = 1; i <= 365; i++) { // Max 365 days lookback
-            LocalDate checkDate = today.minusDays(i);
-            boolean hasLogOnDate = existingLogs.stream()
-                    .anyMatch(log -> log.getCreatedAt().toLocalDate().equals(checkDate));
+        // Start from today and count consecutive days
+        LocalDate today = LocalDate.now();
+        int streak = 0;
+        LocalDate checkDate = today;
 
-            if (hasLogOnDate) {
-                streak++;
-            } else {
-                break; // Streak broken
-            }
+        // Count consecutive days starting from today
+        while (logsByDate.containsKey(checkDate)) {
+            streak++;
+            checkDate = checkDate.minusDays(1);
         }
 
-        return Math.max(streak, 1);
+        return streak;
     }
 
     public List<DailyLog> getDailyLogsByAthlete(Athlete athlete) {
@@ -149,9 +151,8 @@ public class DailyLogService {
             return stats;
         }
 
-        // Get latest stats from most recent log
-        DailyLog latestLog = allLogs.get(0);
-        int currentStreak = calculateCurrentStreak(allLogs.subList(1, allLogs.size()), latestLog);
+        // Calculate current streak using the corrected logic
+        int currentStreak = calculateStreakFromExistingLogs(allLogs);
         int totalDuration = allLogs.stream().mapToInt(DailyLog::getTrainingDurationMinutes).sum();
 
         stats.put("currentStreak", currentStreak);
@@ -159,6 +160,33 @@ public class DailyLogService {
         stats.put("totalSessions", allLogs.size());
 
         return stats;
+    }
+
+    // Helper method to calculate streak from existing logs
+    private int calculateStreakFromExistingLogs(List<DailyLog> logs) {
+        if (logs.isEmpty()) {
+            return 0;
+        }
+
+        // Group logs by date
+        Map<LocalDate, List<DailyLog>> logsByDate = new HashMap<>();
+        for (DailyLog log : logs) {
+            LocalDate date = log.getCreatedAt().toLocalDate();
+            logsByDate.computeIfAbsent(date, k -> new ArrayList<>()).add(log);
+        }
+
+        // Start from today and count consecutive days
+        LocalDate today = LocalDate.now();
+        int streak = 0;
+        LocalDate checkDate = today;
+
+        // Count consecutive days starting from today
+        while (logsByDate.containsKey(checkDate)) {
+            streak++;
+            checkDate = checkDate.minusDays(1);
+        }
+
+        return streak;
     }
 
     public Map<String, Object> getChartData(Athlete athlete, int days) {
@@ -186,12 +214,12 @@ public class DailyLogService {
 
             // Sum up duration for each day
             dailyDurations.put(dateStr,
-                dailyDurations.getOrDefault(dateStr, 0) + log.getTrainingDurationMinutes());
+                    dailyDurations.getOrDefault(dateStr, 0) + log.getTrainingDurationMinutes());
 
             // Count training types
             String trainingType = log.getTrainingType();
             trainingTypeCounts.put(trainingType,
-                trainingTypeCounts.getOrDefault(trainingType, 0) + 1);
+                    trainingTypeCounts.getOrDefault(trainingType, 0) + 1);
         }
 
         // Prepare chart data structures
@@ -214,13 +242,13 @@ public class DailyLogService {
 
         // Build response
         chartData.put("durationChart", Map.of(
-            "labels", labels,
-            "data", durations
+                "labels", labels,
+                "data", durations
         ));
 
         chartData.put("trainingTypeChart", Map.of(
-            "labels", trainingTypeLabels,
-            "data", trainingTypeValues
+                "labels", trainingTypeLabels,
+                "data", trainingTypeValues
         ));
 
         return chartData;

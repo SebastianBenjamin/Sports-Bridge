@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Coach - SportsBridge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .coach-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .coach-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .modal {
+            display: none;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .past-coach-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .past-coach-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto p-6">
+        <!-- Header -->
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">My Coach</h2>
+            <p class="text-gray-600">Manage your coaching relationships and connect with your coaches</p>
+        </div>
+
+        <!-- Current Coach Section -->
+        <div id="currentCoachSection" class="mb-8">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-user-tie mr-2 text-blue-600"></i>Current Coach
+            </h3>
+            <div id="currentCoachCard">
+                <!-- Current coach card will be loaded here -->
+                <div id="noCurrentCoach" class="bg-white p-8 rounded-lg shadow-md text-center">
+                    <i class="fas fa-user-plus text-4xl text-gray-400 mb-4"></i>
+                    <h4 class="text-lg font-medium text-gray-700 mb-2">No Coach Assigned</h4>
+                    <p class="text-gray-500 mb-4">You don't have a coach assigned yet. Find and connect with a coach to enhance your training.</p>
+                    <button id="findCoachBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center mx-auto">
+                        <i class="fas fa-search mr-2"></i>Find a Coach
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Past Coaches Section -->
+        <div id="pastCoachesSection">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-history mr-2 text-gray-600"></i>Past Coaches
+            </h3>
+            <div id="pastCoachesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Past coaches will be loaded here -->
+                <div id="noPastCoaches" class="col-span-full bg-white p-6 rounded-lg shadow-md text-center">
+                    <i class="fas fa-clock text-3xl text-gray-400 mb-3"></i>
+                    <p class="text-gray-500">No past coaching relationships</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coach Profile Modal -->
+    <div id="coachProfileModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4 max-h-screen overflow-y-auto">
+            <div class="p-6">
+                <!-- Modal Header -->
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-800">Coach Profile</h3>
+                    <button id="closeProfileModal" class="text-gray-400 hover:text-gray-600 text-2xl">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Coach Profile Content -->
+                <div id="coachProfileContent">
+                    <!-- Profile content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="fixed top-4 right-4 z-50"></div>
+
+    <script>
+        let currentCoachData = null;
+        let pastCoachesData = [];
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCoachData();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Close modal events
+            document.getElementById('closeProfileModal').addEventListener('click', closeProfileModal);
+
+            // Click outside modal to close
+            document.getElementById('coachProfileModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeProfileModal();
+                }
+            });
+
+            // Find coach button
+            document.getElementById('findCoachBtn').addEventListener('click', function() {
+                // Redirect to explore page to find coaches
+                window.location.href = '/athlete/explore';
+            });
+        }
+
+        async function loadCoachData() {
+            try {
+                const response = await fetch('/api/coach-relationship/my-coach');
+                const data = await response.json();
+
+                if (data.success) {
+                    currentCoachData = data.currentCoach;
+                    pastCoachesData = data.pastCoaches;
+
+                    renderCurrentCoach();
+                    renderPastCoaches();
+                } else {
+                    showMessage(data.message || 'Error loading coach data', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading coach data:', error);
+                showMessage('Error loading coach data', 'error');
+            }
+        }
+
+        function renderCurrentCoach() {
+            const container = document.getElementById('currentCoachCard');
+            const noCoachDiv = document.getElementById('noCurrentCoach');
+
+            if (currentCoachData) {
+                noCoachDiv.style.display = 'none';
+                container.innerHTML = createCurrentCoachCard(currentCoachData);
+            } else {
+                noCoachDiv.style.display = 'block';
+            }
+        }
+
+        function createCurrentCoachCard(coach) {
+            const profileImage = coach.profileImageUrl || 'https://via.placeholder.com/120';
+            const startDate = new Date(coach.startDate).toLocaleDateString();
+
+            return `
+                <div class="bg-white p-6 rounded-lg shadow-md coach-card cursor-pointer" onclick="showCoachProfile(${coach.id})">
+                    <div class="flex flex-col md:flex-row items-start gap-6">
+                        <!-- Profile Image -->
+                        <div class="flex-shrink-0">
+                            <img src="${profileImage}" alt="${coach.firstName} ${coach.lastName}"
+                                 class="w-24 h-24 rounded-full object-cover border-4 border-blue-100">
+                        </div>
+
+                        <!-- Coach Info -->
+                        <div class="flex-grow">
+                            <div class="flex flex-col md:flex-row md:justify-between md:items-start mb-4">
+                                <div>
+                                    <h4 class="text-xl font-bold text-gray-800 mb-1">${coach.firstName} ${coach.lastName}</h4>
+                                    <p class="text-blue-600 font-medium text-sm mb-2">
+                                        <i class="fas fa-user-tie mr-1"></i>Coach since ${startDate}
+                                    </p>
+                                    ${coach.country ? `<p class="text-gray-600 text-sm mb-2"><i class="fas fa-map-marker-alt mr-1"></i>${coach.country}</p>` : ''}
+                                </div>
+
+                                <!-- Contact Buttons -->
+                                <div class="flex gap-2 mt-2 md:mt-0">
+                                    ${coach.phone ? `
+                                        <button onclick="event.stopPropagation(); callCoach('${coach.phone}')"
+                                                class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-colors"
+                                                title="Call Coach">
+                                            <i class="fas fa-phone"></i>
+                                        </button>
+                                    ` : ''}
+                                    ${coach.email ? `
+                                        <button onclick="event.stopPropagation(); emailCoach('${coach.email}')"
+                                                class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors"
+                                                title="Email Coach">
+                                            <i class="fas fa-envelope"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+
+                            <!-- Bio Preview -->
+                            ${coach.bio ? `
+                                <div class="mb-4">
+                                    <p class="text-gray-600 text-sm line-clamp-2">${coach.bio.substring(0, 120)}${coach.bio.length > 120 ? '...' : ''}</p>
+                                </div>
+                            ` : ''}
+
+                            <!-- Action Buttons -->
+                            <div class="flex gap-3">
+                                <button onclick="event.stopPropagation(); showCoachProfile(${coach.id})"
+                                        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
+                                    <i class="fas fa-user mr-2"></i>View Profile
+                                </button>
+                                <button onclick="event.stopPropagation(); endCoaching()"
+                                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
+                                    <i class="fas fa-times mr-2"></i>End Coaching
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPastCoaches() {
+            const container = document.getElementById('pastCoachesContainer');
+            const noPastDiv = document.getElementById('noPastCoaches');
+
+            if (pastCoachesData && pastCoachesData.length > 0) {
+                noPastDiv.style.display = 'none';
+                container.innerHTML = pastCoachesData.map(coach => createPastCoachCard(coach)).join('');
+            } else {
+                noPastDiv.style.display = 'block';
+            }
+        }
+
+        function createPastCoachCard(coach) {
+            const profileImage = coach.profileImageUrl || 'https://via.placeholder.com/80';
+            const startDate = new Date(coach.startDate).toLocaleDateString();
+            const endDate = new Date(coach.endDate).toLocaleDateString();
+
+            return `
+                <div class="bg-white p-4 rounded-lg shadow-md past-coach-card cursor-pointer" onclick="showCoachProfile(${coach.id})">
+                    <div class="flex items-center gap-3 mb-3">
+                        <img src="${profileImage}" alt="${coach.firstName} ${coach.lastName}"
+                             class="w-12 h-12 rounded-full object-cover">
+                        <div class="flex-grow">
+                            <h5 class="font-semibold text-gray-800">${coach.firstName} ${coach.lastName}</h5>
+                            <p class="text-xs text-gray-500">${coach.country || 'Location not specified'}</p>
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-gray-600 mb-2">
+                        <p><i class="fas fa-calendar mr-1"></i>${startDate} - ${endDate}</p>
+                    </div>
+
+                    ${coach.bio ? `
+                        <p class="text-xs text-gray-600 mb-3 line-clamp-2">${coach.bio.substring(0, 80)}${coach.bio.length > 80 ? '...' : ''}</p>
+                    ` : ''}
+
+                    <button onclick="event.stopPropagation(); showCoachProfile(${coach.id})"
+                            class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-xs font-medium transition-colors">
+                        View Profile
+                    </button>
+                </div>
+            `;
+        }
+
+        async function showCoachProfile(coachId) {
+            try {
+                const response = await fetch(`/api/coach-relationship/coach-profile/${coachId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    renderCoachProfile(data.coach);
+                    document.getElementById('coachProfileModal').classList.add('active');
+                } else {
+                    showMessage(data.message || 'Error loading coach profile', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading coach profile:', error);
+                showMessage('Error loading coach profile', 'error');
+            }
+        }
+
+        function renderCoachProfile(coach) {
+            const profileImage = coach.profileImageUrl || 'https://via.placeholder.com/150';
+            const joinDate = new Date(coach.createdAt).toLocaleDateString();
+
+            document.getElementById('coachProfileContent').innerHTML = `
+                <div class="space-y-6">
+                    <!-- Header Section -->
+                    <div class="flex flex-col md:flex-row items-center gap-6">
+                        <img src="${profileImage}" alt="${coach.firstName} ${coach.lastName}"
+                             class="w-32 h-32 rounded-full object-cover border-4 border-blue-100">
+                        <div class="text-center md:text-left">
+                            <h4 class="text-2xl font-bold text-gray-800 mb-2">${coach.firstName} ${coach.lastName}</h4>
+                            <p class="text-blue-600 font-medium mb-2">
+                                <i class="fas fa-user-tie mr-1"></i>Professional Coach
+                            </p>
+                            <p class="text-gray-600 text-sm mb-2">
+                                <i class="fas fa-calendar mr-1"></i>Joined ${joinDate}
+                            </p>
+                            <p class="text-gray-600 text-sm">
+                                <i class="fas fa-users mr-1"></i>${coach.currentAthletesCount} Current Athletes
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h5 class="font-semibold text-gray-800 mb-3">Contact Information</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${coach.email ? `
+                                <div class="flex items-center">
+                                    <i class="fas fa-envelope text-blue-500 mr-2"></i>
+                                    <span class="text-gray-700">${coach.email}</span>
+                                </div>
+                            ` : ''}
+                            ${coach.phone ? `
+                                <div class="flex items-center">
+                                    <i class="fas fa-phone text-green-500 mr-2"></i>
+                                    <span class="text-gray-700">${coach.phone}</span>
+                                </div>
+                            ` : ''}
+                            ${coach.country ? `
+                                <div class="flex items-center">
+                                    <i class="fas fa-map-marker-alt text-red-500 mr-2"></i>
+                                    <span class="text-gray-700">${coach.country}</span>
+                                </div>
+                            ` : ''}
+                            ${coach.gender ? `
+                                <div class="flex items-center">
+                                    <i class="fas fa-user text-purple-500 mr-2"></i>
+                                    <span class="text-gray-700">${coach.gender}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Bio Section -->
+                    ${coach.bio ? `
+                        <div>
+                            <h5 class="font-semibold text-gray-800 mb-3">About</h5>
+                            <p class="text-gray-700 leading-relaxed">${coach.bio}</p>
+                        </div>
+                    ` : ''}
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3 pt-4 border-t">
+                        ${coach.phone ? `
+                            <button onclick="callCoach('${coach.phone}')"
+                                    class="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-phone mr-2"></i>Call Coach
+                            </button>
+                        ` : ''}
+                        ${coach.email ? `
+                            <button onclick="emailCoach('${coach.email}')"
+                                    class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-envelope mr-2"></i>Email Coach
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function closeProfileModal() {
+            document.getElementById('coachProfileModal').classList.remove('active');
+        }
+
+        function callCoach(phoneNumber) {
+            window.open(`tel:${phoneNumber}`);
+        }
+
+        function emailCoach(email) {
+            window.open(`mailto:${email}`);
+        }
+
+        async function endCoaching() {
+            if (!confirm('Are you sure you want to end your current coaching relationship?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/coach-relationship/end-coaching', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    loadCoachData(); // Reload the page data
+                } else {
+                    showMessage(data.message || 'Error ending coaching relationship', 'error');
+                }
+            } catch (error) {
+                console.error('Error ending coaching relationship:', error);
+                showMessage('Error ending coaching relationship', 'error');
+            }
+        }
+
+        function showMessage(message, type = 'info') {
+            const container = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+
+            const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+
+            messageDiv.className = `${bgColor} text-white p-4 rounded-lg shadow-lg mb-2 max-w-sm animate-fade-in`;
+            messageDiv.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+
+            container.appendChild(messageDiv);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Add CSS for animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fade-in {
+                from { opacity: 0; transform: translateX(100%); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+            .animate-fade-in {
+                animation: fade-in 0.3s ease-out;
+            }
+            .line-clamp-2 {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
