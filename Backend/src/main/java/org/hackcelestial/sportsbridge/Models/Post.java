@@ -17,9 +17,16 @@ public class Post {
     @Enumerated(EnumType.STRING)
     private PostType postType;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     private User user;
-    @ManyToMany
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "posts_user_likes",
+        joinColumns = @JoinColumn(name = "post_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_likes_id")
+    )
     private List<User> userLikes;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -73,6 +80,15 @@ public class Post {
         this.userLikes = userLikes;
     }
 
+    public LocalDateTime getPosted_at() {
+        return posted_at;
+    }
+
+    public void setPosted_at(LocalDateTime posted_at) {
+        this.posted_at = posted_at;
+    }
+
     public Post() {
+        this.posted_at = LocalDateTime.now();
     }
 }

@@ -10,8 +10,5 @@ public interface AthleteRepository extends JpaRepository<Athlete, Integer> {
     @Override
     Optional<Athlete> findById(Integer integer);
 
-
-
-
-
+    Athlete findByUser(User user);
 }

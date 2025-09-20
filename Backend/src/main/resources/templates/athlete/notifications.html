@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - Sports Bridge</title>
+    <link rel="stylesheet" th:href="@{/athlete/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/athlete/notifications.css}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h2>Sports Bridge</h2>
+                <p>Athlete Portal</p>
+            </div>
+            <nav class="nav-menu">
+                <a href="/athlete/dashboard" class="nav-item">
+                    <i class="icon">🏠</i>
+                    Dashboard
+                </a>
+                <a href="/athlete/posts" class="nav-item">
+                    <i class="icon">📝</i>
+                    Posts
+                </a>
+                <a href="/athlete/events" class="nav-item">
+                    <i class="icon">🎯</i>
+                    Events
+                </a>
+                <a href="/athlete/daily-logs" class="nav-item">
+                    <i class="icon">📊</i>
+                    Daily Logs
+                </a>
+                <a href="/athlete/notifications" class="nav-item active">
+                    <i class="icon">🔔</i>
+                    Notifications
+                </a>
+            </nav>
+            <div class="user-info">
+                <img th:src="${user.profileImageUrl}" alt="Profile" class="profile-pic" onerror="this.src='/default-avatar.png'">
+                <p th:text="${user.firstName + ' ' + user.lastName}">User Name</p>
+                <small>Athlete</small>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="header">
+                <h1>Notifications</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="markAllAsRead()">Mark All as Read</button>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Notifications List -->
+                <div class="notifications-container">
+                    <div class="notifications-list" th:if="${not #lists.isEmpty(notifications)}">
+                        <div class="notification-item" th:each="notification : ${notifications}"
+                             th:classappend="${notification.read} ? 'read' : 'unread'">
+                            <div class="notification-icon">
+                                <div class="icon-circle" th:classappend="${notification.read} ? 'read' : 'unread'">
+                                    🔔
+                                </div>
+                            </div>
+                            <div class="notification-content">
+                                <p th:text="${notification.message}">Notification message content goes here...</p>
+                                <small class="notification-time" th:text="${#temporals.format(notification.createdAt, 'MMM dd, yyyy HH:mm')}">Date</small>
+                            </div>
+                            <div class="notification-actions">
+                                <button th:if="${!notification.read}"
+                                        class="mark-read-btn"
+                                        th:onclick="'markAsRead(' + ${notification.id} + ')'">
+                                    Mark as Read
+                                </button>
+                                <span th:if="${notification.read}" class="read-indicator">✓ Read</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(notifications)}" class="no-notifications">
+                        <div class="empty-state">
+                            <div class="empty-icon">🔔</div>
+                            <h3>No Notifications</h3>
+                            <p>You're all caught up! No new notifications at the moment.</p>
+                            <a href="/athlete/posts" class="btn btn-primary">Browse Posts</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notification Settings -->
+                <div class="notification-settings">
+                    <h2>Notification Preferences</h2>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>New Posts</h4>
+                                <p>Get notified when new posts are created</p>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Post Likes</h4>
+                                <p>Get notified when someone likes your posts</p>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>New Events</h4>
+                                <p>Get notified about new sports events</p>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Training Reminders</h4>
+                                <p>Get reminders for your training sessions</p>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function markAsRead(notificationId) {
+            fetch('/markNotificationRead/' + notificationId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                if(data === 'success') {
+                    location.reload();
+                } else {
+                    alert('Failed to mark notification as read. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Network error. Please try again.');
+            });
+        }
+
+        function markAllAsRead() {
+            fetch('/markAllNotificationsRead', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                if(data === 'success') {
+                    location.reload();
+                } else {
+                    alert('Failed to mark all notifications as read. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Network error. Please try again.');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - Sports Bridge</title>
+    <link rel="stylesheet" th:href="@{/athlete/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/athlete/events.css}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h2>Sports Bridge</h2>
+                <p>Athlete Portal</p>
+            </div>
+            <nav class="nav-menu">
+                <a href="/athlete/dashboard" class="nav-item">
+                    <i class="icon">🏠</i>
+                    Dashboard
+                </a>
+                <a href="/athlete/posts" class="nav-item">
+                    <i class="icon">📝</i>
+                    Posts
+                </a>
+                <a href="/athlete/events" class="nav-item active">
+                    <i class="icon">🎯</i>
+                    Events
+                </a>
+                <a href="/athlete/daily-logs" class="nav-item">
+                    <i class="icon">📊</i>
+                    Daily Logs
+                </a>
+                <a href="/athlete/notifications" class="nav-item">
+                    <i class="icon">🔔</i>
+                    Notifications
+                </a>
+            </nav>
+            <div class="user-info">
+                <img th:src="${user.profileImageUrl}" alt="Profile" class="profile-pic" onerror="this.src='/default-avatar.png'">
+                <p th:text="${user.firstName + ' ' + user.lastName}">User Name</p>
+                <small>Athlete</small>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="header">
+                <h1>Sports Events</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">Filter Events</button>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Events Info Banner -->
+                <div class="events-banner">
+                    <h2>🎯 Discover Amazing Sports Events</h2>
+                    <p>Find competitions, training sessions, and sporting events in your area. Connect with the community and showcase your talents!</p>
+                </div>
+
+                <!-- Events List -->
+                <div class="events-container">
+                    <div class="events-list" th:if="${not #lists.isEmpty(events)}">
+                        <div class="event-card" th:each="event : ${events}">
+                            <div class="event-header">
+                                <div class="event-organizer">
+                                    <img th:src="${event.user.profileImageUrl}" alt="Organizer" class="organizer-pic" onerror="this.src='/default-avatar.png'">
+                                    <div class="organizer-info">
+                                        <h4 th:text="${event.user.firstName + ' ' + event.user.lastName}">Organizer Name</h4>
+                                        <small th:text="${event.user.role}">Sponsor</small>
+                                        <span class="event-date" th:text="${#temporals.format(event.posted_at, 'MMM dd, yyyy')}">Date</span>
+                                    </div>
+                                </div>
+                                <div class="event-badge">EVENT</div>
+                            </div>
+                            <div class="event-content">
+                                <h3 th:text="${event.title}">Event Title</h3>
+                                <p th:text="${event.description}">Event description...</p>
+                            </div>
+                            <div class="event-actions">
+                                <button class="interest-btn" th:onclick="'showInterest(' + ${event.id} + ')'">
+                                    <span class="interest-icon">⭐</span>
+                                    <span th:text="${#lists.size(event.userLikes)}">0</span> interested
+                                </button>
+                                <button class="share-btn">
+                                    📤 Share
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${#lists.isEmpty(events)}" class="no-events">
+                        <div class="empty-state">
+                            <div class="empty-icon">🎯</div>
+                            <h3>No Events Available</h3>
+                            <p>There are currently no events posted. Check back later or follow some sponsors to see their events!</p>
+                            <a href="/athlete/posts" class="btn btn-primary">Browse Posts</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Categories -->
+                <div class="event-categories">
+                    <h2>Event Categories</h2>
+                    <div class="category-grid">
+                        <div class="category-card">
+                            <div class="category-icon">🏃</div>
+                            <h4>Competitions</h4>
+                            <p>Participate in exciting sports competitions and tournaments</p>
+                        </div>
+                        <div class="category-card">
+                            <div class="category-icon">🏋️</div>
+                            <h4>Training Sessions</h4>
+                            <p>Join professional training sessions with expert coaches</p>
+                        </div>
+                        <div class="category-card">
+                            <div class="category-icon">🎪</div>
+                            <h4>Sports Festivals</h4>
+                            <p>Enjoy sports festivals and community gathering events</p>
+                        </div>
+                        <div class="category-card">
+                            <div class="category-icon">🏆</div>
+                            <h4>Championships</h4>
+                            <p>Compete in high-level championships and leagues</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showInterest(eventId) {
+            fetch('/likePost/' + eventId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                if(data === 'success') {
+                    location.reload();
+                } else {
+                    alert('Failed to show interest. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Network error. Please try again.');
+            });
+        }
+    </script>
+</body>
+</html>

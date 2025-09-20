@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posts - Sports Bridge</title>
+    <link rel="stylesheet" th:href="@{/athlete/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/athlete/posts.css}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h2>Sports Bridge</h2>
+                <p>Athlete Portal</p>
+            </div>
+            <nav class="nav-menu">
+                <a href="/athlete/dashboard" class="nav-item">
+                    <i class="icon">🏠</i>
+                    Dashboard
+                </a>
+                <a href="/athlete/posts" class="nav-item active">
+                    <i class="icon">📝</i>
+                    Posts
+                </a>
+                <a href="/athlete/events" class="nav-item">
+                    <i class="icon">🎯</i>
+                    Events
+                </a>
+                <a href="/athlete/daily-logs" class="nav-item">
+                    <i class="icon">📊</i>
+                    Daily Logs
+                </a>
+                <a href="/athlete/notifications" class="nav-item">
+                    <i class="icon">🔔</i>
+                    Notifications
+                </a>
+            </nav>
+            <div class="user-info">
+                <img th:src="${user.profileImageUrl}" alt="Profile" class="profile-pic" onerror="this.src='/default-avatar.png'">
+                <p th:text="${user.firstName + ' ' + user.lastName}">User Name</p>
+                <small>Athlete</small>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="header">
+                <h1>Community Posts</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showCreatePostForm()">Create New Post</button>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Success/Error Messages -->
+                <div th:if="${Success}" class="success-message">
+                    <p th:text="${Success}"></p>
+                </div>
+
+                <div th:if="${Error}" class="error-message">
+                    <p th:text="${Error}"></p>
+                </div>
+
+                <!-- Create Post Form -->
+                <div id="createPostForm" class="post-form-container" style="display: none;">
+                    <div class="post-form">
+                        <h3>Create New Post</h3>
+                        <form th:action="@{/createPost}" method="post" th:object="${newPost}">
+                            <div class="form-group">
+                                <label for="title">Title:</label>
+                                <input type="text" id="title" th:field="*{title}" required
+                                       placeholder="Enter an engaging title...">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="postType">Post Type:</label>
+                                <select id="postType" th:field="*{postType}" required>
+                                    <option value="">Select Post Type</option>
+                                    <option value="COACHING">Coaching</option>
+                                    <option value="SPONSORSHIP">Sponsorship</option>
+                                    <option value="FRESHER">Fresher</option>
+                                    <option value="BEGINNER">Beginner</option>
+                                    <option value="DAILYLOG">Daily Log</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="description">Description:</label>
+                                <textarea id="description" th:field="*{description}" rows="6" required
+                                         placeholder="Share your thoughts, achievements, or ask for advice..."></textarea>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Create Post</button>
+                                <button type="button" class="btn btn-secondary" onclick="hideCreatePostForm()">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Post Filters -->
+                <div class="post-filters">
+                    <h3>Filter Posts</h3>
+                    <div class="filter-buttons">
+                        <a th:href="@{/athlete/posts}"
+                           th:classappend="${currentFilter == null} ? 'active' : ''"
+                           class="filter-btn">All Posts</a>
+                        <a th:href="@{/athlete/posts(filter='my')}"
+                           th:classappend="${currentFilter == 'my'} ? 'active' : ''"
+                           class="filter-btn">My Posts</a>
+                        <a th:href="@{/athlete/posts(filter='athlete')}"
+                           th:classappend="${currentFilter == 'athlete'} ? 'active' : ''"
+                           class="filter-btn">Athletes</a>
+                        <a th:href="@{/athlete/posts(filter='coach')}"
+                           th:classappend="${currentFilter == 'coach'} ? 'active' : ''"
+                           class="filter-btn">Coaches</a>
+                        <a th:href="@{/athlete/posts(filter='sponsor')}"
+                           th:classappend="${currentFilter == 'sponsor'} ? 'active' : ''"
+                           class="filter-btn">Sponsors</a>
+                    </div>
+                </div>
+
+                <!-- Posts List -->
+                <div class="posts-container">
+                    <div class="posts-list" th:if="${not #lists.isEmpty(posts)}">
+                        <div class="post-card" th:each="post : ${posts}">
+                            <div class="post-header">
+                                <div class="post-author">
+                                    <img th:src="${post.user.profileImageUrl}" alt="Author" class="author-pic" onerror="this.src='/default-avatar.png'">
+                                    <div class="author-info">
+                                        <h4 th:text="${post.user.firstName + ' ' + post.user.lastName}">Author Name</h4>
+                                        <small th:text="${post.user.role}">Role</small>
+                                        <span class="post-date" th:text="${#temporals.format(post.posted_at, 'MMM dd, yyyy HH:mm')}">Date</span>
+                                    </div>
+                                </div>
+                                <span class="post-type-badge" th:text="${post.postType}" th:classappend="${#strings.toLowerCase(post.postType)}"></span>
+                            </div>
+                            <div class="post-content">
+                                <h3 th:text="${post.title}">Post Title</h3>
+                                <p th:text="${post.description}">Post description...</p>
+                            </div>
+                            <div class="post-actions">
+                                <button class="like-btn" th:onclick="'likePost(' + ${post.id} + ')'">
+                                    <span class="like-icon">❤️</span>
+                                    <span th:text="${#lists.size(post.userLikes)}">0</span> likes
+                                </button>
+                                <span class="post-type-text" th:text="${#strings.toLowerCase(post.postType)}">Type</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${#lists.isEmpty(posts)}" class="no-posts">
+                        <div class="empty-state">
+                            <h3>No Posts Found</h3>
+                            <p>No posts match your current filter. Try a different filter or create a new post!</p>
+                            <button class="btn btn-primary" onclick="showCreatePostForm()">Create Your First Post</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showCreatePostForm() {
+            document.getElementById('createPostForm').style.display = 'block';
+        }
+
+        function hideCreatePostForm() {
+            document.getElementById('createPostForm').style.display = 'none';
+        }
+
+        function likePost(postId) {
+            fetch('/likePost/' + postId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                if(data === 'success') {
+                    location.reload();
+                } else {
+                    alert('Failed to like post. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Network error. Please try again.');
+            });
+        }
+    </script>
+</body>
+</html>
