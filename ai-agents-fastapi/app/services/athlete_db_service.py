@@ -24,24 +24,82 @@ class AthleteDBService:
         try:
             db = await get_database()
             
-            # Query to fetch athletes from the actual database schema
-            # Joining with users table to get athlete name
-            query = """
-            SELECT 
-                a.id as athleteId,
-                COALESCE(u.username, CONCAT('Athlete_', a.id)) as athleteName,
-                a.height,
-                a.weight,
-                a.is_disabled as isDisabled,
-                a.disability_type as disabilityType,
-                a.state,
-                a.district
-            FROM athletes a
-            LEFT JOIN users u ON a.user_id = u.id
-            ORDER BY a.id ASC
-            """
+            # Try a set of candidate queries to include training duration and rank if present.
+            # Start with simpler queries that don't assume users table exists
+            candidate_queries: List[str] = [
+                # With training and rank fields, no users join
+                """
+                SELECT 
+                    a.id as athleteId,
+                    CONCAT('Athlete_', a.id) as athleteName,
+                    a.height,
+                    a.weight,
+                    a.is_disabled as isDisabled,
+                    a.disability_type as disabilityType,
+                    a.state,
+                    a.district,
+                    a.training_duration_minutes AS trainingDurationMinutes,
+                    a.rank_position AS rankPosition
+                FROM athletes a
+                ORDER BY a.id ASC
+                """,
+                # Alternative column names, no users join
+                """
+                SELECT 
+                    a.id as athleteId,
+                    CONCAT('Athlete_', a.id) as athleteName,
+                    a.height,
+                    a.weight,
+                    a.is_disabled as isDisabled,
+                    a.disability_type as disabilityType,
+                    a.state,
+                    a.district,
+                    a.training_minutes AS trainingDurationMinutes,
+                    a.rank AS rankPosition
+                FROM athletes a
+                ORDER BY a.id ASC
+                """,
+                # Fallback to baseline without training/rank fields
+                """
+                SELECT 
+                    a.id as athleteId,
+                    CONCAT('Athlete_', a.id) as athleteName,
+                    a.height,
+                    a.weight,
+                    a.is_disabled as isDisabled,
+                    a.disability_type as disabilityType,
+                    a.state,
+                    a.district
+                FROM athletes a
+                ORDER BY a.id ASC
+                """,
+                # Minimal query to just get basic data
+                """
+                SELECT 
+                    id as athleteId,
+                    CONCAT('Athlete_', id) as athleteName,
+                    height,
+                    weight
+                FROM athletes
+                ORDER BY id ASC
+                """,
+            ]
+
+            athletes_data: List[Dict[str, Any]] = []
+            last_error: Optional[Exception] = None
+            for q in candidate_queries:
+                try:
+                    athletes_data = await db.execute_query(q)
+                    # If query succeeded, stop trying further variants
+                    break
+                except Exception as qe:
+                    # Likely unknown column; try next variant
+                    last_error = qe
+                    logger.warning(f"Athlete query variant failed, trying next: {qe}")
             
-            athletes_data = await db.execute_query(query)
+            if not athletes_data and last_error:
+                # If all variants failed, raise the last error to be handled below
+                raise last_error
             
             # Process and score each athlete
             results = []

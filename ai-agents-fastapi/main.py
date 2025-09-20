@@ -8,6 +8,7 @@ from app.routers import athletes
 from app.config import settings
 from app.models.athlete import AthleteInput
 from app.services.athlete_service import AthleteService
+from app.services.athlete_db_service import AthleteDBService
 from app.database import db
 import logging
 
@@ -68,38 +69,61 @@ async def health_check():
 @app.get("/suggest-athletes")
 async def suggest_athletes():
     """Endpoint returning athlete data from workflow."""
-    # Sample athlete inputs for the workflow
-    sample_athletes = [
-        AthleteInput(
-            height=180,
-            weight=75,
-            trainingDurationMinutes=120,
-            rankPosition=1,
-            athleteName="John Doe"
-        ),
-        AthleteInput(
-            height=160,
-            weight=90,
-            trainingDurationMinutes=30,
-            rankPosition=2,
-            athleteName="Jane Smith"
-        )
-    ]
-    
-    # Process through the workflow service
-    suggestions = await AthleteService.suggest_athletes_list(sample_athletes)
-    
-    # Convert to the JSON format you want
-    result = []
-    for suggestion in suggestions:
-        result.append({
-            "athleteId": suggestion.athlete_id,
-            "athleteName": suggestion.athlete_name,
-            "score": suggestion.score,
-            "reason": suggestion.reason
-        })
-    
-    return result
+    try:
+        # Fetch real athletes from database
+        db_athletes = await AthleteDBService.get_all_athletes()
+
+        if not db_athletes:
+            return {"message": "No athletes found in database", "suggestions": []}
+
+        # Convert database athletes to AthleteInput format for AI processing
+        athlete_inputs = []
+        for db_athlete in db_athletes:
+            # Safely convert database fields to AthleteInput format for AI processing
+            height = float(db_athlete.get('height', 170)) if db_athlete.get('height') else 170.0
+            weight = float(db_athlete.get('weight', 70)) if db_athlete.get('weight') else 70.0
+            athlete_name = db_athlete.get('athleteName', f"Athlete_{db_athlete.get('athleteId', 'Unknown')}")
+
+            # Prefer DB values if present, otherwise use safe defaults
+            training_minutes_val = db_athlete.get('trainingDurationMinutes')
+            try:
+                training_minutes = int(training_minutes_val) if training_minutes_val is not None else 120
+            except (TypeError, ValueError):
+                training_minutes = 120
+
+            rank_position_val = db_athlete.get('rankPosition')
+            try:
+                rank_position = int(rank_position_val) if rank_position_val is not None else 1
+            except (TypeError, ValueError):
+                rank_position = 1
+
+            athlete_input = AthleteInput(
+                height=height,
+                weight=weight,
+                trainingDurationMinutes=training_minutes,
+                rankPosition=rank_position,
+                athleteName=athlete_name
+            )
+            athlete_inputs.append(athlete_input)
+
+        # Process through the AI workflow service
+        suggestions = await AthleteService.suggest_athletes_list(athlete_inputs)
+        
+        # Convert to the JSON format you want
+        result = []
+        for suggestion in suggestions:
+            result.append({
+                "athleteId": suggestion.athlete_id,
+                "athleteName": suggestion.athlete_name,
+                "score": suggestion.score,
+                "reason": suggestion.reason
+            })
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in suggest-athletes endpoint: {e}")
+        return {"error": f"Failed to get suggestions: {str(e)}", "suggestions": []}
 
 
 
