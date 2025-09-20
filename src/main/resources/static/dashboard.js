@@ -1016,6 +1016,9 @@ function initializeProfileHandlers() {
     if (professionalForm) {
         professionalForm.addEventListener('submit', handleProfessionalFormSubmit);
     }
+
+    // Initialize password management handlers
+    initializePasswordHandlers();
 }
 
 // Function to display personal information
@@ -1437,6 +1440,139 @@ async function handleProfessionalFormSubmit(e) {
     }
 }
 
+// ===== PASSWORD MANAGEMENT FUNCTIONALITY =====
+
+// Password edit handlers
+function initializePasswordHandlers() {
+    const editPasswordBtn = document.getElementById('editPasswordBtn');
+    const cancelPasswordBtn = document.getElementById('cancelPasswordBtn');
+    const passwordForm = document.getElementById('passwordForm');
+
+    if (editPasswordBtn) {
+        editPasswordBtn.addEventListener('click', () => {
+            togglePasswordEditMode(true);
+        });
+    }
+
+    if (cancelPasswordBtn) {
+        cancelPasswordBtn.addEventListener('click', () => {
+            togglePasswordEditMode(false);
+            passwordForm.reset();
+        });
+    }
+
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', handlePasswordFormSubmit);
+    }
+
+    // Initialize password toggle functionality
+    initializePasswordToggles();
+}
+
+// Toggle password edit mode
+function togglePasswordEditMode(editMode) {
+    const displayDiv = document.getElementById('securityDisplay');
+    const editDiv = document.getElementById('passwordEdit');
+    const editBtn = document.getElementById('editPasswordBtn');
+
+    if (editMode) {
+        displayDiv.classList.add('hidden');
+        editDiv.classList.remove('hidden');
+        editBtn.style.display = 'none';
+    } else {
+        displayDiv.classList.remove('hidden');
+        editDiv.classList.add('hidden');
+        editBtn.style.display = 'flex';
+    }
+}
+
+// Initialize password toggle (eye icon) functionality
+function initializePasswordToggles() {
+    const toggleButtons = document.querySelectorAll('.password-toggle');
+
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('data-target');
+            const targetInput = document.getElementById(targetId);
+            const icon = this.querySelector('i');
+
+            if (targetInput.type === 'password') {
+                targetInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                targetInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+}
+
+// Handle password form submission
+async function handlePasswordFormSubmit(e) {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const currentPassword = formData.get('currentPassword');
+    const newPassword = formData.get('newPassword');
+    const confirmPassword = formData.get('confirmPassword');
+
+    // Enhanced client-side validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        showMessage('All password fields are required', 'error');
+        return;
+    }
+
+    if (newPassword.length < 8) {
+        showMessage('New password must be at least 8 characters long', 'error');
+        return;
+    }
+
+    if (!/.*\d.*/.test(newPassword)) {
+        showMessage('New password must contain at least one number', 'error');
+        return;
+    }
+
+    if (!/.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?].*/.test(newPassword)) {
+        showMessage('New password must contain at least one symbol (!@#$%^&*()_+-=[]{}|;\':"\\,.<>?)', 'error');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        showMessage('New password and confirm password do not match', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/profile/password', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                currentPassword: currentPassword,
+                newPassword: newPassword,
+                confirmPassword: confirmPassword
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showMessage('Password updated successfully!', 'success');
+            togglePasswordEditMode(false);
+            e.target.reset();
+        } else {
+            showMessage(result.message || 'Failed to update password', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating password:', error);
+        showMessage('An error occurred while updating password', 'error');
+    }
+}
+
 // ===== INVITATION FUNCTIONALITY =====
 
 // Function to open invitation modal with post details
@@ -1764,7 +1900,7 @@ async function respondToInvitation(invitationId, status) {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: new URLSearchParams({
+ body: new URLSearchParams({
                 status: status
             })
         });
@@ -1847,4 +1983,3 @@ function initializeInvitationModal() {
     }
 }
 
-//# sourceMappingURL=app.js.map

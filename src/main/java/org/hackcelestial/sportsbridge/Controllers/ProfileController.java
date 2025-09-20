@@ -474,9 +474,22 @@ public class ProfileController {
                 return ResponseEntity.badRequest().body(response);
             }
 
-            if (newPassword.length() < 6) {
+            // Enhanced password validation: 8+ characters, 1 number, 1 symbol
+            if (newPassword.length() < 8) {
                 response.put("success", false);
-                response.put("message", "New password must be at least 6 characters long");
+                response.put("message", "New password must be at least 8 characters long");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (!newPassword.matches(".*\\d.*")) {
+                response.put("success", false);
+                response.put("message", "New password must contain at least one number");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (!newPassword.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
+                response.put("success", false);
+                response.put("message", "New password must contain at least one symbol (!@#$%^&*()_+-=[]{}|;':\"\\,.<>?)");
                 return ResponseEntity.badRequest().body(response);
             }
 

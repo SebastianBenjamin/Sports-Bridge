@@ -168,4 +168,13 @@ public class PostService {
             return new ArrayList<>();
         }
     }
+
+    public List<Post> getPostsByUserId(Long userId) {
+        try {
+            return postRepository.findByUserIdOrderByPostedAtDesc(userId);
+        } catch (Exception e) {
+            System.out.println("Error fetching posts by user ID: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
 }

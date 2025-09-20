@@ -148,26 +148,26 @@
                     <div class="flex space-x-2 text-sm">
                         <!-- Show invitation button only for EVENT, SPONSORSHIP, COACHING posts and not for own posts -->
                         <button th:if="${post.postType.name() == 'EVENT' or post.postType.name() == 'SPONSORSHIP' or post.postType.name() == 'COACHING'} and ${post.user?.id != user.id}"
-                                class="send-invitation-btn bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-xs flex items-center"
+                                class="send-invitation-btn bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-xs flex items-center min-w-[90px] justify-center"
                                 th:attr="data-post-id=${post.id}">
                             <i class="fas fa-paper-plane mr-1"></i> Send Invitation
                         </button>
 
                         <!-- Visit Profile button for post owner -->
                         <button th:if="${post.user?.id != user.id}"
-                                class="visit-profile-btn bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600 text-xs flex items-center"
+                                class="visit-profile-btn bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600 text-xs flex items-center min-w-[90px] justify-center"
                                 th:attr="data-user-id=${post.user?.id}, data-user-role=${post.user?.role}">
                             <i class="fas fa-user mr-1"></i> Visit Profile
                         </button>
 
-                        <button class="like-btn bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-xs flex items-center space-x-1"
+                        <button class="like-btn bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-xs flex items-center space-x-1 min-w-[70px] justify-center"
                                 th:attr="data-post-id=${post.id}, data-liked=${post.userLikes != null and post.userLikes.contains(user) ? 'true' : 'false'}"
                                 th:classappend="${post.userLikes != null and post.userLikes.contains(user) ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'}">
                             <i class="like-icon fas fa-heart" th:classappend="${post.userLikes != null and post.userLikes.contains(user) ? 'text-red-300' : ''}"></i>
                             <span class="like-text" th:text="${post.userLikes != null and post.userLikes.contains(user) ? 'Liked' : 'Like'}">Like</span>
                             <span class="like-count" th:text="'(' + ${post.userLikes != null ? post.userLikes.size() : 0} + ')'">0</span>
                         </button>
-                        <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-xs flex items-center">
+                        <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-xs flex items-center min-w-[70px] justify-center">
                             <i class="fas fa-flag mr-1"></i> Report
                         </button>
                     </div>
@@ -397,7 +397,7 @@
             </div>
 
             <!-- Professional Information Section -->
-            <div class="bg-white p-6 rounded-lg shadow">
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold text-gray-800">Professional Information</h3>
                     <button id="editProfessionalBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
@@ -415,6 +415,73 @@
                     <form id="professionalForm">
                         <!-- Content will be loaded dynamically based on user role -->
                     </form>
+                </div>
+            </div>
+
+            <!-- Security Section -->
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Security Settings</h3>
+                    <button id="editPasswordBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
+                        <i class="fas fa-key mr-2"></i> Change Password
+                    </button>
+                </div>
+
+                <!-- Password Change Form (Hidden by default) -->
+                <div id="passwordEdit" class="hidden">
+                    <form id="passwordForm" class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                            <div class="relative">
+                                <input type="password" id="currentPassword" name="currentPassword" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
+                                <button type="button" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center"
+                                        data-target="currentPassword">
+                                    <i class="fas fa-eye text-gray-400"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                            <div class="relative">
+                                <input type="password" id="newPassword" name="newPassword" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
+                                <button type="button" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center"
+                                        data-target="newPassword">
+                                    <i class="fas fa-eye text-gray-400"></i>
+                                </button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Password must be at least 8 characters long with at least one number and one symbol</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                            <div class="relative">
+                                <input type="password" id="confirmPassword" name="confirmPassword" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
+                                <button type="button" class="password-toggle absolute inset-y-0 right-0 pr-3 flex items-center"
+                                        data-target="confirmPassword">
+                                    <i class="fas fa-eye text-gray-400"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-3">
+                            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg flex items-center">
+                                <i class="fas fa-save mr-2"></i> Update Password
+                            </button>
+                            <button type="button" id="cancelPasswordBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg flex items-center">
+                                <i class="fas fa-times mr-2"></i> Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Security Info Display -->
+                <div id="securityDisplay">
+                    <p class="text-gray-600">Keep your account secure by regularly updating your password.</p>
+                    <p class="text-sm text-gray-500 mt-2">Last password change: <span class="font-medium">Click "Change Password" to update</span></p>
                 </div>
             </div>
         </div>

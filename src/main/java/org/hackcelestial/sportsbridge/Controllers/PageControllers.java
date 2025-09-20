@@ -419,8 +419,15 @@ public class PageControllers {
     }
 
     @GetMapping("/athlete/mycoach")
-    public String athleteMyCoach(Model model) {
-        return getAthletePageWithTab(model, "mycoach");
+    public String athleteMyCoach(Model model, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+
+        model.addAttribute("user", user);
+        model.addAttribute("role", user.getRole().toString().toLowerCase());
+        return "mycoach";
     }
 
     // Coach routes
@@ -491,6 +498,22 @@ public class PageControllers {
         return getUserProfilePage(userId, model, "sponsor");
     }
 
+    // Case-insensitive profile viewing routes (uppercase URLs)
+    @GetMapping("/ATHLETE/profile/{userId}")
+    public String viewAthleteProfileUpper(@PathVariable Long userId, Model model) {
+        return getUserProfilePage(userId, model, "athlete");
+    }
+
+    @GetMapping("/COACH/profile/{userId}")
+    public String viewCoachProfileUpper(@PathVariable Long userId, Model model) {
+        return getUserProfilePage(userId, model, "coach");
+    }
+
+    @GetMapping("/SPONSOR/profile/{userId}")
+    public String viewSponsorProfileUpper(@PathVariable Long userId, Model model) {
+        return getUserProfilePage(userId, model, "sponsor");
+    }
+
     // Helper method for viewing other users' profiles
     private String getUserProfilePage(Long userId, Model model, String expectedRole) {
         User currentUser = (User) session.getAttribute("user");
@@ -505,8 +528,8 @@ public class PageControllers {
             return "redirect:/" + currentUser.getRole().toString().toLowerCase() + "/explore";
         }
 
-        // Verify role matches the URL pattern
-        if (!targetUser.getRole().toString().toLowerCase().equals(expectedRole)) {
+        // Verify role matches the URL pattern (case-insensitive)
+        if (!targetUser.getRole().toString().toLowerCase().equals(expectedRole.toLowerCase())) {
             model.addAttribute("errorMessage", "Invalid profile link");
             return "redirect:/" + currentUser.getRole().toString().toLowerCase() + "/explore";
         }
