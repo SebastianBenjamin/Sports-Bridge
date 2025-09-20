@@ -80,29 +80,47 @@
     </button>
 
     <!-- Search & Filter Secondary Navbar - Only shown in explore tab -->
-    <nav id="searchFilterNav" class="bg-white shadow-sm border-b border-gray-200" style="display: none;">
-        <div class="container mx-auto flex flex-col md:flex-row items-center justify-between px-4 py-2 gap-2">
-            <!-- Search Box -->
-            <div class="flex items-center w-full md:w-1/2 mb-2 md:mb-0">
-                <input type="text" id="searchInput" placeholder="Search posts and profiles..."
-                    class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-black" />
-                <button id="searchBtn" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-r-md text-white flex items-center">
-                    <i class="fas fa-search w-4 h-4 mr-1"></i> Search
-                </button>
-                <button id="clearSearchBtn" class="bg-gray-500 hover:bg-gray-600 px-3 py-2 rounded text-white ml-2 flex items-center" style="display:none;">
-                    <i class="fas fa-times w-4 h-4"></i>
-                </button>
+    <nav id="searchFilterNav" class="bg-white shadow-sm border-b border-gray-200 py-3 overflow-hidden" style="display: none; max-height: 120px;">
+        <div class="container mx-auto px-4">
+            <!-- Search Box Row -->
+            <div class="flex items-center justify-center mb-3">
+                <div class="flex items-center w-full max-w-md">
+                    <input type="text" id="searchInput" placeholder="Search posts and profiles..."
+                        class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-black" />
+                    <button id="searchBtn" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-r-md text-white flex items-center">
+                        <i class="fas fa-search w-4 h-4 mr-1"></i> Search
+                    </button>
+                    <button id="clearSearchBtn" class="bg-gray-500 hover:bg-gray-600 px-3 py-2 rounded text-white ml-2 flex items-center" style="display:none;">
+                        <i class="fas fa-times w-4 h-4"></i>
+                    </button>
+                </div>
             </div>
-            <!-- Filter Section -->
-            <div class="flex flex-wrap items-center gap-1 w-full md:w-auto justify-center md:justify-end">
-                <span class="text-sm text-gray-600 mr-2">Filter:</span>
-                <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 flex items-center" data-type="all"><i class="fas fa-list w-4 h-4 mr-1"></i>All</a>
-                <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 flex items-center" data-type="DAILYLOG"><i class="fas fa-calendar-alt w-4 h-4 mr-1"></i>Daily Log</a>
-                <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 flex items-center" data-type="EVENT"><i class="fas fa-calendar-check w-4 h-4 mr-1"></i>Event</a>
-                <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 flex items-center" data-type="SPONSORSHIP"><i class="fas fa-hand-holding-usd w-4 h-4 mr-1"></i>Sponsorship</a>
-                <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 flex items-center" data-type="COACHING"><i class="fas fa-chalkboard-teacher w-4 h-4 mr-1"></i>Coaching</a>
-                <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 flex items-center" data-type="FRESHER"><i class="fas fa-user-plus w-4 h-4 mr-1"></i>Fresher</a>
-                <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 flex items-center" data-type="BEGINNER"><i class="fas fa-seedling w-4 h-4 mr-1"></i>Beginner</a>
+            <!-- Filter Section Row -->
+            <div class="flex items-center justify-center overflow-x-auto">
+                <div class="flex items-center gap-2 min-w-max px-2">
+                    <span class="text-sm text-gray-600 mr-2 whitespace-nowrap">Filter:</span>
+                    <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="all">
+                        <i class="fas fa-list w-3 h-3 mr-1"></i>All
+                    </a>
+                    <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="DAILYLOG">
+                        <i class="fas fa-calendar-alt w-3 h-3 mr-1"></i>Daily Log
+                    </a>
+                    <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="EVENT">
+                        <i class="fas fa-calendar-check w-3 h-3 mr-1"></i>Event
+                    </a>
+                    <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="SPONSORSHIP">
+                        <i class="fas fa-hand-holding-usd w-3 h-3 mr-1"></i>Sponsorship
+                    </a>
+                    <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="COACHING">
+                        <i class="fas fa-chalkboard-teacher w-3 h-3 mr-1"></i>Coaching
+                    </a>
+                    <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="FRESHER">
+                        <i class="fas fa-user-plus w-3 h-3 mr-1"></i>Fresher
+                    </a>
+                    <a href="#" class="filter-tag bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-300 flex items-center transition-colors duration-200 whitespace-nowrap" data-type="BEGINNER">
+                        <i class="fas fa-seedling w-3 h-3 mr-1"></i>Beginner
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
@@ -543,6 +561,28 @@
                     <p class="text-sm text-gray-500 mt-2">Last password change: <span class="font-medium">Click "Change Password" to update</span></p>
                 </div>
             </div>
+
+            <!-- Achievements Section (For Athletes and Coaches only) -->
+            <div class="bg-white p-6 rounded-lg shadow mb-6" th:if="${role == 'athlete' or role == 'coach'}">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Achievements</h3>
+                    <button id="addAchievementBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm flex items-center">
+                        <i class="fas fa-plus mr-2"></i> Add Achievement
+                    </button>
+                </div>
+
+                <!-- Achievements Display -->
+                <div id="achievementsDisplay">
+                    <div id="achievementsList" class="space-y-4">
+                        <!-- Achievements will be loaded here -->
+                        <div id="noAchievements" class="text-center py-8 text-gray-500">
+                            <i class="fas fa-trophy text-4xl mb-4 text-gray-400"></i>
+                            <p>No achievements added yet</p>
+                            <p class="text-sm mt-2">Add your first achievement to showcase your accomplishments</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- My Coach Tab (Athlete only) -->
@@ -816,6 +856,103 @@
                     </button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                         Send Invitation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Achievement Modal -->
+    <div id="achievementModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Add Achievement</h3>
+                <button id="closeAchievementModal" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+
+            <form id="achievementForm" enctype="multipart/form-data">
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                            <input type="text" id="achievementTitle" name="title" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="e.g. National Championship Winner">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                            <select id="achievementCategory" name="category"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Category</option>
+                                <option value="Competition">Competition</option>
+                                <option value="Training">Training</option>
+                                <option value="Certification">Certification</option>
+                                <option value="Recognition">Recognition</option>
+                                <option value="Award">Award</option>
+                                <option value="Personal Best">Personal Best</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea id="achievementDescription" name="description" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Describe your achievement in detail..."></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Achievement Date</label>
+                            <input type="date" id="achievementDate" name="achievementDate"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Level</label>
+                            <select id="achievementLevel" name="level"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Level</option>
+                                <option value="Local">Local</option>
+                                <option value="Regional">Regional</option>
+                                <option value="State">State</option>
+                                <option value="National">National</option>
+                                <option value="International">International</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Organization</label>
+                            <input type="text" id="achievementOrganization" name="organization"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="e.g. Sports Authority of India">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Position/Result</label>
+                            <input type="text" id="achievementPosition" name="position"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="e.g. 1st Place, Gold Medal">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Certificate/Proof (Optional)</label>
+                        <input type="file" id="achievementCertificate" name="certificate" accept="image/*"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <p class="text-xs text-gray-500 mt-1">Upload certificate or proof image (JPEG, PNG)</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="cancelAchievement" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                        <i class="fas fa-save mr-2"></i>Save Achievement
                     </button>
                 </div>
             </form>

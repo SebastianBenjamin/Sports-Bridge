@@ -35,9 +35,7 @@ public class InvitationController {
     private HttpSession session;
 
     @PostMapping("/send")
-    public ResponseEntity<Map<String, Object>> sendInvitation(
-            @RequestParam("postId") Long postId,
-            @RequestParam(value = "message", required = false) String message) {
+    public ResponseEntity<Map<String, Object>> sendInvitation(@RequestBody Map<String, Object> requestBody) {
 
         Map<String, Object> response = new HashMap<>();
 
@@ -47,6 +45,28 @@ public class InvitationController {
                 response.put("success", false);
                 response.put("message", "User not authenticated");
                 return ResponseEntity.status(401).body(response);
+            }
+
+            // Extract postId and message from request body
+            Long postId = null;
+            String message = null;
+
+            if (requestBody.get("postId") != null) {
+                if (requestBody.get("postId") instanceof Number) {
+                    postId = ((Number) requestBody.get("postId")).longValue();
+                } else {
+                    postId = Long.parseLong(requestBody.get("postId").toString());
+                }
+            }
+
+            if (requestBody.get("message") != null) {
+                message = requestBody.get("message").toString();
+            }
+
+            if (postId == null) {
+                response.put("success", false);
+                response.put("message", "Post ID is required");
+                return ResponseEntity.badRequest().body(response);
             }
 
             Post post = postService.getPostById(postId);

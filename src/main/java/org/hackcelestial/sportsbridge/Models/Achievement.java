@@ -1,107 +1,65 @@
 package org.hackcelestial.sportsbridge.Models;
 
 import jakarta.persistence.*;
-import org.springframework.format.annotation.DateTimeFormat;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "achievements")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Achievement {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
-    private Athlete athlete;
-    private String title, description, competitionName, certificateUrl;
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+
+    @Column(nullable = false)
+    private String title;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "achievement_date")
     private LocalDate achievementDate;
-    private Integer rankPosition;
+
+    @Column(name = "category")
+    private String category; // e.g., "Competition", "Training", "Certification", "Recognition"
+
+    @Column(name = "level")
+    private String level; // e.g., "Local", "Regional", "National", "International"
+
+    @Column(name = "organization")
+    private String organization; // Organization that awarded the achievement
+
+    @Column(name = "position")
+    private String position; // e.g., "1st Place", "Gold Medal", "Winner"
+
+    @Column(name = "certificate_url")
+    private String certificateUrl; // URL to certificate/proof image
+
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    public Long getId() {
-        return id;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Athlete getAthlete() {
-        return athlete;
-    }
-
-    public void setAthlete(Athlete athlete) {
-        this.athlete = athlete;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getCompetitionName() {
-        return competitionName;
-    }
-
-    public void setCompetitionName(String competitionName) {
-        this.competitionName = competitionName;
-    }
-
-    public String getCertificateUrl() {
-        return certificateUrl;
-    }
-
-    public void setCertificateUrl(String certificateUrl) {
-        this.certificateUrl = certificateUrl;
-    }
-
-    public LocalDate getAchievementDate() {
-        return achievementDate;
-    }
-
-    public void setAchievementDate(LocalDate achievementDate) {
-        this.achievementDate = achievementDate;
-    }
-
-    public Integer getRankPosition() {
-        return rankPosition;
-    }
-
-    public void setRankPosition(Integer rankPosition) {
-        this.rankPosition = rankPosition;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Achievement(Long id, Athlete athlete, String title, String description, String competitionName, String certificateUrl, LocalDate achievementDate, Integer rankPosition, LocalDateTime createdAt) {
-        this.id = id;
-        this.athlete = athlete;
-        this.title = title;
-        this.description = description;
-        this.competitionName = competitionName;
-        this.certificateUrl = certificateUrl;
-        this.achievementDate = achievementDate;
-        this.rankPosition = rankPosition;
-        this.createdAt = createdAt;
-    }
-
-    public Achievement() {
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

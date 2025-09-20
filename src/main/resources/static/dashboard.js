@@ -1,116 +1,421 @@
-function formatDate(date) {
-    return new Date(date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
+    posts.forEach(post => {
+        if (filterType === 'all') {
+            post.style.display = 'block';
+            visibleCount++;
+        } else {
+            // Check post type (you may need to add data attributes to posts)
+            const postTypeElement = post.querySelector('[data-post-type]');
+            const postType = postTypeElement?.getAttribute('data-post-type') || '';
+            
+            if (postType === filterType) {
+                post.style.display = 'block';
+                visibleCount++;
+            } else {
+                post.style.display = 'none';
+            }
+        }
+    });
+
+    showFilterResults(visibleCount, filterType);
+}
+
+// Show search results
+function showSearchResults(count, term) {
+    // Remove existing message
+    const existingMessage = document.getElementById('searchResultsMessage');
+    if (existingMessage) {
+        existingMessage.remove();
+        if (activeTab === 'explore') {
+
+    // Add new message
+    const postsContainer = document.getElementById('postsContainer');
+    if (postsContainer) {
+        const message = document.createElement('div');
+        message.id = 'searchResultsMessage';
+        message.className = 'col-span-full text-center py-4 text-gray-600';
+        message.textContent = count > 0 ? 
+            `Found ${count} result(s) for "${term}"` : 
+            `No results found for "${term}"`;
+        postsContainer.insertBefore(message, postsContainer.firstChild);
+    }
+            searchFilterNav.style.display = 'block';
+        } else {
+// Show filter results
+function showFilterResults(count, filterType) {
+    // Remove existing message
+    const existingMessage = document.getElementById('filterResultsMessage');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+        initializeProfileHandlers();
+    // Add new message if filtering
+    if (filterType !== 'all') {
+        const postsContainer = document.getElementById('postsContainer');
+        if (postsContainer) {
+            const message = document.createElement('div');
+            message.id = 'filterResultsMessage';
+            message.className = 'col-span-full text-center py-4 text-gray-600';
+            message.textContent = count > 0 ? 
+                `Showing ${count} ${filterType.toLowerCase()} post(s)` : 
+                `No ${filterType.toLowerCase()} posts found`;
+            postsContainer.insertBefore(message, postsContainer.firstChild);
+        }
+        loadInvitations();
+}
+        initializeInvitationTabs();
+// Initialize invitation tabs functionality
+function initializeInvitationTabs() {
+    const receivedTab = document.getElementById('receivedInvitationsTab');
+    const sentTab = document.getElementById('sentInvitationsTab');
+    const receivedContent = document.getElementById('receivedInvitations');
+    const sentContent = document.getElementById('sentInvitations');
+    initializePostActions();
+    if (receivedTab && sentTab && receivedContent && sentContent) {
+        // Received invitations tab
+        receivedTab.addEventListener('click', () => {
+            // Update tab styling
+            receivedTab.classList.add('active', 'bg-blue-500', 'text-white');
+            receivedTab.classList.remove('hover:bg-gray-100');
+            sentTab.classList.remove('active', 'bg-blue-500', 'text-white');
+            sentTab.classList.add('hover:bg-gray-100');
+
+            // Show/hide content
+            receivedContent.classList.remove('hidden');
+            sentContent.classList.add('hidden');
+
+            // Load received invitations
+            loadReceivedInvitations();
+        });
+    const filterTags = document.querySelectorAll('.filter-tag');
+        // Sent invitations tab
+        sentTab.addEventListener('click', () => {
+            // Update tab styling
+            sentTab.classList.add('active', 'bg-blue-500', 'text-white');
+            sentTab.classList.remove('hover:bg-gray-100');
+            receivedTab.classList.remove('active', 'bg-blue-500', 'text-white');
+            receivedTab.classList.add('hover:bg-gray-100');
+
+            // Show/hide content
+            sentContent.classList.remove('hidden');
+            receivedContent.classList.add('hidden');
+
+            // Load sent invitations
+            loadSentInvitations();
+        });
+            }
+        // Load initial data (received invitations)
+        loadReceivedInvitations();
+    }
+}
+        if (clearSearchBtn) {
+// Load invitations data
+async function loadInvitations() {
+    // This will be called by the tab initialization
+    console.log('Loading invitations...');
+}
+        }
+// Load received invitations
+async function loadReceivedInvitations() {
+    try {
+        const response = await fetch('/api/invitations/received');
+        const result = await response.json();
+                
+        if (result.success) {
+            displayReceivedInvitations(result.invitations);
+        } else {
+            console.error('Failed to load received invitations:', result.message);
+        }
+    } catch (error) {
+        console.error('Error loading received invitations:', error);
+    }
+    if (searchTerm) {
+        // Show clear button
+// Load sent invitations
+async function loadSentInvitations() {
+        }
+        const response = await fetch('/api/invitations/sent');
+        // Filter posts based on search term
+        const posts = document.querySelectorAll('[data-post-id]');
+        let visibleCount = 0;
+            displaySentInvitations(result.invitations);
+        posts.forEach(post => {
+            console.error('Failed to load sent invitations:', result.message);
+            const description = post.querySelector('p')?.textContent.toLowerCase() || '';
+            const userName = post.querySelector('h3')?.textContent.toLowerCase() || '';
+        console.error('Error loading sent invitations:', error);
+            if (title.includes(searchTerm.toLowerCase()) || 
+                description.includes(searchTerm.toLowerCase()) || 
+                userName.includes(searchTerm.toLowerCase())) {
+// Display received invitations
+function displayReceivedInvitations(invitations) {
+    const container = document.getElementById('receivedInvitationsList');
+    if (!container) return;
+
+    if (invitations && invitations.length > 0) {
+        container.innerHTML = invitations.map(invitation => `
+            <div class="border border-gray-200 rounded-lg p-4 mb-4 hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start mb-3">
+function clearSearch() {
+                        <img src="${invitation.sender?.profileImageUrl || '/placeholder-avatar.png'}" 
+                             alt="Sender" class="w-12 h-12 rounded-full object-cover mr-3">
+    searchInput.value = '';
+                            <h4 class="font-semibold text-gray-900">${invitation.sender?.firstName} ${invitation.sender?.lastName}</h4>
+                            <p class="text-sm text-gray-600">${invitation.sender?.role}</p>
+                            <button class="visit-profile-btn text-blue-600 hover:text-blue-800 text-sm"
+                                    data-user-id="${invitation.sender?.id}" data-user-role="${invitation.sender?.role}">
+                                <i class="fas fa-user mr-1"></i>View Profile
+                            </button>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-sm ${getInvitationStatusColor(invitation.status)}">
+                        ${invitation.status}
+                    </span>
+                </div>
+                
+                <div class="mb-3">
+                    <h5 class="font-medium text-gray-800">Post: ${invitation.post?.title}</h5>
+                    <p class="text-sm text-gray-600">${invitation.post?.description}</p>
+                </div>
+                
+                ${invitation.message ? `
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-700 italic">"${invitation.message}"</p>
+                    </div>
+                ` : ''}
+                
+                <div class="flex justify-between items-center text-xs text-gray-500 mb-3">
+                    <span>Received: ${formatDate(invitation.createdAt)}</span>
+                    <span>Post Type: ${invitation.post?.postType}</span>
+                </div>
+                
+                ${invitation.status === 'PENDING' ? `
+                    <div class="flex space-x-2">
+                        <button class="accept-invitation-btn bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm"
+                                data-invitation-id="${invitation.id}">
+                            <i class="fas fa-check mr-1"></i>Accept
+        });
+                        <button class="decline-invitation-btn bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm"
+                                data-invitation-id="${invitation.id}">
+                            <i class="fas fa-times mr-1"></i>Decline
+                        </button>
+                    </div>
+                ` : ''}
+        if (cancelPersonalBtn) {
+            cancelPersonalBtn.addEventListener('click', () => {
+                personalDisplay.style.display = 'block';
+        // Add event listeners for invitation actions
+        initializeInvitationActions();
+
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-inbox text-4xl mb-4"></i>
+                <p>No invitations received yet</p>
+            </div>
+        `;
+
+// Initialize achievements functionality
+function initializeAchievements() {
+// Display sent invitations
+function displaySentInvitations(invitations) {
+    const container = document.getElementById('sentInvitationsList');
+    if (!container) return;
+    // Open achievement modal
+    if (invitations && invitations.length > 0) {
+        container.innerHTML = invitations.map(invitation => `
+            <div class="border border-gray-200 rounded-lg p-4 mb-4 hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex items-center">
+                        <img src="${invitation.receiver?.profileImageUrl || '/placeholder-avatar.png'}" 
+                             alt="Receiver" class="w-12 h-12 rounded-full object-cover mr-3">
+    const noAchievements = document.getElementById('noAchievements');
+                            <h4 class="font-semibold text-gray-900">${invitation.receiver?.firstName} ${invitation.receiver?.lastName}</h4>
+                            <p class="text-sm text-gray-600">${invitation.receiver?.role}</p>
+                            <button class="visit-profile-btn text-blue-600 hover:text-blue-800 text-sm"
+                                    data-user-id="${invitation.receiver?.id}" data-user-role="${invitation.receiver?.role}">
+                                <i class="fas fa-user mr-1"></i>View Profile
+                            </button>
+
+    if (achievements && achievements.length > 0) {
+                    <span class="px-3 py-1 rounded-full text-sm ${getInvitationStatusColor(invitation.status)}">
+                        ${invitation.status}
+                    </span>
+                </div>
+                
+                <div class="mb-3">
+                    <h5 class="font-medium text-gray-800">Post: ${invitation.post?.title}</h5>
+                    <p class="text-sm text-gray-600">${invitation.post?.description}</p>
+                </div>
+                
+                ${invitation.message ? `
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-700 italic">"${invitation.message}"</p>
+                    </div>
+                ` : ''}
+                
+                <div class="flex justify-between items-center text-xs text-gray-500">
+                    <span>Sent: ${formatDate(invitation.createdAt)}</span>
+                    <span>Post Type: ${invitation.post?.postType}</span>
+                </div>
+            </div>
+        `).join('');
+
+        // Add event listeners for visit profile
+        initializeVisitProfileButtons();
+    } else {
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-paper-plane text-4xl mb-4"></i>
+                <p>No invitations sent yet</p>
+            </div>
+        `;
+    }
+                        ${achievement.level ? `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">${achievement.level}</span>` : ''}
+                        ${achievement.category ? `<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">${achievement.category}</span>` : ''}
+// Initialize invitation action buttons
+function initializeInvitationActions() {
+    // Accept invitation buttons
+    document.querySelectorAll('.accept-invitation-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const invitationId = btn.getAttribute('data-invitation-id');
+            await respondToInvitation(invitationId, 'ACCEPTED');
+        });
+    });
+                
+    // Decline invitation buttons
+    document.querySelectorAll('.decline-invitation-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const invitationId = btn.getAttribute('data-invitation-id');
+            await respondToInvitation(invitationId, 'DECLINED');
+                        ` : ''}
+                        ${achievement.position ? `
+                            <span class="flex items-center">
+    // Initialize visit profile buttons
+    initializeVisitProfileButtons();
+}
+                    ` : ''}
+// Respond to invitation
+async function respondToInvitation(invitationId, status) {
+    try {
+        const response = await fetch(`/api/invitations/${invitationId}/respond`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `status=${status}`
+        });
+    }
+        const result = await response.json();
+
+        if (result.success) {
+            showMessage(`Invitation ${status.toLowerCase()} successfully!`, 'success');
+            // Reload received invitations
+            loadReceivedInvitations();
+        } else {
+            showMessage(result.message || `Failed to ${status.toLowerCase()} invitation`, 'error');
+        }
+    } catch (error) {
+        console.error('Error responding to invitation:', error);
+        showMessage('An error occurred while responding to the invitation', 'error');
+    }
+}
+
+// Get invitation status color
+function getInvitationStatusColor(status) {
+    switch (status?.toUpperCase()) {
+        case 'PENDING':
+            return 'bg-yellow-100 text-yellow-800';
+        case 'ACCEPTED':
+            return 'bg-green-100 text-green-800';
+        case 'DECLINED':
+            return 'bg-red-100 text-red-800';
+        default:
+            return 'bg-gray-100 text-gray-800';
+    }
+}
+
+// Initialize visit profile buttons
+function initializeVisitProfileButtons() {
+    document.querySelectorAll('.visit-profile-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const userId = btn.getAttribute('data-user-id');
+            const userRole = btn.getAttribute('data-user-role');
+
+            if (userId && userRole) {
+                // Navigate to user profile
+                window.location.href = `/${userRole.toLowerCase()}/profile/${userId}`;
+            }
+        });
+            showMessage('Achievement deleted successfully', 'success');
+            loadUserAchievements(); // Reload achievements list
+        } else {
+            showMessage(result.message || 'Failed to delete achievement', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting achievement:', error);
+        showMessage('An error occurred while deleting the achievement', 'error');
+    }
+}
+
+// Initialize post actions (like buttons, delete buttons, etc.)
+function initializePostActions() {
+    // Initialize like buttons
+    document.querySelectorAll('.like-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const postId = btn.getAttribute('data-post-id');
+            await toggleLike(postId);
+        });
+    });
+
+    // Initialize send invitation buttons
+    document.querySelectorAll('.send-invitation-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const postId = btn.getAttribute('data-post-id');
+            openInvitationModal(postId);
+        });
     });
 }
 
-function viewSponsorProfile(userId) {
-    window.location.href = `/sponsor/profile/${userId}`;
-}
-
-function viewSponsorshipDetails(sponsorshipId) {
-    // This could open a detailed modal or navigate to a detailed page
-    fetch(`/api/sponsorships/${sponsorshipId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // For now, just show an alert with details
-                // In a full implementation, this would open a detailed modal
-                alert(`Sponsorship Details:\nAmount: ${getCurrencySymbol(data.sponsorship.currency)}${data.sponsorship.amount}\nTerms: ${data.sponsorship.terms}`);
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching sponsorship details:', error);
+// Toggle like function
+async function toggleLike(postId) {
+    try {
+        const response = await fetch(`/api/posts/${postId}/like`, {
+            method: 'POST'
         });
-}
 
-function showNotification(message, type) {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
-        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-    }`;
-    notification.textContent = message;
+        const result = await response.json();
 
-    document.body.appendChild(notification);
+        if (result.success) {
+            // Update the like button and count
+            const likeBtn = document.querySelector(`[data-post-id="${postId}"]`);
+            if (likeBtn) {
+                const likeIcon = likeBtn.querySelector('.like-icon');
+                const likeText = likeBtn.querySelector('.like-text');
+                const likeCount = likeBtn.querySelector('.like-count');
 
-    // Animate in
-    setTimeout(() => {
-        notification.classList.remove('translate-x-full');
-    }, 100);
+                if (result.liked) {
+                    likeBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                    likeBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                    likeIcon.classList.add('text-red-300');
+                    likeText.textContent = 'Liked';
+                } else {
+                    likeBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                    likeBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+                    likeIcon.classList.remove('text-red-300');
+                    likeText.textContent = 'Like';
+                }
 
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.classList.add('translate-x-full');
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 3000);
-}
-
-// Tab functionality - Updated for page-based routing
-function initializePage() {
-    // Get the active tab from the server-side attribute using a script tag
-    const activeTabScript = document.querySelector('script[data-active-tab]');
-    let activeTab = 'explore';
-
-    if (activeTabScript) {
-        activeTab = activeTabScript.getAttribute('data-active-tab');
-    } else {
-        // Fallback: try to get from URL
-        const path = window.location.pathname;
-        if (path.includes('/dailylogs')) activeTab = 'dailylogs';
-        else if (path.includes('/invitations')) activeTab = 'invitations';
-        else if (path.includes('/profile')) activeTab = 'profile';
-        else if (path.includes('/mycoach')) activeTab = 'mycoach';
-        else if (path.includes('/myathletes')) activeTab = 'myathletes';
-        else if (path.includes('/sponsorships')) activeTab = 'sponsorships';
-    }
-
-    // Show the correct tab content
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabContents.forEach(content => content.classList.remove('active'));
-
-    const activeTabElement = document.getElementById(activeTab);
-    if (activeTabElement) {
-        activeTabElement.classList.add('active');
-    }
-
-    // Show/hide search and filter nav based on active tab
-    const searchFilterNav = document.getElementById('searchFilterNav');
-    if (searchFilterNav) {
-        if (activeTab === 'explore') {
-            searchFilterNav.style.display = 'block';
+                likeCount.textContent = `(${result.likesCount})`;
+            }
         } else {
-            searchFilterNav.style.display = 'none';
+            showMessage(result.message || 'Failed to update like', 'error');
         }
+    } catch (error) {
+        console.error('Error toggling like:', error);
+        showMessage('An error occurred while updating like', 'error');
     }
-
-    // Load data based on active tab
-    if (activeTab === 'dailylogs') {
-        loadDailyLogs();
-        loadTodaysSummary();
-        loadAthleteStats();
-        loadCharts();
-        initializeChartPeriodButtons();
-    } else if (activeTab === 'profile') {
-        loadProfileData();
-        initializeProfileHandlers();
-    } else if (activeTab === 'invitations') {
-        loadInvitations();
-        initializeInvitationHandlers();
-    } else if (activeTab === 'sponsorships') {
-        loadSponsorships();
-        initializeSponsorshipHandlers();
-    }
-
-    // Initialize invitation modal handlers
-    initializeInvitationModal();
-
-    // Initialize floating action button
-    initializeFloatingActionButton();
 }
 
 // Function to open invitation modal with post details
@@ -167,7 +472,6 @@ function initializeInvitationModal() {
     const invitationForm = document.getElementById('invitationForm');
 
     if (!invitationModal || !closeInvitationModal || !cancelInvitation || !invitationForm) {
-        console.error('Invitation modal elements not found');
         return;
     }
 
@@ -239,370 +543,90 @@ function initializeFloatingActionButton() {
     }
 }
 
-// Sponsorships functionality
-function loadSponsorships() {
-    const sponsorshipsContainer = document.getElementById('sponsorshipsContainer');
-    const sponsorshipsLoading = document.getElementById('sponsorshipsLoading');
-    const sponsorshipsEmpty = document.getElementById('sponsorshipsEmpty');
-    const sponsorshipsList = document.getElementById('sponsorshipsList');
+// Initialize the page when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initializePage();
+    initializeNewPostModal();
+});
 
-    if (!sponsorshipsContainer) return;
+// Initialize New Post Modal
+function initializeNewPostModal() {
+    const newPostBtn = document.getElementById('newPostBtn');
+    const fabNewPost = document.getElementById('fabNewPost');
+    const newPostModal = document.getElementById('newPostModal');
+    const closeModal = document.getElementById('closeModal');
+    const cancelPost = document.getElementById('cancelPost');
+    const newPostForm = document.getElementById('newPostForm');
 
-    // Show loading state
-    sponsorshipsLoading.style.display = 'block';
-    sponsorshipsEmpty.style.display = 'none';
-    sponsorshipsList.style.display = 'none';
-
-    fetch('/api/sponsorships/athlete')
-        .then(response => response.json())
-        .then(data => {
-            sponsorshipsLoading.style.display = 'none';
-
-            if (data.success && data.sponsorships && data.sponsorships.length > 0) {
-                displaySponsorships(data.sponsorships);
-                updateSponsorshipStats(data);
-                sponsorshipsList.style.display = 'block';
-            } else {
-                sponsorshipsEmpty.style.display = 'block';
-            }
-        })
-        .catch(error => {
-            console.error('Error loading sponsorships:', error);
-            sponsorshipsLoading.style.display = 'none';
-            sponsorshipsEmpty.style.display = 'block';
-        });
-}
-
-function displaySponsorships(sponsorships) {
-    const sponsorshipsList = document.getElementById('sponsorshipsList');
-    if (!sponsorshipsList) return;
-
-    sponsorshipsList.innerHTML = '';
-
-    sponsorships.forEach(sponsorship => {
-        const sponsorshipCard = createSponsorshipCard(sponsorship);
-        sponsorshipsList.appendChild(sponsorshipCard);
-    });
-}
-
-function createSponsorshipCard(sponsorship) {
-    const card = document.createElement('div');
-    card.className = 'bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow';
-    card.setAttribute('data-status', sponsorship.status.toLowerCase());
-
-    const statusColor = getStatusColor(sponsorship.status);
-    const currencySymbol = getCurrencySymbol(sponsorship.currency);
-
-    card.innerHTML = `
-        <div class="flex justify-between items-start mb-4">
-            <div class="flex items-center">
-                <img src="${sponsorship.sponsor.profileImageUrl || '/placeholder-avatar.png'}" 
-                     alt="Sponsor" class="w-12 h-12 rounded-full object-cover mr-4">
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900">${sponsorship.sponsor.name}</h3>
-                    <p class="text-sm text-gray-600">${sponsorship.sponsor.companyName || 'Individual Sponsor'}</p>
-                    <p class="text-xs text-gray-500">${sponsorship.sponsor.industry || 'Sports'}</p>
-                </div>
-            </div>
-            <span class="px-3 py-1 rounded-full text-sm font-medium ${statusColor}">
-                ${sponsorship.status}
-            </span>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4 mb-4">
-            <div>
-                <p class="text-sm text-gray-600">Amount</p>
-                <p class="text-xl font-bold text-green-600">${currencySymbol}${sponsorship.amount.toLocaleString()}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-600">Duration</p>
-                <p class="text-sm font-medium">${formatDate(sponsorship.contractStartDate)} - ${formatDate(sponsorship.contractEndDate)}</p>
-            </div>
-        </div>
-        
-        <div class="mb-4">
-            <p class="text-sm text-gray-600 mb-2">Terms</p>
-            <p class="text-sm text-gray-800">${sponsorship.terms || 'No specific terms provided'}</p>
-        </div>
-        
-        <div class="flex justify-between items-center">
-            <p class="text-xs text-gray-500">Created: ${formatDate(sponsorship.createdAt)}</p>
-            <div class="flex space-x-2">
-                <button onclick="viewSponsorProfile(${sponsorship.sponsor.userId})" 
-                        class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                    View Profile
-                </button>
-                <button onclick="viewSponsorshipDetails(${sponsorship.id})" 
-                        class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm">
-                    Details
-                </button>
-            </div>
-        </div>
-    `;
-
-    return card;
-}
-
-function updateSponsorshipStats(data) {
-    const totalCount = document.getElementById('totalSponsorshipsCount');
-    const activeCount = document.getElementById('activeSponsorshipsCount');
-    const totalValue = document.getElementById('totalSponsorshipValue');
-    const currentMonthValue = document.getElementById('currentMonthValue');
-
-    if (totalCount) totalCount.textContent = data.totalCount || 0;
-    if (activeCount) activeCount.textContent = data.activeCount || 0;
-
-    // Calculate total value
-    let total = 0;
-    let currentMonth = 0;
-    const currentDate = new Date();
-
-    if (data.sponsorships) {
-        data.sponsorships.forEach(sponsorship => {
-            total += sponsorship.amount;
-
-            // Check if sponsorship is active in current month
-            const startDate = new Date(sponsorship.contractStartDate);
-            const endDate = new Date(sponsorship.contractEndDate);
-            if (startDate <= currentDate && endDate >= currentDate) {
-                currentMonth += sponsorship.amount;
-            }
-        });
-    }
-
-    if (totalValue) totalValue.textContent = '$' + total.toLocaleString();
-    if (currentMonthValue) currentMonthValue.textContent = '$' + currentMonth.toLocaleString();
-}
-
-function initializeSponsorshipHandlers() {
-    // Filter buttons
-    const filterButtons = document.querySelectorAll('.sponsorship-filter-btn');
-    filterButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            filterButtons.forEach(btn => {
-                btn.classList.remove('active', 'bg-blue-500', 'text-white');
-                btn.classList.add('bg-gray-200', 'text-gray-700');
+    // Open modal handlers
+    [newPostBtn, fabNewPost].forEach(btn => {
+        if (btn) {
+            btn.addEventListener('click', () => {
+                if (newPostModal) {
+                    newPostModal.classList.add('active');
+                    newPostModal.style.display = 'flex';
+                }
             });
-
-            button.classList.remove('bg-gray-200', 'text-gray-700');
-            button.classList.add('active', 'bg-blue-500', 'text-white');
-
-            const filter = button.getAttribute('data-filter');
-            filterSponsorships(filter);
-        });
-    });
-}
-
-function filterSponsorships(filter) {
-    const sponsorshipCards = document.querySelectorAll('[data-status]');
-
-    sponsorshipCards.forEach(card => {
-        const status = card.getAttribute('data-status');
-
-        if (filter === 'all') {
-            card.style.display = 'block';
-        } else if (filter === 'active' && status === 'accepted') {
-            card.style.display = 'block';
-        } else if (filter === 'pending' && status === 'pending') {
-            card.style.display = 'block';
-        } else if (filter === 'completed' && (status === 'completed' || status === 'expired')) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
         }
     });
-}
 
-// Utility functions
-function getStatusColor(status) {
-    switch (status.toLowerCase()) {
-        case 'accepted':
-        case 'active':
-            return 'bg-green-100 text-green-800';
-        case 'pending':
-            return 'bg-yellow-100 text-yellow-800';
-        case 'declined':
-        case 'rejected':
-            return 'bg-red-100 text-red-800';
-        case 'completed':
-            return 'bg-blue-100 text-blue-800';
-        default:
-            return 'bg-gray-100 text-gray-800';
+    // Close modal handlers
+    [closeModal, cancelPost].forEach(btn => {
+        if (btn) {
+            btn.addEventListener('click', () => {
+                if (newPostModal) {
+                    newPostModal.classList.remove('active');
+                    newPostModal.style.display = 'none';
+                    if (newPostForm) newPostForm.reset();
+                }
+            });
+        }
+    });
+
+    // Click outside modal to close
+    if (newPostModal) {
+        newPostModal.addEventListener('click', (e) => {
+            if (e.target === newPostModal) {
+                newPostModal.classList.remove('active');
+                newPostModal.style.display = 'none';
+                if (newPostForm) newPostForm.reset();
+            }
+        });
     }
-}
 
-function getCurrencySymbol(currency) {
-    switch (currency) {
-        case 'USD': return '$';
-        case 'EUR': return '€';
-        case 'GBP': return '£';
-        case 'INR': return '₹';
-        default: return '$';
-    }
-}
+    // Handle form submission
+    if (newPostForm) {
+        newPostForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-// Function to show messages
-function showMessage(message, type) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `fixed top-4 right-4 p-4 rounded z-50 ${
-        type === 'success'
-            ? 'bg-green-100 border border-green-400 text-green-700'
-            : 'bg-red-100 border border-red-400 text-red-700'
-    }`;
-    messageDiv.textContent = message;
+            const formData = new FormData(newPostForm);
 
-    document.body.appendChild(messageDiv);
-
-    setTimeout(() => {
-        messageDiv.remove();
-    }, 3000);
-}
-
-// Handle post action buttons
-document.addEventListener('click', async function(e) {
-    // Handle delete post button - check both the button and its child elements
-    if (e.target.classList.contains('delete-post-btn') || e.target.closest('.delete-post-btn')) {
-        e.preventDefault();
-        const deleteBtn = e.target.classList.contains('delete-post-btn') ? e.target : e.target.closest('.delete-post-btn');
-        const postId = deleteBtn.getAttribute('data-post-id');
-
-        if (confirm('Are you sure you want to delete this post?')) {
             try {
-                const response = await fetch(`/api/posts/${postId}`, {
-                    method: 'DELETE'
+                const response = await fetch('/api/posts/create', {
+                    method: 'POST',
+                    body: formData
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
-                    // Remove the post from DOM
-                    const postElement = document.querySelector(`[data-post-id="${postId}"]`);
-                    if (postElement) {
-                        postElement.remove();
-                    }
-                    showMessage('Post deleted successfully!', 'success');
+                    // Close modal and reset form
+                    newPostModal.classList.remove('active');
+                    newPostModal.style.display = 'none';
+                    newPostForm.reset();
+
+                    // Show success message
+                    showMessage('Post created successfully!', 'success');
+
+                    // Reload the page to show the new post
+                    window.location.reload();
                 } else {
-                    showMessage(result.message || 'Failed to delete post', 'error');
+                    showMessage(result.message || 'Failed to create post', 'error');
                 }
             } catch (error) {
-                console.error('Error deleting post:', error);
-                showMessage('An error occurred while deleting the post', 'error');
+                console.error('Error creating post:', error);
+                showMessage('An error occurred while creating the post', 'error');
             }
-        }
-        return;
+        });
     }
-
-    // Handle send invitation button
-    if (e.target.classList.contains('send-invitation-btn') || e.target.closest('.send-invitation-btn')) {
-        e.preventDefault();
-        const inviteBtn = e.target.classList.contains('send-invitation-btn') ? e.target : e.target.closest('.send-invitation-btn');
-        const postId = inviteBtn.getAttribute('data-post-id');
-
-        // Open invitation modal with post details
-        openInvitationModal(postId);
-        return;
-    }
-
-    // Handle visit profile button
-    if (e.target.classList.contains('visit-profile-btn') || e.target.closest('.visit-profile-btn')) {
-        e.preventDefault();
-        const profileBtn = e.target.classList.contains('visit-profile-btn') ? e.target : e.target.closest('.visit-profile-btn');
-        const userId = profileBtn.getAttribute('data-user-id');
-        const userRole = profileBtn.getAttribute('data-user-role');
-
-        // Redirect to user's profile page
-        window.location.href = `/${userRole}/profile/${userId}`;
-        return;
-    }
-
-    // Handle like button
-    if (e.target.classList.contains('like-btn') || e.target.closest('.like-btn')) {
-        e.preventDefault();
-        const likeBtn = e.target.classList.contains('like-btn') ? e.target : e.target.closest('.like-btn');
-        const postId = likeBtn.getAttribute('data-post-id');
-
-        try {
-            const response = await fetch(`/api/posts/${postId}/like`, {
-                method: 'POST'
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                // Update button state
-                const likeIcon = likeBtn.querySelector('.like-icon');
-                const likeText = likeBtn.querySelector('.like-text');
-                const likeCount = likeBtn.querySelector('.like-count');
-
-                if (result.liked) {
-                    // User liked the post
-                    likeBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
-                    likeBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
-                    likeIcon.classList.add('text-red-300');
-                    likeText.textContent = 'Liked';
-                    likeBtn.setAttribute('data-liked', 'true');
-                } else {
-                    // User unliked the post
-                    likeBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
-                    likeBtn.classList.add('bg-green-500', 'hover:bg-green-600');
-                    likeIcon.classList.remove('text-red-300');
-                    likeText.textContent = 'Like';
-                    likeBtn.setAttribute('data-liked', 'false');
-                }
-
-                likeCount.textContent = `(${result.likesCount})`;
-            } else {
-                showMessage(result.message || 'Failed to update like', 'error');
-            }
-        } catch (error) {
-            console.error('Error toggling like:', error);
-            showMessage('An error occurred while updating like', 'error');
-        }
-        return;
-    }
-
-    // Handle report button
-    if (e.target.textContent.includes('Report')) {
-        showMessage('Post reported. Thank you for helping keep our community safe.', 'success');
-    }
-});
-
-// Placeholder functions for missing functionality
-function loadDailyLogs() {
-    console.log('loadDailyLogs function - placeholder');
 }
-
-function loadTodaysSummary() {
-    console.log('loadTodaysSummary function - placeholder');
-}
-
-function loadAthleteStats() {
-    console.log('loadAthleteStats function - placeholder');
-}
-
-function loadCharts() {
-    console.log('loadCharts function - placeholder');
-}
-
-function initializeChartPeriodButtons() {
-    console.log('initializeChartPeriodButtons function - placeholder');
-}
-
-function loadProfileData() {
-    console.log('loadProfileData function - placeholder');
-}
-
-function initializeProfileHandlers() {
-    console.log('initializeProfileHandlers function - placeholder');
-}
-
-function loadInvitations() {
-    console.log('loadInvitations function - placeholder');
-}
-
-function initializeInvitationHandlers() {
-    console.log('initializeInvitationHandlers function - placeholder');
-}
-
-// Initialize the page
-initializePage();
