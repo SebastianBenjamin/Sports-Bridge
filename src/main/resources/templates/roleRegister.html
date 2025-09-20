@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Role Based Entity Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script th:src="@{'https://cdn.tailwindcss.com'}"></script>
+</head>
+<body class="bg-gray-100">
+<div class="max-w-md mx-auto bg-white p-6 rounded shadow mt-12">
+
+    <h2 class="text-2xl font-semibold mb-6 capitalize" th:text="'Complete Your ' + ${entitytype} + ' Profile'">Complete Profile</h2>
+
+    <!-- Dynamic form action based on role -->
+    <form th:action="@{'/roleRegister/' + ${entitytype}}" th:object="${entity}" method="post" class="space-y-4">
+
+        <!-- Sponsor Form -->
+        <div th:if="${entitytype == 'sponsor'}">
+            <label class="block">
+                <span class="text-gray-700">Company Name</span>
+                <input type="text" th:field="*{companyName}" required
+                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"/>
+            </label>
+
+            <label class="block">
+                <span class="text-gray-700">Industry</span>
+                <input type="text" th:field="*{industry}" required
+                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+                       placeholder="e.g., Sports Equipment, Fitness"/>
+            </label>
+
+            <label class="block">
+                <span class="text-gray-700">Website</span>
+                <input type="url" th:field="*{website}"
+                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+                       placeholder="https://example.com"/>
+            </label>
+
+            <label class="block">
+                <span class="text-gray-700">Budget Range</span>
+                <select th:field="*{budgetRange}" required
+                        class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+                    <option value="">Select Budget Range</option>
+                    <option value="$1,000 - $5,000">$1,000 - $5,000</option>
+                    <option value="$5,000 - $10,000">$5,000 - $10,000</option>
+                    <option value="$10,000 - $25,000">$10,000 - $25,000</option>
+                    <option value="$25,000+">$25,000+</option>
+                </select>
+            </label>
+        </div>
+
+        <!-- Coach Form -->
+        <div th:if="${entitytype == 'coach'}">
+            <label class="block">
+                <span class="text-gray-700">Authority/Certification</span>
+                <input type="text" th:field="*{authority}" required
+                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+                       placeholder="e.g., Certified Personal Trainer"/>
+            </label>
+
+            <label class="block">
+                <span class="text-gray-700">Specialization</span>
+                <input type="text" th:field="*{specialization}" required
+                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+                       placeholder="e.g., Fitness, Yoga, Swimming"/>
+            </label>
+
+            <label class="block">
+                <span class="text-gray-700">Years of Experience</span>
+                <input type="number" th:field="*{experienceYears}" required min="0"
+                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"/>
+            </label>
+
+            <label class="block">
+                <span class="text-gray-700">State</span>
+                <input type="text" th:field="*{state}" required
+                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"/>
+            </label>
+
+            <label class="block">
+                <span class="text-gray-700">District</span>
+                <input type="text" th:field="*{district}" required
+                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"/>
+            </label>
+        </div>
+
+        <!-- Athlete Form -->
+        <div th:if="${entitytype == 'athlete'}">
+            <label class="block">
+                <span class="text-gray-700">Height (cm)</span>
+                <input type="number" th:field="*{height}" step="0.1" min="0"
+                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+                       placeholder="e.g., 175.5"/>
+            </label>
+
+            <label class="block">
+                <span class="text-gray-700">Weight (kg)</span>
+                <input type="number" th:field="*{weight}" step="0.1" min="0"
+                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+                       placeholder="e.g., 70.5"/>
+            </label>
+
+            <label class="block">
+                <span class="text-gray-700">State</span>
+                <input type="text" th:field="*{state}" required
+                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"/>
+            </label>
+
+            <label class="block">
+                <span class="text-gray-700">District</span>
+                <input type="text" th:field="*{district}" required
+                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"/>
+            </label>
+
+            <div class="flex items-center">
+                <input type="checkbox" th:field="*{isDisabled}" id="isDisabled"
+                       class="mr-2"/>
+                <label for="isDisabled" class="text-gray-700">I have a disability</label>
+            </div>
+
+            <div class="mt-2" id="disabilityTypeDiv" style="display: none;">
+                <label class="block">
+                    <span class="text-gray-700">Disability Type</span>
+                    <input type="text" th:field="*{disabilityType}"
+                           class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+                           placeholder="Please specify"/>
+                </label>
+            </div>
+
+            <label class="block">
+                <span class="text-gray-700">Emergency Contact Name</span>
+                <input type="text" th:field="*{emergencyContactName}" required
+                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"/>
+            </label>
+
+            <label class="block">
+                <span class="text-gray-700">Emergency Contact Phone</span>
+                <input type="tel" th:field="*{emergencyContactPhone}" required
+                       class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"/>
+            </label>
+        </div>
+
+        <button type="submit"
+                class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 w-full">
+            Complete Registration
+        </button>
+    </form>
+</div>
+
+<script>
+    // Toggle disability type field based on checkbox
+    document.addEventListener('DOMContentLoaded', function() {
+        const disabledCheckbox = document.getElementById('isDisabled');
+        const disabilityTypeDiv = document.getElementById('disabilityTypeDiv');
+
+        if (disabledCheckbox) {
+            disabledCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    disabilityTypeDiv.style.display = 'block';
+                } else {
+                    disabilityTypeDiv.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

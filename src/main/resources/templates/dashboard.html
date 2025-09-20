@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'SportsBridge - ' + ${role} + ' Dashboard'">SportsBridge Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-btn.active { background-color: #3b82f6; color: white; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">SportsBridge</h1>
+            <div class="flex items-center space-x-4">
+                <span th:text="'Welcome, ' + ${user.firstName} + ' ' + ${user.lastName}">Welcome User</span>
+                <img th:src="${user.profileImageUrl}" alt="Profile" class="w-10 h-10 rounded-full">
+                <a href="/logout" class="bg-red-500 px-3 py-1 rounded">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto p-6">
+        <!-- Tab Navigation -->
+        <div class="mb-6">
+            <div class="flex space-x-2 border-b">
+                <!-- Athlete Tabs -->
+                <div th:if="${role == 'athlete'}">
+                    <button class="tab-btn active px-4 py-2 rounded-t" onclick="showTab('explore')">Explore</button>
+                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('dailylogs')">Daily Logs</button>
+                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('invitations')">Invitations</button>
+                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('profile')">Profile</button>
+                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('mycoach')">My Coach</button>
+                </div>
+
+                <!-- Coach Tabs -->
+                <div th:if="${role == 'coach'}">
+                    <button class="tab-btn active px-4 py-2 rounded-t" onclick="showTab('explore')">Explore</button>
+                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('invitations')">Invitations</button>
+                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('profile')">Profile</button>
+                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('myathletes')">My Athletes</button>
+                </div>
+
+                <!-- Sponsor Tabs -->
+                <div th:if="${role == 'sponsor'}">
+                    <button class="tab-btn active px-4 py-2 rounded-t" onclick="showTab('explore')">Explore</button>
+                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('invitations')">Invitations</button>
+                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('profile')">Profile</button>
+                    <button class="tab-btn px-4 py-2 rounded-t" onclick="showTab('sponsorships')">Sponsorships</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Contents -->
+
+        <!-- Explore Tab (Common for all roles) -->
+        <div id="explore" class="tab-content active">
+            <h2 class="text-2xl font-bold mb-4">Explore Posts</h2>
+            <div class="space-y-4">
+                <!-- Dummy Post 1 -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center mb-4">
+                        <img src="https://via.placeholder.com/50" alt="User" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <h3 class="font-semibold">John Smith</h3>
+                            <p class="text-gray-500 text-sm">Professional Runner</p>
+                        </div>
+                    </div>
+                    <p class="mb-4">Just completed my morning 10K run! The weather was perfect and I set a new personal record. Looking for training partners in the area. 🏃‍♂️</p>
+                    <img src="https://via.placeholder.com/400x200" alt="Post Image" class="w-full rounded mb-4">
+                    <div class="flex space-x-4">
+                        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">👤 Invite</button>
+                        <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">👍 Like</button>
+                        <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">🚩 Report</button>
+                    </div>
+                </div>
+
+                <!-- Dummy Post 2 -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center mb-4">
+                        <img src="https://via.placeholder.com/50" alt="User" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <h3 class="font-semibold">Sarah Johnson</h3>
+                            <p class="text-gray-500 text-sm">Fitness Coach</p>
+                        </div>
+                    </div>
+                    <p class="mb-4">New HIIT workout routine available! Perfect for building endurance and strength. Who wants to join my group training sessions this weekend? 💪</p>
+                    <div class="flex space-x-4">
+                        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">👤 Invite</button>
+                        <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">👍 Like</button>
+                        <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">🚩 Report</button>
+                    </div>
+                </div>
+
+                <!-- Dummy Post 3 -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center mb-4">
+                        <img src="https://via.placeholder.com/50" alt="User" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <h3 class="font-semibold">FitGear Corporation</h3>
+                            <p class="text-gray-500 text-sm">Sports Equipment Sponsor</p>
+                        </div>
+                    </div>
+                    <p class="mb-4">Looking for talented athletes to sponsor! We provide top-quality sports equipment and gear. Apply now for our 2024 sponsorship program. 🏆</p>
+                    <img src="https://via.placeholder.com/400x150" alt="Sponsorship Banner" class="w-full rounded mb-4">
+                    <div class="flex space-x-4">
+                        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">👤 Invite</button>
+                        <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">👍 Like</button>
+                        <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">🚩 Report</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Logs Tab (Athlete only) -->
+        <div id="dailylogs" class="tab-content" th:if="${role == 'athlete'}">
+            <h2 class="text-2xl font-bold mb-4">Daily Logs</h2>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold mb-4">Track Your Daily Activities</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="border p-4 rounded">
+                        <h4 class="font-semibold mb-2">Today's Workout</h4>
+                        <p class="text-gray-600">No workout logged yet</p>
+                        <button class="mt-2 bg-blue-500 text-white px-4 py-2 rounded">Add Workout</button>
+                    </div>
+                    <div class="border p-4 rounded">
+                        <h4 class="font-semibold mb-2">Nutrition</h4>
+                        <p class="text-gray-600">No meals logged yet</p>
+                        <button class="mt-2 bg-green-500 text-white px-4 py-2 rounded">Log Meal</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invitations Tab (Common for all roles) -->
+        <div id="invitations" class="tab-content">
+            <h2 class="text-2xl font-bold mb-4">Invitations</h2>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <p class="text-gray-600">No pending invitations</p>
+            </div>
+        </div>
+
+        <!-- Profile Tab (Common for all roles) -->
+        <div id="profile" class="tab-content">
+            <h2 class="text-2xl font-bold mb-4">Profile</h2>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="flex items-center mb-6">
+                    <img th:src="${user.profileImageUrl}" alt="Profile" class="w-24 h-24 rounded-full mr-6">
+                    <div>
+                        <h3 class="text-xl font-semibold" th:text="${user.firstName} + ' ' + ${user.lastName}">User Name</h3>
+                        <p class="text-gray-600" th:text="${user.email}">user@example.com</p>
+                        <p class="text-blue-600 font-semibold" th:text="${role}">Role</p>
+                    </div>
+                </div>
+                <button class="bg-blue-500 text-white px-4 py-2 rounded">Edit Profile</button>
+            </div>
+        </div>
+
+        <!-- My Coach Tab (Athlete only) -->
+        <div id="mycoach" class="tab-content" th:if="${role == 'athlete'}">
+            <h2 class="text-2xl font-bold mb-4">My Coach</h2>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <p class="text-gray-600">No coach assigned yet</p>
+                <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Find a Coach</button>
+            </div>
+        </div>
+
+        <!-- My Athletes Tab (Coach only) -->
+        <div id="myathletes" class="tab-content" th:if="${role == 'coach'}">
+            <h2 class="text-2xl font-bold mb-4">My Athletes</h2>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <p class="text-gray-600">No athletes under your coaching yet</p>
+                <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Find Athletes</button>
+            </div>
+        </div>
+
+        <!-- Sponsorships Tab (Sponsor only) -->
+        <div id="sponsorships" class="tab-content" th:if="${role == 'sponsor'}">
+            <h2 class="text-2xl font-bold mb-4">Sponsorships</h2>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <p class="text-gray-600">No active sponsorships</p>
+                <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Create Sponsorship</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Add click handlers for post actions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle invite buttons
+            document.querySelectorAll('button:contains("Invite")').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    alert('Invitation sent!');
+                });
+            });
+
+            // Handle like buttons
+            document.querySelectorAll('button:contains("Like")').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.style.backgroundColor = '#10b981';
+                    this.textContent = '👍 Liked';
+                });
+            });
+
+            // Handle report buttons
+            document.querySelectorAll('button:contains("Report")').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    alert('Post reported. Thank you for helping keep our community safe.');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

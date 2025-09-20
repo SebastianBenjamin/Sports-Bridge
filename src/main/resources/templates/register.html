@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>User Registration</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script th:src="@{'https://cdn.tailwindcss.com'}"></script>
+</head>
+<body class="bg-gray-100">
+<div class="flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full bg-white p-8 rounded-lg shadow-lg">
+        <h2 class="mb-6 text-center text-3xl font-extrabold text-gray-900">Create Your Account</h2>
+        <form th:action="@{/register}" th:object="${user}" method="post" enctype="multipart/form-data" class="space-y-6" id="registerForm" onsubmit="return validateForm()">
+            <!-- User Role -->
+            <div>
+                <label for="role" class="block text-sm font-medium text-gray-700 mb-1">User Role</label>
+                <select id="role" name="role" th:field="*{role}" required
+                        class="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300
+                        placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500
+                        focus:border-indigo-500 sm:text-sm">
+                    <option value="" disabled selected>Select a role</option>
+                    <option th:each="r : ${T(org.hackcelestial.sportsbridge.Enums.UserRole).values()}"
+                            th:value="${r}" th:text="${r}"></option>
+                </select>
+            </div>
+
+            <!-- Profile Photo -->
+            <div>
+                <label for="profilePhoto" class="block text-sm font-medium text-gray-700 mb-1">Profile Photo</label>
+                <input id="profilePhoto" name="photo" type="file" accept="image/*"
+                       class="block w-full text-sm text-gray-900 border border-gray-300 rounded-md
+                       cursor-pointer bg-gray-50 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                <p class="mt-1 text-xs text-gray-500">Upload a JPG, PNG, or GIF image.</p>
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+                <input id="email" name="email" type="email" autocomplete="email" th:field="*{email}" required maxlength="50"
+                       class="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300
+                       placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500
+                       focus:border-indigo-500 sm:text-sm" placeholder="you@example.com" />
+            </div>
+
+            <!-- Password -->
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input id="password" name="password" type="password" autocomplete="new-password" th:field="*{password}" required minlength="6" maxlength="20"
+                       class="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300
+                       placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500
+                       focus:border-indigo-500 sm:text-sm" placeholder="********" />
+            </div>
+
+            <!-- First Name -->
+            <div>
+                <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                <input id="firstName" name="firstName" type="text" th:field="*{firstName}" required maxlength="30"
+                       class="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300
+                       placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500
+                       focus:border-indigo-500 sm:text-sm" placeholder="John" />
+            </div>
+
+            <!-- Last Name -->
+            <div>
+                <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                <input id="lastName" name="lastName" type="text" th:field="*{lastName}" required maxlength="30"
+                       class="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300
+                       placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500
+                       focus:border-indigo-500 sm:text-sm" placeholder="Doe" />
+            </div>
+
+            <!-- Aadhaar Number -->
+            <div>
+                <label for="aadhaar" class="block text-sm font-medium text-gray-700 mb-1">Aadhaar Number</label>
+                <input id="aadhaar" name="aadhaar" type="text" th:field="*{aadhaarNumber}" required maxlength="12" minlength="12" pattern="^\d{12}$"
+                       class="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300
+                       placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500
+                       focus:border-indigo-500 sm:text-sm" placeholder="123412341234" />
+            </div>
+
+            <!-- Phone -->
+            <div>
+                <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input id="phone" name="phone" type="tel" th:field="*{phone}" required maxlength="15" pattern="^\+?\d{10,15}$"
+                       class="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300
+                       placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500
+                       focus:border-indigo-500 sm:text-sm" placeholder="+911234567890" />
+            </div>
+
+            <!-- Gender -->
+            <div>
+                <label for="gender" class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                <select id="gender" name="gender" th:field="*{gender}" required
+                        class="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300
+                        placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500
+                        focus:border-indigo-500 sm:text-sm">
+                    <option value="" disabled selected>Select gender</option>
+                    <option th:each="g : ${T(org.hackcelestial.sportsbridge.Enums.Gender).values()}"
+                            th:value="${g}" th:text="${g}"></option>
+                </select>
+            </div>
+
+            <!-- Country -->
+            <div>
+                <label for="country" class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                <input id="country" name="country" type="text" th:field="*{country}" required maxlength="40"
+                       class="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300
+                       placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500
+                       focus:border-indigo-500 sm:text-sm" placeholder="India" />
+            </div>
+
+            <!-- Bio -->
+            <div>
+                <label for="bio" class="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                <textarea id="bio" name="bio" th:field="*{bio}" maxlength="250" rows="3"
+                          class="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300
+                          placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500
+                          focus:border-indigo-500 sm:text-sm" placeholder="Tell us about yourself (max 250 chars)"></textarea>
+            </div>
+
+            <div>
+                <button type="submit"
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent
+                        text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    Register
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function validateForm() {
+        const form = document.getElementById('registerForm');
+
+        // Role validation
+        const role = form.role.value;
+        if (!role) {
+            alert('Please select a user role.');
+            return false;
+        }
+
+        // Email validation (HTML5 handles it but double-check)
+        const email = form.email.value;
+        if (!email) {
+            alert('Please enter a valid email address.');
+            return false;
+        } else if (email.length > 50) {
+            alert('Email cannot exceed 50 characters.');
+            return false;
+        }
+
+        // Password validation
+        const password = form.password.value;
+        if (!password || password.length < 6 || password.length > 20) {
+            alert('Password must be between 6 and 20 characters.');
+            return false;
+        }
+
+        // First name validation
+        const firstName = form.firstName.value;
+        if (!firstName || firstName.length > 30) {
+            alert('Please enter your first name (max 30 characters).');
+            return false;
+        }
+
+        // Last name validation
+        const lastName = form.lastName.value;
+        if (!lastName || lastName.length > 30) {
+            alert('Please enter your last name (max 30 characters).');
+            return false;
+        }
+
+        // Aadhaar validation: exactly 12 digits
+        const aadhaar = form.aadhaar.value;
+        if (!/^\d{12}$/.test(aadhaar)) {
+            alert('Aadhaar number must be exactly 12 digits.');
+            return false;
+        }
+
+        // Phone validation: 10-15 digits, optional +
+        const phone = form.phone.value;
+        if (!/^\+?\d{10,15}$/.test(phone)) {
+            alert('Please enter a valid phone number (10 to 15 digits, optional +).');
+            return false;
+        }
+
+        // Gender validation
+        const gender = form.gender.value;
+        if (!gender) {
+            alert('Please select a gender.');
+            return false;
+        }
+
+        // Country validation
+        const country = form.country.value;
+        if (!country || country.length > 40) {
+            alert('Please enter a country name (max 40 characters).');
+            return false;
+        }
+
+        // Bio validation max length handled by maxlength attribute
+        const bio = form.bio.value;
+        if (bio.length > 250) {
+            alert('Bio cannot exceed 250 characters.');
+            return false;
+        }
+
+        // All validations passed
+        return true;
+    }
+</script>
+
+</body>
+</html>
