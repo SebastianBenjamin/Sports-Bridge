@@ -15,7 +15,7 @@ async def test_database_connection():
         connection = await aiomysql.connect(
             host='localhost',
             port=3306,
-            user='root',git 
+            user='root', 
             password='Baymaxhiro@156',
             db='sportsbridge',
             charset='utf8mb4'
