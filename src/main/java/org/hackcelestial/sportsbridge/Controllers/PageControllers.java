@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpSession;
 import org.hackcelestial.sportsbridge.Enums.UserRole;
 import org.hackcelestial.sportsbridge.Models.Athlete;
 import org.hackcelestial.sportsbridge.Models.Coach;
+import org.hackcelestial.sportsbridge.Models.Post;
 import org.hackcelestial.sportsbridge.Models.Sponsor;
 import org.hackcelestial.sportsbridge.Models.User;
 import org.hackcelestial.sportsbridge.Services.*;
@@ -20,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Controller
 public class PageControllers {
@@ -35,6 +37,8 @@ public class PageControllers {
     CoachService coachService;
     @Autowired
     SponsorService sponsorService;
+    @Autowired
+    PostService postService;
 
     @GetMapping("/")
     public String home() {
@@ -387,36 +391,132 @@ public class PageControllers {
         }
     }
 
+    // Role-based dashboard routes
     @GetMapping("/athlete/dashboard")
     public String athleteDashboard(Model model) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            return "redirect:/login";
-        }
-        model.addAttribute("user", user);
-        model.addAttribute("role", "athlete");
-        return "dashboard";
+        return getAthletePageWithTab(model, "explore");
     }
 
+    @GetMapping("/athlete/explore")
+    public String athleteExplore(Model model) {
+        return getAthletePageWithTab(model, "explore");
+    }
+
+    @GetMapping("/athlete/dailylogs")
+    public String athleteDailyLogs(Model model) {
+        return getAthletePageWithTab(model, "dailylogs");
+    }
+
+    @GetMapping("/athlete/invitations")
+    public String athleteInvitations(Model model) {
+        return getAthletePageWithTab(model, "invitations");
+    }
+
+    @GetMapping("/athlete/profile")
+    public String athleteProfile(Model model) {
+        return getAthletePageWithTab(model, "profile");
+    }
+
+    @GetMapping("/athlete/mycoach")
+    public String athleteMyCoach(Model model) {
+        return getAthletePageWithTab(model, "mycoach");
+    }
+
+    // Coach routes
     @GetMapping("/coach/dashboard")
     public String coachDashboard(Model model) {
+        return getCoachPageWithTab(model, "explore");
+    }
+
+    @GetMapping("/coach/explore")
+    public String coachExplore(Model model) {
+        return getCoachPageWithTab(model, "explore");
+    }
+
+    @GetMapping("/coach/invitations")
+    public String coachInvitations(Model model) {
+        return getCoachPageWithTab(model, "invitations");
+    }
+
+    @GetMapping("/coach/profile")
+    public String coachProfile(Model model) {
+        return getCoachPageWithTab(model, "profile");
+    }
+
+    @GetMapping("/coach/myathletes")
+    public String coachMyAthletes(Model model) {
+        return getCoachPageWithTab(model, "myathletes");
+    }
+
+    // Sponsor routes
+    @GetMapping("/sponsor/dashboard")
+    public String sponsorDashboard(Model model) {
+        return getSponsorPageWithTab(model, "explore");
+    }
+
+    @GetMapping("/sponsor/explore")
+    public String sponsorExplore(Model model) {
+        return getSponsorPageWithTab(model, "explore");
+    }
+
+    @GetMapping("/sponsor/invitations")
+    public String sponsorInvitations(Model model) {
+        return getSponsorPageWithTab(model, "invitations");
+    }
+
+    @GetMapping("/sponsor/profile")
+    public String sponsorProfile(Model model) {
+        return getSponsorPageWithTab(model, "profile");
+    }
+
+    @GetMapping("/sponsor/sponsorships")
+    public String sponsorSponsorships(Model model) {
+        return getSponsorPageWithTab(model, "sponsorships");
+    }
+
+    // Helper methods for role-based page rendering
+    private String getAthletePageWithTab(Model model, String activeTab) {
         User user = (User) session.getAttribute("user");
-        if (user == null) {
+        if (user == null || !user.getRole().equals(UserRole.ATHLETE)) {
             return "redirect:/login";
         }
+
+        List<Post> posts = postService.getAllPosts();
         model.addAttribute("user", user);
-        model.addAttribute("role", "coach");
+        model.addAttribute("role", "athlete");
+        model.addAttribute("posts", posts);
+        model.addAttribute("activeTab", activeTab);
+
         return "dashboard";
     }
 
-    @GetMapping("/sponsor/dashboard")
-    public String sponsorDashboard(Model model) {
+    private String getCoachPageWithTab(Model model, String activeTab) {
         User user = (User) session.getAttribute("user");
-        if (user == null) {
+        if (user == null || !user.getRole().equals(UserRole.COACH)) {
             return "redirect:/login";
         }
+
+        List<Post> posts = postService.getAllPosts();
+        model.addAttribute("user", user);
+        model.addAttribute("role", "coach");
+        model.addAttribute("posts", posts);
+        model.addAttribute("activeTab", activeTab);
+
+        return "dashboard";
+    }
+
+    private String getSponsorPageWithTab(Model model, String activeTab) {
+        User user = (User) session.getAttribute("user");
+        if (user == null || !user.getRole().equals(UserRole.SPONSOR)) {
+            return "redirect:/login";
+        }
+
+        List<Post> posts = postService.getAllPosts();
         model.addAttribute("user", user);
         model.addAttribute("role", "sponsor");
+        model.addAttribute("posts", posts);
+        model.addAttribute("activeTab", activeTab);
+
         return "dashboard";
     }
 }
