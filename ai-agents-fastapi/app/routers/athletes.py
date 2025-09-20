@@ -207,12 +207,37 @@ async def get_sponsor_suggestion():
             height = float(db_athlete.get('height', 170)) if db_athlete.get('height') else 170.0
             weight = float(db_athlete.get('weight', 70)) if db_athlete.get('weight') else 70.0
             athlete_name = db_athlete.get('athleteName', f"Athlete_{db_athlete.get('athleteId', 'Unknown')}")
+            athlete_id = int(db_athlete.get('athleteId', 1))
             
+            # Create REALISTIC variations based on athlete characteristics
+            # Use height/weight to infer athlete type and set appropriate training/rank
+            
+            if height >= 180 and weight >= 90:
+                # Heavy/Power athlete
+                training_minutes = 180  # High training (power lifting)
+                rank_position = 3       # Good but not elite rank
+            elif height >= 175 and weight <= 70:
+                # Tall lean athlete (runner type)
+                training_minutes = 150  # High endurance training
+                rank_position = 1       # Elite runner rank
+            elif weight >= 100:
+                # Very heavy athlete
+                training_minutes = 60   # Lower training intensity
+                rank_position = 5       # Lower rank
+            elif height <= 170 and weight <= 60:
+                # Small/lean athlete
+                training_minutes = 120  # Medium training
+                rank_position = 2       # Good rank
+            else:
+                # Average athlete
+                training_minutes = 90   # Medium training
+                rank_position = 4       # Average rank
+
             athlete_input = AthleteInput(
                 height=height,
                 weight=weight,
-                trainingDurationMinutes=120,  # Default since not in current DB schema
-                rankPosition=1,  # Default since not in current DB schema  
+                trainingDurationMinutes=training_minutes,
+                rankPosition=rank_position,
                 athleteName=athlete_name
             )
             athlete_inputs.append(athlete_input)

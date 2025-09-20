@@ -24,94 +24,32 @@ class AthleteDBService:
         try:
             db = await get_database()
             
-            # Try a set of candidate queries to include training duration and rank if present.
-            # Start with simpler queries that don't assume users table exists
-            candidate_queries: List[str] = [
-                # With training and rank fields, no users join
-                """
-                SELECT 
-                    a.id as athleteId,
-                    CONCAT('Athlete_', a.id) as athleteName,
-                    a.height,
-                    a.weight,
-                    a.is_disabled as isDisabled,
-                    a.disability_type as disabilityType,
-                    a.state,
-                    a.district,
-                    a.training_duration_minutes AS trainingDurationMinutes,
-                    a.rank_position AS rankPosition
-                FROM athletes a
-                ORDER BY a.id ASC
-                """,
-                # Alternative column names, no users join
-                """
-                SELECT 
-                    a.id as athleteId,
-                    CONCAT('Athlete_', a.id) as athleteName,
-                    a.height,
-                    a.weight,
-                    a.is_disabled as isDisabled,
-                    a.disability_type as disabilityType,
-                    a.state,
-                    a.district,
-                    a.training_minutes AS trainingDurationMinutes,
-                    a.rank AS rankPosition
-                FROM athletes a
-                ORDER BY a.id ASC
-                """,
-                # Fallback to baseline without training/rank fields
-                """
-                SELECT 
-                    a.id as athleteId,
-                    CONCAT('Athlete_', a.id) as athleteName,
-                    a.height,
-                    a.weight,
-                    a.is_disabled as isDisabled,
-                    a.disability_type as disabilityType,
-                    a.state,
-                    a.district
-                FROM athletes a
-                ORDER BY a.id ASC
-                """,
-                # Minimal query to just get basic data
-                """
-                SELECT 
-                    id as athleteId,
-                    CONCAT('Athlete_', id) as athleteName,
-                    height,
-                    weight
-                FROM athletes
-                ORDER BY id ASC
-                """,
-            ]
-
-            athletes_data: List[Dict[str, Any]] = []
-            last_error: Optional[Exception] = None
-            for q in candidate_queries:
-                try:
-                    athletes_data = await db.execute_query(q)
-                    # If query succeeded, stop trying further variants
-                    break
-                except Exception as qe:
-                    # Likely unknown column; try next variant
-                    last_error = qe
-                    logger.warning(f"Athlete query variant failed, trying next: {qe}")
+            # Query to get real athlete data with user names
+            query = """
+            SELECT 
+                a.id as athleteId,
+                CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) as athleteName,
+                a.height,
+                a.weight
+            FROM athletes a
+            LEFT JOIN users u ON a.user_id = u.id
+            ORDER BY a.id ASC
+            """
             
-            if not athletes_data and last_error:
-                # If all variants failed, raise the last error to be handled below
-                raise last_error
+            athletes_data = await db.execute_query(query)
             
-            # Process and score each athlete
+            if not athletes_data:
+                logger.warning("No athletes found in database")
+                return []
+            
+            # Return raw data - scoring will be done by AI service
             results = []
             for athlete_data in athletes_data:
-                # Calculate score and reason based on athlete metrics
-                score, reason = AthleteDBService._calculate_athlete_score(athlete_data)
-                
                 result = {
                     "athleteId": str(athlete_data.get('athleteId', f"A{len(results) + 1}")),
-                    "athleteName": athlete_data.get('athleteName', 'Unknown'),
-                    "score": score,
-                    "reason": reason
+                    "athleteName": athlete_data.get('athleteName', '').strip() or f"Athlete_{athlete_data.get('athleteId', len(results) + 1)}",
+                    "height": float(athlete_data.get('height', 0) or 0),
+                    "weight": float(athlete_data.get('weight', 0) or 0),
                 }
                 results.append(result)
             
