@@ -131,8 +131,8 @@ public class GlobalSearchService {
                containsIgnoreCase(user.getCountry(), lowerQuery) ||
                containsIgnoreCase(athlete.getState(), lowerQuery) ||
                containsIgnoreCase(athlete.getDistrict(), lowerQuery) ||
-               containsIgnoreCase(athlete.getDisabilityType(), lowerQuery) ||
-               containsIgnoreCase(athlete.getSport(), lowerQuery);
+               containsIgnoreCase(athlete.getDisabilityType(), lowerQuery);
+
     }
 
     private boolean matchesCoachSearch(Coach coach, String query) {
@@ -176,8 +176,8 @@ public class GlobalSearchService {
         result.put("title", post.getTitle());
         result.put("description", post.getDescription());
         result.put("postType", post.getPostType().toString());
-        result.put("createdAt", post.getCreatedAt());
-        result.put("likesCount", post.getLikesCount() != null ? post.getLikesCount() : 0);
+        result.put("createdAt", post.getPosted_at());
+        result.put("likesCount", post.getUserLikes().size() != 0 ? post.getUserLikes().size() : 0);
         result.put("type", "POST");
 
         if (post.getImageUrl() != null) {
@@ -222,7 +222,7 @@ public class GlobalSearchService {
         professionalInfo.put("district", athlete.getDistrict());
         professionalInfo.put("height", athlete.getHeight());
         professionalInfo.put("weight", athlete.getWeight());
-        professionalInfo.put("sport", athlete.getSport());
+
         professionalInfo.put("disabilityType", athlete.getDisabilityType());
         result.put("professionalInfo", professionalInfo);
 
