@@ -43,6 +43,9 @@ function initializePage() {
         loadAthleteStats();
         loadCharts();
         initializeChartPeriodButtons();
+    } else if (activeTab === 'profile') {
+        loadProfileData();
+        initializeProfileHandlers();
     }
 }
 
@@ -896,3 +899,489 @@ function renderTrainingTypeChart(chartData) {
 
 // Initialize the page based on server-provided active tab
 initializePage();
+
+// ===== PROFILE MANAGEMENT FUNCTIONALITY =====
+
+// Profile management variables
+let profileData = {};
+let currentUserRole = '';
+
+// Function to load profile data
+async function loadProfileData() {
+    try {
+        const response = await fetch('/api/profile/data');
+        const result = await response.json();
+
+        if (result.success) {
+            profileData = result;
+            currentUserRole = result.role;
+            displayPersonalInfo(result.personal);
+            displayProfessionalInfo(result.professional, result.role);
+        } else {
+            console.error('Failed to load profile data:', result.message);
+            showMessage('Failed to load profile data', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading profile data:', error);
+        showMessage('Error loading profile data', 'error');
+    }
+}
+
+// Function to initialize profile event handlers
+function initializeProfileHandlers() {
+    // Personal info edit handlers
+    const editPersonalBtn = document.getElementById('editPersonalBtn');
+    const cancelPersonalBtn = document.getElementById('cancelPersonalBtn');
+    const personalForm = document.getElementById('personalForm');
+
+    // Professional info edit handlers
+    const editProfessionalBtn = document.getElementById('editProfessionalBtn');
+    const professionalForm = document.getElementById('professionalForm');
+
+    if (editPersonalBtn) {
+        editPersonalBtn.addEventListener('click', () => {
+            togglePersonalEditMode(true);
+        });
+    }
+
+    if (cancelPersonalBtn) {
+        cancelPersonalBtn.addEventListener('click', () => {
+            togglePersonalEditMode(false);
+            loadProfileData(); // Reload to reset any changes
+        });
+    }
+
+    if (personalForm) {
+        personalForm.addEventListener('submit', handlePersonalFormSubmit);
+    }
+
+    if (editProfessionalBtn) {
+        editProfessionalBtn.addEventListener('click', () => {
+            toggleProfessionalEditMode(true);
+        });
+    }
+
+    if (professionalForm) {
+        professionalForm.addEventListener('submit', handleProfessionalFormSubmit);
+    }
+}
+
+// Function to display personal information
+function displayPersonalInfo(personal) {
+    // Update profile image and basic info
+    const profileImage = document.getElementById('profileImage');
+    const fullName = document.getElementById('fullName');
+    const userEmail = document.getElementById('userEmail');
+    const userRole = document.getElementById('userRole');
+
+    if (profileImage) {
+        profileImage.src = personal.profileImageUrl || '/placeholder-avatar.png';
+    }
+    if (fullName) {
+        fullName.textContent = `${personal.firstName || ''} ${personal.lastName || ''}`.trim() || 'Name not provided';
+    }
+    if (userEmail) {
+        userEmail.textContent = personal.email || 'Email not provided';
+    }
+    if (userRole) {
+        userRole.textContent = currentUserRole ? currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1) : 'Role';
+    }
+
+    // Update individual fields
+    document.getElementById('phoneDisplay').textContent = personal.phone || 'Not provided';
+    document.getElementById('countryDisplay').textContent = personal.country || 'Not provided';
+    document.getElementById('genderDisplay').textContent = personal.gender || 'Not provided';
+    document.getElementById('aadhaarDisplay').textContent = personal.aadhaarNumber || 'Not provided';
+    document.getElementById('bioDisplay').textContent = personal.bio || 'No bio provided';
+
+    // Populate edit form fields
+    document.getElementById('firstName').value = personal.firstName || '';
+    document.getElementById('lastName').value = personal.lastName || '';
+    document.getElementById('phone').value = personal.phone || '';
+    document.getElementById('country').value = personal.country || '';
+    document.getElementById('gender').value = personal.gender || '';
+    document.getElementById('aadhaarNumber').value = personal.aadhaarNumber || '';
+    document.getElementById('bio').value = personal.bio || '';
+}
+
+// Function to display professional information based on role
+function displayProfessionalInfo(professional, role) {
+    const displayDiv = document.getElementById('professionalDisplay');
+    const editDiv = document.getElementById('professionalEdit');
+    const formDiv = document.getElementById('professionalForm');
+
+    if (!displayDiv || !editDiv || !formDiv) return;
+
+    let displayHTML = '';
+    let editHTML = '';
+
+    switch (role) {
+        case 'athlete':
+            displayHTML = generateAthleteDisplayHTML(professional);
+            editHTML = generateAthleteEditHTML(professional);
+            break;
+        case 'coach':
+            displayHTML = generateCoachDisplayHTML(professional);
+            editHTML = generateCoachEditHTML(professional);
+            break;
+        case 'sponsor':
+            displayHTML = generateSponsorDisplayHTML(professional);
+            editHTML = generateSponsorEditHTML(professional);
+            break;
+        default:
+            displayHTML = '<p class="text-gray-500">No professional information available</p>';
+            editHTML = '<p class="text-gray-500">No professional information to edit</p>';
+    }
+
+    displayDiv.innerHTML = displayHTML;
+    formDiv.innerHTML = editHTML;
+}
+
+// Generate athlete display HTML
+function generateAthleteDisplayHTML(data) {
+    return `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Height</label>
+                <p class="text-gray-900">${data.height ? data.height + ' cm' : 'Not provided'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Weight</label>
+                <p class="text-gray-900">${data.weight ? data.weight + ' kg' : 'Not provided'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
+                <p class="text-gray-900">${data.state || 'Not provided'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">District</label>
+                <p class="text-gray-900">${data.district || 'Not provided'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Disability Status</label>
+                <p class="text-gray-900">${data.isDisabled ? 'Yes' : 'No'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Disability Type</label>
+                <p class="text-gray-900">${data.disabilityType || 'Not applicable'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
+                <p class="text-gray-900">${data.emergencyContactName || 'Not provided'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Emergency Phone</label>
+                <p class="text-gray-900">${data.emergencyContactPhone || 'Not provided'}</p>
+            </div>
+            ${data.currentCoach ? `
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Current Coach</label>
+                    <p class="text-gray-900">${data.currentCoach.name}</p>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// Generate athlete edit HTML
+function generateAthleteEditHTML(data) {
+    return `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Height (cm)</label>
+                <input type="number" name="height" value="${data.height || ''}" step="0.1" 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                <input type="number" name="weight" value="${data.weight || ''}" step="0.1"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">State</label>
+                <input type="text" name="state" value="${data.state || ''}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">District</label>
+                <input type="text" name="district" value="${data.district || ''}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Disability Status</label>
+                <select name="isDisabled" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="false" ${!data.isDisabled ? 'selected' : ''}>No</option>
+                    <option value="true" ${data.isDisabled ? 'selected' : ''}>Yes</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Disability Type</label>
+                <input type="text" name="disabilityType" value="${data.disabilityType || ''}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Emergency Contact Name</label>
+                <input type="text" name="emergencyContactName" value="${data.emergencyContactName || ''}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Emergency Contact Phone</label>
+                <input type="tel" name="emergencyContactPhone" value="${data.emergencyContactPhone || ''}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="md:col-span-2 flex space-x-3">
+                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg flex items-center">
+                    <i class="fas fa-save mr-2"></i> Save Changes
+                </button>
+                <button type="button" id="cancelProfessionalBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg flex items-center">
+                    <i class="fas fa-times mr-2"></i> Cancel
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Generate coach display HTML
+function generateCoachDisplayHTML(data) {
+    return `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Authority/Certification</label>
+                <p class="text-gray-900">${data.authority || 'Not provided'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
+                <p class="text-gray-900">${data.specialization || 'Not provided'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Experience (Years)</label>
+                <p class="text-gray-900">${data.experienceYears || 'Not provided'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
+                <p class="text-gray-900">${data.state || 'Not provided'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">District</label>
+                <p class="text-gray-900">${data.district || 'Not provided'}</p>
+            </div>
+        </div>
+    `;
+}
+
+// Generate coach edit HTML
+function generateCoachEditHTML(data) {
+    return `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Authority/Certification</label>
+                <input type="text" name="authority" value="${data.authority || ''}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Specialization</label>
+                <input type="text" name="specialization" value="${data.specialization || ''}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Experience (Years)</label>
+                <input type="number" name="experienceYears" value="${data.experienceYears || ''}" min="0"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">State</label>
+                <input type="text" name="state" value="${data.state || ''}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">District</label>
+                <input type="text" name="district" value="${data.district || ''}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="md:col-span-2 flex space-x-3">
+                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg flex items-center">
+                    <i class="fas fa-save mr-2"></i> Save Changes
+                </button>
+                <button type="button" id="cancelProfessionalBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg flex items-center">
+                    <i class="fas fa-times mr-2"></i> Cancel
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Generate sponsor display HTML
+function generateSponsorDisplayHTML(data) {
+    return `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                <p class="text-gray-900">${data.companyName || 'Not provided'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+                <p class="text-gray-900">${data.industry || 'Not provided'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                <p class="text-gray-900">${data.website ? `<a href="${data.website}" target="_blank" class="text-blue-600 hover:underline">${data.website}</a>` : 'Not provided'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Budget Range</label>
+                <p class="text-gray-900">${data.budgetRange || 'Not provided'}</p>
+            </div>
+        </div>
+    `;
+}
+
+// Generate sponsor edit HTML
+function generateSponsorEditHTML(data) {
+    return `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                <input type="text" name="companyName" value="${data.companyName || ''}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Industry</label>
+                <input type="text" name="industry" value="${data.industry || ''}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Website</label>
+                <input type="url" name="website" value="${data.website || ''}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Budget Range</label>
+                <select name="budgetRange" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select Budget Range</option>
+                    <option value="Under $1,000" ${data.budgetRange === 'Under $1,000' ? 'selected' : ''}>Under $1,000</option>
+                    <option value="$1,000 - $5,000" ${data.budgetRange === '$1,000 - $5,000' ? 'selected' : ''}>$1,000 - $5,000</option>
+                    <option value="$5,000 - $10,000" ${data.budgetRange === '$5,000 - $10,000' ? 'selected' : ''}>$5,000 - $10,000</option>
+                    <option value="$10,000 - $25,000" ${data.budgetRange === '$10,000 - $25,000' ? 'selected' : ''}>$10,000 - $25,000</option>
+                    <option value="$25,000 - $50,000" ${data.budgetRange === '$25,000 - $50,000' ? 'selected' : ''}>$25,000 - $50,000</option>
+                    <option value="Over $50,000" ${data.budgetRange === 'Over $50,000' ? 'selected' : ''}>Over $50,000</option>
+                </select>
+            </div>
+            <div class="md:col-span-2 flex space-x-3">
+                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg flex items-center">
+                    <i class="fas fa-save mr-2"></i> Save Changes
+                </button>
+                <button type="button" id="cancelProfessionalBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg flex items-center">
+                    <i class="fas fa-times mr-2"></i> Cancel
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Toggle personal info edit mode
+function togglePersonalEditMode(editMode) {
+    const displayDiv = document.getElementById('personalDisplay');
+    const editDiv = document.getElementById('personalEdit');
+    const editBtn = document.getElementById('editPersonalBtn');
+
+    if (editMode) {
+        displayDiv.classList.add('hidden');
+        editDiv.classList.remove('hidden');
+        editBtn.style.display = 'none';
+    } else {
+        displayDiv.classList.remove('hidden');
+        editDiv.classList.add('hidden');
+        editBtn.style.display = 'flex';
+    }
+}
+
+// Toggle professional info edit mode
+function toggleProfessionalEditMode(editMode) {
+    const displayDiv = document.getElementById('professionalDisplay');
+    const editDiv = document.getElementById('professionalEdit');
+    const editBtn = document.getElementById('editProfessionalBtn');
+
+    if (editMode) {
+        displayDiv.classList.add('hidden');
+        editDiv.classList.remove('hidden');
+        editBtn.style.display = 'none';
+
+        // Add cancel button handler after form is rendered
+        setTimeout(() => {
+            const cancelBtn = document.getElementById('cancelProfessionalBtn');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    toggleProfessionalEditMode(false);
+                    loadProfileData(); // Reload to reset any changes
+                });
+            }
+        }, 100);
+    } else {
+        displayDiv.classList.remove('hidden');
+        editDiv.classList.add('hidden');
+        editBtn.style.display = 'flex';
+    }
+}
+
+// Handle personal form submission
+async function handlePersonalFormSubmit(e) {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+
+    try {
+        const response = await fetch('/api/profile/personal', {
+            method: 'PUT',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showMessage('Personal information updated successfully!', 'success');
+            togglePersonalEditMode(false);
+            loadProfileData(); // Reload to show updated data
+        } else {
+            showMessage(result.message || 'Failed to update personal information', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating personal information:', error);
+        showMessage('Error updating personal information', 'error');
+    }
+}
+
+// Handle professional form submission
+async function handleProfessionalFormSubmit(e) {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const professionalData = {};
+
+    // Convert FormData to regular object
+    for (let [key, value] of formData.entries()) {
+        professionalData[key] = value;
+    }
+
+    try {
+        const response = await fetch('/api/profile/professional', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(professionalData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showMessage('Professional information updated successfully!', 'success');
+            toggleProfessionalEditMode(false);
+            loadProfileData(); // Reload to show updated data
+        } else {
+            showMessage(result.message || 'Failed to update professional information', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating professional information:', error);
+        showMessage('Error updating professional information', 'error');
+    }
+}
+

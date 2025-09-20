@@ -27,4 +27,13 @@ public class AthleteService {
     public boolean save(Athlete athlete) {
         return athleteRepository.save(athlete) != null;
     }
+
+    public boolean updateAthlete(Athlete athlete) {
+        try {
+            return athleteRepository.save(athlete) != null;
+        } catch (Exception e) {
+            System.out.println("Error updating athlete: " + e.getMessage());
+            return false;
+        }
+    }
 }
